@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#A8231C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HANA Premium — Bảng quản trị · CEO Phạm Mai Phương</title>
+<meta name="description" content="Bảng quản trị Phòng Khám Thẩm Mỹ HANA Premium — CEO Phạm Mai Phương · 12 năm kinh nghiệm · 20.000+ khách hàng">
+
+<!-- ===== Open Graph cho Zalo / Facebook / Messenger preview ===== -->
+<meta property="og:type" content="profile">
+<meta property="og:title" content="HANA Premium Beauty Center — CEO Phạm Mai Phương">
+<meta property="og:description" content="Phòng Khám Thẩm Mỹ HANA Premium · 12 năm kinh nghiệm · 20.000+ khách hàng tin chọn · Hotline 0855 698 899">
+<meta property="og:image" content="https://phammaiphuong.vn/og-card.jpg">
+<meta property="og:image:secure_url" content="https://phammaiphuong.vn/og-card.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="CEO Phạm Mai Phương — HANA Premium Beauty Center">
+<meta property="og:url" content="https://phammaiphuong.vn/quantri">
+<meta property="og:site_name" content="HANA Premium">
+<meta property="og:locale" content="vi_VN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HANA Premium — CEO Phạm Mai Phương">
+<meta name="twitter:description" content="Đẹp tự nhiên · An toàn y khoa · Chuyên gia đồng hành">
+<meta name="twitter:image" content="https://phammaiphuong.vn/og-card.jpg">
+<link rel="apple-touch-icon" href="/IMG_6776.JPG">
+<link rel="icon" type="image/jpeg" href="/IMG_6776.JPG">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --red:#A8231C; --red-deep:#7E150F;
+    --orange:#E0762C; --orange-deep:#C9551A;
+    --gold:#E8C25A; --gold-deep:#C99A2E;
+    --brown:#5A3620; --brown-deep:#3B2113;
+    --cream:#FFF8EC; --cream-2:#FBEFD8;
+    --bg:#FAF7F2; --card:#fff; --line:#F0E5D0;
+    --ink:#2A1B0E; --muted:#8b7a65;
+    --green:#27AE60; --blue:#2C7BE5; --purple:#9B59B6;
+    --grad:linear-gradient(135deg,#E8C25A 0%,#E0762C 50%,#A8231C 100%);
+    --shadow:0 12px 40px -18px rgba(90,54,32,.35);
+    --shadow-sm:0 4px 14px -6px rgba(90,54,32,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  /* === FONT TỐI ƯU CHO NGƯỜI LỚN TUỔI ===
+     Plus Jakarta Sans — sans rộng rãi, dễ đọc, premium
+     Base 15.5px (thay 14), weight 500 default (thay 400)
+     line-height 1.6 cho thoáng, letter-spacing 0.01em chống dính chữ */
+  body{
+    font-family:'Plus Jakarta Sans','Be Vietnam Pro',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    font-size:15.5px;font-weight:500;line-height:1.6;letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3,h4,.serif{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+  h1{font-size:1.65rem}
+  h2{font-size:1.32rem}
+  h3{font-size:1.08rem}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit;font-weight:600}
+  input,select,textarea{font:inherit;font-weight:500}
+  input,select,textarea{padding:12px 15px;border:1.5px solid var(--line);border-radius:11px;outline:none;width:100%;background:#fff;font-size:1rem;transition:.2s;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{border-color:var(--orange);box-shadow:0 0 0 4px rgba(224,118,44,.14)}
+  input::placeholder,textarea::placeholder{color:#aa9889}
+  label{display:block;font-size:.9rem;font-weight:700;color:var(--brown);margin-bottom:7px;margin-top:14px}
+
+  /* Layout */
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  aside{background:linear-gradient(180deg,var(--brown-deep) 0%,var(--brown) 100%);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  aside::-webkit-scrollbar{width:6px}aside::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+  .brand{display:flex;align-items:center;gap:13px;padding:0 8px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .brand .mono{width:46px;height:46px;border-radius:13px;background:var(--grad);display:grid;place-items:center;font-family:'Playfair Display';font-weight:900;font-size:1.2rem;color:#fff;box-shadow:0 8px 18px -8px rgba(168,35,28,.6)}
+  .brand b{font-family:'Playfair Display';font-size:1.22rem;display:block;font-weight:800;letter-spacing:-.01em}
+  .brand small{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.16em;color:rgba(255,255,255,.65);text-transform:uppercase;margin-top:3px}
+
+  .nav{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+  .nav .group{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5);padding:18px 12px 8px;font-weight:800}
+  .nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:rgba(255,255,255,.88);font-weight:600;font-size:1rem;transition:.18s;cursor:pointer;letter-spacing:.005em}
+  .nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+  .nav a.active{background:var(--grad);color:#fff;box-shadow:0 8px 20px -8px rgba(168,35,28,.55);font-weight:700}
+  .nav a .ic{width:22px;flex:none;text-align:center;font-size:1.1rem}
+  .nav a .badge{margin-left:auto;background:var(--red);font-size:.72rem;padding:2px 8px;border-radius:99px;font-weight:800;min-width:22px;text-align:center}
+  .nav a.active .badge{background:rgba(255,255,255,.28)}
+
+  .user-mini{margin-top:22px;padding:14px;background:rgba(255,255,255,.08);border-radius:14px;display:flex;align-items:center;gap:11px;border:1px solid rgba(255,255,255,.06)}
+  .user-mini .av{width:46px;height:46px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden;border:2px solid var(--gold)}
+  .user-mini .av img{width:100%;height:100%;object-fit:cover;object-position:center 22%}
+  .user-mini b{font-size:.96rem;display:block;font-weight:700;color:#fff}
+  .user-mini span{font-size:.78rem;color:rgba(255,255,255,.65);font-weight:500}
+
+  /* Main */
+  main{padding:0;overflow-x:hidden}
+  header.topbar{position:sticky;top:0;z-index:30;background:rgba(250,247,242,.95);backdrop-filter:blur(14px);padding:16px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--line)}
+  header.topbar h1{font-size:1.6rem;font-weight:800;color:var(--brown-deep);letter-spacing:-.01em;line-height:1.2}
+  header.topbar h1 .sub{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:.92rem;color:var(--muted);font-weight:600;margin-top:3px;letter-spacing:0}
+  .topbar .search{margin-left:auto;display:flex;align-items:center;gap:9px;background:#fff;padding:11px 18px;border-radius:99px;border:1.5px solid var(--line);width:320px;box-shadow:var(--shadow-sm);transition:.2s}
+  .topbar .search:focus-within{border-color:var(--orange);box-shadow:0 0 0 4px rgba(224,118,44,.12)}
+  .topbar .search input{flex:1;border:0;outline:0;font-size:.96rem;background:transparent;padding:0;font-weight:500}
+  .topbar .search input:focus{box-shadow:none}
+  .topbar .icon-btn{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;border:1.5px solid var(--line);position:relative;box-shadow:var(--shadow-sm);cursor:pointer;font-size:1.15rem;transition:.2s}
+  .topbar .icon-btn:hover{background:var(--cream);border-color:var(--gold)}
+  .topbar .icon-btn .dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 0 0 0 rgba(168,35,28,.5);animation:pulseDot 2s infinite}
+  @keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 rgba(168,35,28,.5)}50%{box-shadow:0 0 0 6px rgba(168,35,28,0)}}
+  .topbar .profile{display:flex;align-items:center;gap:11px;padding:5px 16px 5px 5px;background:#fff;border-radius:99px;border:1.5px solid var(--line);box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s}
+  .topbar .profile:hover{border-color:var(--gold);background:var(--cream)}
+  .topbar .profile .av{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;overflow:hidden;border:2px solid var(--gold);flex:none}
+  .topbar .profile .av img{width:100%;height:100%;object-fit:cover;object-position:center 22%}
+  .topbar .profile b{font-size:.94rem;display:block;font-weight:700;color:var(--brown-deep);line-height:1.2}
+  .topbar .profile span:not(.av){font-size:.78rem;color:var(--muted);font-weight:600}
+
+  section.page{padding:22px 26px 40px;display:none;animation:fadeIn .35s ease}
+  section.page.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Cards & grid */
+  .grid{display:grid;gap:16px}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .kpi{background:#fff;border-radius:16px;padding:18px;border:1px solid var(--line);position:relative;overflow:hidden;transition:.25s;cursor:pointer}
+  .kpi:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .kpi .ic{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:1.5rem;color:#fff;margin-bottom:14px;box-shadow:0 8px 18px -8px rgba(0,0,0,.2)}
+  .kpi.k1 .ic{background:linear-gradient(135deg,var(--gold),var(--gold-deep))}
+  .kpi.k2 .ic{background:linear-gradient(135deg,#F39C12,var(--orange))}
+  .kpi.k3 .ic{background:linear-gradient(135deg,var(--orange),var(--red))}
+  .kpi.k4 .ic{background:linear-gradient(135deg,var(--red),var(--red-deep))}
+  .kpi .label{font-size:.88rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .kpi .val{font-family:'Playfair Display';font-size:2.3rem;font-weight:800;color:var(--brown-deep);line-height:1.05;margin:5px 0 4px;letter-spacing:-.02em}
+  .kpi .delta{font-size:.92rem;color:var(--green);font-weight:700}
+  .kpi .delta.down{color:var(--red)}
+
+  .card{background:#fff;border-radius:16px;padding:22px;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+  .card h2,.card h3{font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;font-weight:800;font-size:1.15rem;color:var(--brown-deep);margin-bottom:4px;letter-spacing:-.01em}
+  .card .sub{font-size:.92rem;color:var(--muted);margin-bottom:16px;font-weight:500}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+  .card-head h2,.card-head h3{margin:0}
+
+  .pill{font-size:.82rem;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--cream);color:var(--orange-deep);display:inline-block;letter-spacing:.01em}
+  .pill.green{background:#E6F7EE;color:var(--green)}
+  .pill.red{background:#FDEAEA;color:var(--red)}
+  .pill.blue{background:#E6F0FB;color:var(--blue)}
+  .pill.purple{background:#F4ECF7;color:var(--purple)}
+  .pill.gray{background:#EEE;color:#555}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 19px;border-radius:11px;font-weight:700;font-size:.96rem;background:var(--grad);color:#fff;transition:.22s;box-shadow:0 8px 20px -10px rgba(201,85,26,.5);letter-spacing:.005em;min-height:42px;line-height:1.2}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px -10px rgba(201,85,26,.6)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:#fff;color:var(--brown-deep);border:1.5px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{background:var(--cream);border-color:var(--gold)}
+  .btn.sm{padding:7px 13px;font-size:.86rem;min-height:34px}
+  .btn.danger{background:linear-gradient(135deg,var(--red),var(--red-deep))}
+  .btn.green{background:linear-gradient(135deg,#16A085,#27AE60)}
+
+  .row{display:grid;gap:16px;margin-top:16px}
+  .r-2-1{grid-template-columns:2fr 1fr}
+  .r-1-2{grid-template-columns:1fr 2fr}
+  .r-3{grid-template-columns:repeat(3,1fr)}
+  .r-2{grid-template-columns:1fr 1fr}
+
+  table{width:100%;border-collapse:collapse;font-size:.98rem}
+  th{text-align:left;font-weight:700;color:var(--brown);text-transform:uppercase;font-size:.78rem;letter-spacing:.06em;padding:11px 12px;border-bottom:2px solid var(--line);background:#FBF7EE}
+  td{padding:14px 12px;border-bottom:1px solid var(--line);color:var(--ink);font-weight:500}
+  tr:last-child td{border:0}
+  tr.clickable{cursor:pointer;transition:.15s}
+  tr.clickable:hover td{background:#FFFCF6}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--grad);display:inline-grid;place-items:center;color:#fff;font-weight:800;font-size:.95rem;flex:none;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover;object-position:center 25%}
+  .with-av{display:flex;align-items:center;gap:11px}
+  .with-av b{font-weight:700;color:var(--brown-deep);display:block;line-height:1.35;font-size:.98rem}
+  .with-av span{font-size:.84rem;color:var(--muted);font-weight:500}
+
+  /* Tiers */
+  .tier{display:inline-block;font-size:.78rem;font-weight:800;padding:4px 11px;border-radius:99px;letter-spacing:.05em;text-transform:uppercase}
+  .tier.diamond{background:linear-gradient(135deg,#A8C5E8,#5DA0DC);color:#fff}
+  .tier.gold{background:var(--grad);color:#fff}
+  .tier.silver{background:linear-gradient(135deg,#D0D0D0,#9A9A9A);color:#fff}
+
+  /* Calendar */
+  .cal-grid{display:grid;grid-template-columns:70px repeat(7,1fr);gap:1px;background:var(--line);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .cal-grid > div{background:#fff;padding:9px 10px;min-height:62px;font-size:.76rem}
+  .cal-head{background:var(--cream)!important;font-weight:700;color:var(--brown-deep);text-align:center}
+  .cal-head .d{font-family:'Playfair Display';font-size:1.3rem;line-height:1}
+  .cal-head.today{background:var(--grad)!important;color:#fff!important}
+  .cal-time{color:var(--muted);font-weight:600;text-align:right;border-right:1px solid var(--line)}
+  .cal-slot{position:relative;cursor:pointer;transition:.15s}
+  .cal-slot:hover{background:#FFFCF6!important}
+  .booking{position:absolute;left:3px;right:3px;top:3px;background:var(--grad);color:#fff;padding:6px 7px;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer}
+  .booking.b2{background:linear-gradient(135deg,var(--gold),var(--gold-deep))}
+  .booking.b3{background:linear-gradient(135deg,var(--orange),var(--red))}
+  .booking .who{font-size:.76rem;font-weight:700;margin-bottom:1px}
+  .booking .what{opacity:.9;font-size:.68rem}
+
+  /* Service cards */
+  .svc-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .svc{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;transition:.25s;cursor:pointer}
+  .svc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .svc .pic{height:120px;background:var(--grad);display:grid;place-items:center;font-size:2.6rem;color:rgba(255,255,255,.6)}
+  .svc .body{padding:16px}
+  .svc h3{font-size:.96rem;font-weight:700;margin-bottom:5px}
+  .svc .price{font-family:'Playfair Display';font-size:1.3rem;font-weight:800;color:var(--orange-deep)}
+  .svc .meta{font-size:.76rem;color:var(--muted);margin-top:3px}
+
+  /* AI */
+  .ai-card{background:linear-gradient(135deg,var(--brown-deep),var(--red-deep));color:#fff;border-radius:16px;padding:20px;position:relative;overflow:hidden}
+  .ai-card::before{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(232,194,90,.3),transparent 70%)}
+  .ai-card h3{color:var(--gold)!important;font-family:'Playfair Display';font-size:1.15rem;margin-bottom:5px;position:relative;z-index:1}
+  .ai-icon{display:inline-block;width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;margin-bottom:10px}
+  .ai-insight{background:rgba(255,255,255,.08);border-radius:11px;padding:12px;margin-top:10px;font-size:.86rem;border-left:3px solid var(--gold);position:relative;z-index:1}
+  .ai-insight b{color:var(--gold)}
+
+  .alert{display:flex;gap:12px;padding:15px 17px;border-radius:13px;margin-bottom:11px;font-size:.96rem;align-items:flex-start;line-height:1.55;font-weight:500}
+  .alert.warn{background:#FFF6E6;border:1px solid #F5C97C;color:#8B5A00}
+  .alert.danger{background:#FDEAEA;border:1px solid #F0AAA8;color:var(--red-deep)}
+  .alert.info{background:#E6F0FB;border:1px solid #B0CCEB;color:#1A5494}
+  .alert.success{background:#E6F7EE;border:1px solid #9BD8B5;color:#1E6B3A}
+  .alert .ic{font-size:1.1rem;flex:none}
+  .alert button{margin-left:auto}
+
+  .progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .progress > div{height:100%;background:var(--grad);transition:width .8s}
+  .stock-low{color:var(--red);font-weight:700}
+  .stock-ok{color:var(--green);font-weight:700}
+
+  .camp{background:#fff;border-radius:12px;padding:15px;border:1px solid var(--line);display:flex;gap:12px;align-items:center;cursor:pointer}
+  .camp .ic{width:44px;height:44px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-size:1.2rem;color:#fff;flex:none}
+
+  .review{padding:14px;border-bottom:1px solid var(--line);display:flex;gap:12px}
+  .review:last-child{border:0}
+  .stars{color:var(--gold-deep);font-size:.9rem;letter-spacing:2px}
+
+  /* AI chat */
+  .ai-chat{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;height:560px}
+  .ai-msg{margin-bottom:10px;padding:11px 13px;border-radius:13px;max-width:84%;font-size:.9rem;animation:fadeIn .3s}
+  .ai-msg.bot{background:var(--cream);color:var(--brown-deep);border-bottom-left-radius:4px}
+  .ai-msg.user{background:var(--grad);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+
+  /* === MODAL === */
+  .modal-bg{position:fixed;inset:0;background:rgba(59,33,19,.55);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .25s}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:18px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;animation:modalIn .3s cubic-bezier(.16,1,.3,1)}
+  .modal.lg{max-width:900px}
+  .modal.sm{max-width:480px}
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+  .modal-head{position:sticky;top:0;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:22px 26px;border-bottom:1px solid var(--line);z-index:2}
+  .modal-head h2{font-family:'Be Vietnam Pro';font-size:1.18rem;font-weight:800;color:var(--brown-deep)}
+  .modal-head .close{width:36px;height:36px;border-radius:50%;background:var(--cream);display:grid;place-items:center;font-size:1.1rem;color:var(--brown);cursor:pointer}
+  .modal-body{padding:22px 26px 26px}
+  .modal-foot{position:sticky;bottom:0;background:#fff;padding:14px 26px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,#3B2113,#5A3620);color:#fff;padding:13px 22px;border-radius:12px;font-weight:600;font-size:.9rem;box-shadow:0 18px 50px -14px rgba(0,0,0,.5);z-index:1100;opacity:0;transition:.35s;pointer-events:none;max-width:80vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.green{background:linear-gradient(135deg,#16A085,#27AE60)}
+  .toast.red{background:linear-gradient(135deg,var(--red),var(--red-deep))}
+  .toast .ic{margin-right:7px}
+
+  /* Status pills */
+  .status{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;font-size:.84rem;font-weight:700;letter-spacing:.005em}
+  .status::before{content:"";width:6px;height:6px;border-radius:50%}
+  .status.green::before{background:var(--green)}
+  .status.green{background:#E6F7EE;color:var(--green)}
+  .status.blue::before{background:var(--blue)}
+  .status.blue{background:#E6F0FB;color:var(--blue)}
+  .status.red::before{background:var(--red)}
+  .status.red{background:#FDEAEA;color:var(--red)}
+  .status.gold::before{background:var(--gold-deep)}
+  .status.gold{background:#FFF6E0;color:var(--gold-deep)}
+  .status.gray::before{background:#888}
+  .status.gray{background:#F0F0F0;color:#555}
+
+  /* Tasks */
+  .task{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;transition:.2s}
+  .task:hover{border-color:var(--gold)}
+  .task.done{opacity:.55;background:var(--cream)}
+  .task input[type=checkbox]{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--orange)}
+  .task .meta{display:flex;gap:10px;font-size:.74rem;color:var(--muted);margin-top:5px;flex-wrap:wrap}
+  .task .meta b{color:var(--brown)}
+
+  /* Care timeline */
+  .timeline{position:relative;padding-left:28px}
+  .timeline::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--line)}
+  .tl-item{position:relative;padding-bottom:16px}
+  .tl-item::before{content:"";position:absolute;left:-26px;top:4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--gold-deep)}
+  .tl-item.done::before{background:var(--green);border-color:var(--green)}
+  .tl-item.due::before{background:var(--red);border-color:var(--red);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(168,35,28,.6)}50%{box-shadow:0 0 0 8px rgba(168,35,28,0)}}
+  .tl-item b{display:block;color:var(--brown-deep)}
+  .tl-item span{font-size:.78rem;color:var(--muted)}
+
+  /* Photo gallery */
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .photo-pair{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line);cursor:pointer;transition:.25s}
+  .photo-pair:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .photo-pair .imgs{display:grid;grid-template-columns:1fr 1fr;height:140px;position:relative}
+  .photo-pair .imgs > div{display:grid;place-items:center;font-size:2.5rem}
+  .photo-pair .imgs > div:first-child{background:linear-gradient(135deg,#F0E5D0,#E8DCC0)}
+  .photo-pair .imgs > div:last-child{background:linear-gradient(135deg,#FFF8EC,#FBEFD8)}
+  .photo-pair .imgs::after{content:"VS";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--brown-deep);color:#fff;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:800}
+  .photo-pair .info{padding:12px}
+
+  /* Table wrapper - scroll ngang mượt trên mobile */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;margin:0 -4px;padding:0 4px;scroll-snap-type:x proximity}
+  .tbl-wrap table{min-width:540px}
+  .tbl-wrap::-webkit-scrollbar{height:6px}
+  .tbl-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+  .tbl-wrap::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+
+  /* Sidebar overlay (khi mở trên mobile) */
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(59,33,19,.55);backdrop-filter:blur(3px);z-index:45;animation:fadeIn .25s}
+  .sidebar-backdrop.show{display:block}
+  .menu-toggle{display:none;width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid var(--line);place-items:center;cursor:pointer;font-size:1.15rem;color:var(--brown-deep);flex:none}
+  .menu-toggle:hover{background:var(--cream)}
+  .sidebar-close{display:none;position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);place-items:center;color:#fff;font-size:1.1rem;cursor:pointer;z-index:2}
+
+  /* ===============================
+     RESPONSIVE — 4 TẦNG THIẾT BỊ
+     iPhone · Android · iPad · Desktop
+     =============================== */
+
+  /* ===== Desktop nhỏ + iPad ngang (1024–1280px) ===== */
+  @media (max-width:1280px){
+    .app{grid-template-columns:220px 1fr}
+    aside{padding:18px 11px}
+    .nav a{font-size:.84rem;padding:8px 10px}
+    section.page{padding:20px 22px 36px}
+    header.topbar{padding:13px 22px}
+    .topbar .search{width:230px}
+  }
+
+  /* ===== iPad dọc / Tablet (768–1100px) ===== */
+  @media (max-width:1100px){
+    .app{grid-template-columns:1fr}
+    aside{position:fixed;left:-280px;top:0;bottom:0;width:280px;height:100vh;transition:left .3s cubic-bezier(.4,0,.2,1);z-index:50;padding:18px 14px;padding-top:calc(env(safe-area-inset-top, 0px) + 18px)}
+    aside.open{left:0;box-shadow:0 0 60px rgba(0,0,0,.4)}
+    .sidebar-close{display:grid}
+    .menu-toggle{display:grid!important}
+    header.topbar{padding:12px 20px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);gap:10px}
+    .topbar .search{flex:1;width:auto;min-width:0}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .r-2-1,.r-1-2,.r-3,.r-2{grid-template-columns:1fr}
+    .ai-chat{height:480px}
+    .cal-grid{grid-template-columns:60px repeat(7,minmax(100px,1fr));min-width:760px}
+    .row.r-2-1, .row.r-1-2{grid-template-columns:1fr}
+    section.page{padding:18px 18px 32px}
+  }
+
+  /* ===== Mobile lớn (iPhone Plus / Android lớn 481–767px) ===== */
+  @media (max-width:767px){
+    body{font-size:13.5px}
+    header.topbar{padding:10px 14px;padding-top:calc(env(safe-area-inset-top, 0px) + 10px);gap:8px;flex-wrap:wrap}
+    header.topbar h1{font-size:1.12rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    header.topbar h1 .sub{font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+    .topbar .search{order:10;flex-basis:100%;width:100%;padding:7px 12px;margin-top:4px}
+    .topbar .search input{font-size:.84rem}
+    .topbar .icon-btn{width:38px;height:38px}
+    .topbar .profile{padding:4px 9px 4px 4px}
+    .topbar .profile span:not(.av){display:none}
+    .topbar .profile .av{width:30px;height:30px;font-size:.78rem}
+    section.page{padding:14px 14px 90px}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .kpi{padding:14px}
+    .kpi .ic{width:38px;height:38px;font-size:1.1rem;margin-bottom:8px}
+    .kpi .val{font-size:1.55rem}
+    .kpi .label{font-size:.66rem}
+    .kpi .delta{font-size:.7rem}
+    .card{padding:16px;border-radius:14px}
+    .card-head{flex-direction:column;align-items:flex-start;gap:8px}
+    .card-head .btn,.card-head .pill{align-self:flex-start}
+    h2{font-size:1.05rem}
+    h3{font-size:.95rem}
+    .grid,.row{gap:12px}
+    .row{margin-top:12px}
+    /* Auto-scroll tables theo chiều ngang — card thành container cuộn */
+    .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .card > table{min-width:540px;font-size:.82rem}
+    .card > table th{font-size:.6rem;padding:7px 9px}
+    .card > table td{padding:10px 9px}
+    .card > table .with-av span:not(.avatar){font-size:.78rem}
+    .card > table .with-av span span{font-size:.66rem}
+    /* Card head + body fit dù table cuộn */
+    .card .card-head{position:sticky;left:0}
+    .ai-chat{height:64vh;max-height:520px}
+    .modal-bg{padding:0;align-items:flex-end}
+    .modal{max-width:100%;width:100%;max-height:94vh;border-radius:18px 18px 0 0;animation:modalSlideUp .32s cubic-bezier(.16,1,.3,1)}
+    .modal-head{padding:16px 18px}
+    .modal-head h2{font-size:1.04rem}
+    .modal-body{padding:16px 18px 22px}
+    .modal-foot{padding:12px 18px;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);flex-direction:column-reverse}
+    .modal-foot .btn{width:100%;justify-content:center}
+    .cal-grid{grid-template-columns:55px repeat(7,minmax(90px,1fr));min-width:680px;font-size:.7rem}
+    .cal-grid > div{padding:7px 6px;min-height:54px}
+    .booking{font-size:.66rem;padding:5px 6px}
+    .svc-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .svc .pic{height:90px;font-size:2rem}
+    .svc .body{padding:12px}
+    .svc h3{font-size:.86rem}
+    .svc .price{font-size:1.05rem}
+    .gallery{grid-template-columns:repeat(2,1fr);gap:10px}
+    .photo-pair .imgs{height:110px}
+    .photo-pair .imgs > div{font-size:1.9rem}
+    .btn{padding:9px 14px;font-size:.8rem}
+    .btn.sm{padding:6px 11px;font-size:.74rem}
+    .alert{font-size:.8rem;padding:11px;gap:8px}
+    .alert > div{min-width:0}
+    .alert button.btn{align-self:stretch;margin-top:6px;margin-left:0!important}
+    .ai-card::before{display:none}
+    .ai-insight{font-size:.8rem;padding:10px}
+    .pill{font-size:.66rem;padding:3px 8px}
+    .tier{font-size:.6rem;padding:2px 7px}
+    /* Bottom safe-area cho input bar */
+    input,select,textarea{font-size:16px}  /* tránh iOS zoom khi focus */
+  }
+
+  /* ===== Mobile nhỏ (iPhone SE / Mini / Android nhỏ ≤480px) ===== */
+  @media (max-width:480px){
+    aside{width:86vw;max-width:300px}
+    header.topbar h1{font-size:1rem}
+    header.topbar h1 .sub{font-size:.62rem}
+    .topbar .profile{display:none}
+    .topbar .icon-btn{width:36px;height:36px;font-size:.95rem}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}
+    .kpi{padding:12px;border-radius:13px}
+    .kpi .val{font-size:1.35rem}
+    .card{padding:14px;border-radius:13px}
+    section.page{padding:12px 12px 90px}
+    .svc-grid{grid-template-columns:1fr}
+    .gallery{grid-template-columns:1fr}
+    .photo-pair .imgs{height:160px}
+    .cal-grid{grid-template-columns:48px repeat(7,minmax(80px,1fr));min-width:600px}
+    .alert{flex-direction:column}
+    .alert .ic{font-size:1.3rem}
+    .modal-head{padding:14px 16px}
+    .modal-body{padding:14px 16px 18px}
+  }
+
+  /* ===== Mobile XS (≤360px — Galaxy Fold đóng / iPhone cũ) ===== */
+  @media (max-width:360px){
+    .kpi-grid{grid-template-columns:1fr}
+    .kpi .val{font-size:1.6rem}
+    header.topbar h1 .sub{display:none}
+  }
+
+  /* ===== Modal slide-up animation ===== */
+  @keyframes modalSlideUp{
+    from{opacity:0;transform:translateY(60px)}
+    to{opacity:1;transform:none}
+  }
+
+  /* ===== Mobile landscape (điện thoại nằm ngang) ===== */
+  @media (max-height:480px) and (orientation:landscape){
+    aside{padding-top:14px}
+    header.topbar{padding:8px 16px}
+    .modal{max-height:94vh}
+    .ai-chat{height:80vh}
+  }
+
+  /* ===== Touch-friendly: tap target ≥ 44px theo Apple HIG ===== */
+  @media (hover:none) and (pointer:coarse){
+    .nav a{padding:11px 12px}
+    .btn{min-height:40px}
+    .btn.sm{min-height:34px}
+    tr.clickable td{padding:14px 11px}
+    .kpi{padding:16px}
+  }
+
+  /* ===== Print / khi xuất PDF ===== */
+  @media print{
+    aside, header.topbar, .menu-toggle, .modal-bg, .toast, .alert button{display:none!important}
+    .app{grid-template-columns:1fr}
+    section.page{display:block!important;padding:0;page-break-after:always}
+  }
+
+  /* ===== Dark mode (tự động theo OS — tuỳ chọn nhẹ, không phá brand) ===== */
+  @media (prefers-color-scheme:dark){
+    /* giữ light mode mặc định để không lệch brand HANA, chỉ tinh chỉnh contrast */
+    body{color-scheme:light}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+  <aside id="sidebar">
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Đóng menu">✕</button>
+    <div class="brand">
+      <span class="mono">H</span>
+      <span><b>HANA Premium</b><small>Thẩm mỹ · Quản trị</small></span>
+    </div>
+
+    <div class="nav">
+      <a data-section="dashboard" class="active"><span class="ic">📊</span>Tổng quan</a>
+      <a data-section="calendar"><span class="ic">📅</span>Lịch hẹn<span class="badge">12</span></a>
+      <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
+      <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
+      <a data-section="complaints"><span class="ic">🚨</span>Khiếu nại & SOS<span class="badge">3</span></a>
+
+      <div class="group">Vận hành</div>
+      <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
+      <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
+      <a data-section="schedule"><span class="ic">🗓️</span>Lịch trực</a>
+      <a data-section="medical"><span class="ic">🩺</span>Hồ sơ y khoa</a>
+      <a data-section="gallery"><span class="ic">📸</span>Trước & Sau</a>
+
+      <div class="group">Kinh doanh</div>
+      <a data-section="services"><span class="ic">💎</span>Dịch vụ</a>
+      <a data-section="revenue"><span class="ic">💰</span>Doanh thu</a>
+      <a data-section="inventory"><span class="ic">📦</span>Kho hàng</a>
+      <a data-section="marketing"><span class="ic">📢</span>Marketing</a>
+      <a data-section="reviews"><span class="ic">⭐</span>Đánh giá</a>
+
+      <div class="group">2026 — Thông minh</div>
+      <a data-section="ai"><span class="ic">🤖</span>AI Assistant<span class="badge" style="background:var(--gold-deep)">MỚI</span></a>
+
+      <div class="group">Khác</div>
+      <a data-section="booking"><span class="ic">🔗</span>Trang đặt lịch</a>
+      <a href="/quantri/huong-dan" target="_blank"><span class="ic">📘</span>Hướng dẫn</a>
+      <a data-section="settings"><span class="ic">⚙️</span>Cài đặt</a>
+    </div>
+
+    <div class="user-mini">
+      <span class="av"><img src="/IMG_6776.JPG" alt="Phạm Mai Phương" loading="lazy" onerror="this.parentElement.textContent='P'"></span>
+      <span style="flex:1;min-width:0"><b>Phạm Mai Phương</b><span>CEO · Chủ phòng khám</span></span>
+      <a href="/api/logout" title="Đăng xuất" style="color:rgba(255,255,255,.7);padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.08);font-size:.84rem;flex:none;font-weight:700">↪</a>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="menu-toggle" onclick="openSidebar()" aria-label="Mở menu">☰</button>
+      <h1 id="page-title">Tổng quan<span class="sub" id="page-sub">Xin chào chị Phương · Thứ Tư · 20/05/2026</span></h1>
+      <div class="search">
+        <span>🔎</span>
+        <input id="globalSearch" placeholder="Tìm khách, dịch vụ, đơn hàng… (⌘K)">
+      </div>
+      <button class="icon-btn" id="notifBtn" title="Thông báo">🔔<span class="dot"></span></button>
+      <button class="icon-btn" id="quickAddBtn" title="Thêm nhanh">＋</button>
+      <div class="profile" id="profileBtn" onclick="toast('👤 Chào chị Phương! Click avatar bên trái để mở menu nhanh')">
+        <span class="av"><img src="/IMG_6776.JPG" alt="Phạm Mai Phương" onerror="this.parentElement.textContent='P'"></span>
+        <span><b>Phạm Mai Phương</b><span>CEO HANA Premium</span></span>
+      </div>
+    </header>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="page active" id="page-dashboard">
+
+      <!-- Storage info banner -->
+      <div class="alert info" style="margin-bottom:14px;display:flex;align-items:center"><span class="ic">💾</span><div style="flex:1"><b>Dữ liệu lưu ở đâu?</b> <span id="storageInfo">Hiện đang lưu tại trình duyệt (localStorage) — gồm Task, KH thêm mới, ghi chú</span>. <a href="#" onclick="openModal('storage-help');return false" style="color:var(--orange-deep);font-weight:700">Tìm hiểu cách backup, export, kết nối DB ngoài →</a></div><button class="btn ghost sm" onclick="openModal('storage-help')">📖 Hướng dẫn</button></div>
+
+      <div class="grid kpi-grid">
+        <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val">24</div><div class="delta">▲ 18% so với hôm qua</div></div>
+        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val">47</div><div class="delta">▲ 12 khách</div></div>
+        <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label">Doanh thu tuần</div><div class="val">186tr</div><div class="delta">▲ 24% vs tuần trước</div></div>
+        <div class="kpi k4" onclick="go('reviews')"><div class="ic">⭐</div><div class="label">Hài lòng (NPS)</div><div class="val">94<span style="font-size:1rem">%</span></div><div class="delta">▲ 3 điểm</div></div>
+      </div>
+
+      <div class="row r-2-1">
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">So sánh cùng kỳ tháng trước</div></div>
+            <span class="pill">Tăng trưởng +18%</span>
+          </div>
+          <canvas id="chartRevenue" height="110"></canvas>
+        </div>
+
+        <div class="card ai-card" style="color:#fff">
+          <div class="ai-icon">✨</div>
+          <h3>AI Insights hôm nay</h3>
+          <div class="ai-insight"><b>🎯 Cơ hội:</b> 8 khách VIP chưa quay lại 60+ ngày. <a href="#" onclick="go('care');return false" style="color:var(--gold);text-decoration:underline">Xem & gửi voucher →</a></div>
+          <div class="ai-insight"><b>⚠️ Cảnh báo:</b> Thứ Năm tuần sau khung 14-16h trống 6 slot. <a href="#" onclick="go('marketing');return false" style="color:var(--gold);text-decoration:underline">Chạy flash-sale →</a></div>
+          <div class="ai-insight"><b>📈 Dự đoán:</b> Tuần tới doanh thu ~210tr (±8%).</div>
+        </div>
+      </div>
+
+      <div class="row r-1-2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h3>Phân loại khách</h3></div>
+          <canvas id="chartGender" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Lịch hẹn sắp tới hôm nay</h3><div class="sub">12 lịch · CEO trực tiếp tư vấn 3 ca</div></div>
+            <button class="btn sm" onclick="go('calendar')">Xem tất cả</button>
+          </div>
+          <table>
+            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Giờ</th><th>KTV</th><th>Trạng thái</th></tr></thead>
+            <tbody id="todayApps"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row r-3" style="margin-top:16px">
+        <div class="card">
+          <h3>🏆 Top dịch vụ tuần</h3>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-top:14px">
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Cắt mí mắt</b><span style="color:var(--orange-deep);font-weight:700">34 ca</span></div><div class="progress"><div style="width:90%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Trẻ hóa da Hifu</b><span style="color:var(--orange-deep);font-weight:700">28 ca</span></div><div class="progress"><div style="width:74%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Tiêm filler</b><span style="color:var(--orange-deep);font-weight:700">21 ca</span></div><div class="progress"><div style="width:55%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Nâng cung mày</b><span style="color:var(--orange-deep);font-weight:700">18 ca</span></div><div class="progress"><div style="width:48%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Hút mỡ bụng</b><span style="color:var(--orange-deep);font-weight:700">12 ca</span></div><div class="progress"><div style="width:32%"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>👑 Top KTV / Tư vấn viên</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px" id="topStaff"></div>
+        </div>
+        <div class="card">
+          <h3>🎂 Sự kiện hôm nay</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:.86rem;margin-top:14px">
+            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>🎉 Sinh nhật chị Linh Nguyễn</b><div style="color:var(--muted);font-size:.76rem">22/05 · Đã gửi voucher 30%</div></div>
+            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>💎 Khách Diamond Mai Phạm</b><div style="color:var(--muted);font-size:.76rem">Kỷ niệm 2 năm · Tự động gửi quà</div></div>
+            <div style="padding:11px;background:linear-gradient(135deg,#FDEAEA,#FFF8EC);border-radius:9px"><b>⚠️ 3 khách quên tái khám</b><div style="color:var(--muted);font-size:.76rem">AI nhắc gọi trong 24h</div></div>
+            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>📅 Ngày Phụ Nữ VN 20/10</b><div style="color:var(--muted);font-size:.76rem">Chuẩn bị campaign -20%</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CALENDAR ============ -->
+    <section class="page" id="page-calendar">
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Lịch hẹn tuần này</h2><div class="sub">18 – 24 / 05 / 2026 · 87 lịch · CEO Phương 18 ca</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn ghost sm" onclick="toast('⬅️ Tuần trước')">← Tuần trước</button>
+            <button class="btn sm" onclick="openModal('new-booking')">+ Tạo lịch mới</button>
+            <button class="btn ghost sm" onclick="toast('➡️ Tuần sau')">Tuần sau →</button>
+          </div>
+        </div>
+
+        <div class="alert info"><span class="ic">🤖</span><div><b>AI gợi ý:</b> Khung 14:00 Thứ Năm còn 6 slot trống — chạy flash-sale 20% có thể fill, tăng dự kiến 12tr.</div><button class="btn sm" onclick="aiAction('flash-sale')">Tạo ngay</button></div>
+
+        <div class="tbl-wrap" style="margin-top:12px"><div class="cal-grid" id="calGrid"></div></div>
+
+        <div style="display:flex;gap:16px;font-size:.78rem;margin-top:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:3px;background:var(--grad);display:inline-block"></span>CEO trực tiếp</div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:3px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));display:inline-block"></span>Tư vấn / Tái khám</div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:3px;background:linear-gradient(135deg,var(--orange),var(--red));display:inline-block"></span>Phẫu thuật / Combo</div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:3px;background:#FFF6E6;border:1px dashed var(--orange);display:inline-block"></span>AI gợi ý lấp</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CRM ============ -->
+    <section class="page" id="page-crm">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">👥</div><div class="label">Tổng khách</div><div class="val">2.847</div><div class="delta">▲ 47 tuần này</div></div>
+        <div class="kpi k2"><div class="ic">💎</div><div class="label">VIP & Diamond</div><div class="val">186</div><div class="delta">6.5% tổng khách</div></div>
+        <div class="kpi k3"><div class="ic">🔄</div><div class="label">Tỉ lệ quay lại</div><div class="val">68<span style="font-size:1rem">%</span></div><div class="delta">▲ 5%</div></div>
+        <div class="kpi k4"><div class="ic">📉</div><div class="label">Nguy cơ rời (AI)</div><div class="val">23</div><div class="delta down">Cần follow-up</div></div>
+      </div>
+
+      <div class="alert warn" style="margin-top:16px"><span class="ic">🤖</span><div><b>AI churn-risk:</b> 23 khách VIP có dấu hiệu rời. Em đề xuất voucher 20% + cuộc gọi từ CEO.</div><button class="btn sm" onclick="aiAction('churn-campaign')">Tạo chiến dịch</button></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <div><h2>Danh sách khách hàng</h2><div class="sub">Bấm vào dòng để xem hồ sơ chi tiết</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="crmSearch" placeholder="🔎 Tìm tên / SĐT..." style="width:220px">
+            <select id="crmTier" style="width:140px"><option value="">Tất cả hạng</option><option>Diamond</option><option>Gold</option><option>Silver</option></select>
+            <button class="btn ghost sm" onclick="exportExcel('customers')">⬇ Xuất Excel</button>
+            <button class="btn ghost sm" onclick="openModal('import-data',{target:'customers'})">⬆ Nhập Excel</button>
+            <button class="btn sm" onclick="openModal('new-customer')">+ Thêm khách</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Khách hàng</th><th>Hạng</th><th>Tổng chi (LTV)</th><th>Lần gần nhất</th><th>Số ca</th><th>AI Score</th><th></th></tr></thead>
+          <tbody id="crmRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ HẬU CHĂM SÓC ============ -->
+    <section class="page" id="page-care">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">🛎️</div><div class="label">Khách cần follow-up hôm nay</div><div class="val">8</div><div class="delta">3 ngày 1 · 2 ngày 7 · 3 ngày 30</div></div>
+        <div class="kpi k2"><div class="ic">📞</div><div class="label">Đã gọi tuần này</div><div class="val">52</div><div class="delta">94% theo SOP</div></div>
+        <div class="kpi k3"><div class="ic">💌</div><div class="label">Tin Zalo đã gửi</div><div class="val">186</div><div class="delta">▲ 24 so tuần trước</div></div>
+        <div class="kpi k4"><div class="ic">😊</div><div class="label">Phản hồi tích cực</div><div class="val">96<span style="font-size:1rem">%</span></div><div class="delta">Tốt</div></div>
+      </div>
+
+      <div class="alert info" style="margin-top:16px"><span class="ic">📋</span><div><b>SOP hậu chăm sóc HANA:</b> Ngày 1 — gọi hỏi thăm · Ngày 3 — hướng dẫn chăm sóc · Ngày 7 — kiểm tra phục hồi · Ngày 14 — tái khám · Ngày 30 — Zalo cảm ơn + voucher</div></div>
+
+      <div class="row r-2-1" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>📋 Danh sách hậu chăm sóc hôm nay</h2><button class="btn ghost sm" onclick="aiAction('care-script')">🤖 AI soạn tin Zalo</button></div>
+          <table>
+            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Ngày làm</th><th>Giai đoạn</th><th>Hành động</th><th></th></tr></thead>
+            <tbody id="careRows"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>⏱️ Quy trình cho khách mới</h3>
+          <div class="timeline" style="margin-top:14px">
+            <div class="tl-item done"><b>Ngày 0 — Làm dịch vụ</b><span>Chụp ảnh trước, ký consent, dặn dò</span></div>
+            <div class="tl-item due"><b>Ngày 1 — Gọi hỏi thăm</b><span>📞 15 phút · Hỏi đau, sưng, vướng mắc</span></div>
+            <div class="tl-item"><b>Ngày 3 — Hướng dẫn</b><span>💌 Zalo: cách chăm sóc tại nhà</span></div>
+            <div class="tl-item"><b>Ngày 7 — Tái khám 1</b><span>🩺 Kiểm tra phục hồi · Chụp ảnh</span></div>
+            <div class="tl-item"><b>Ngày 14 — Tái khám 2</b><span>🩺 Đánh giá kết quả · Tư vấn duy trì</span></div>
+            <div class="tl-item"><b>Ngày 30 — Tri ân</b><span>🎁 Zalo cảm ơn + voucher 15%</span></div>
+            <div class="tl-item"><b>Ngày 90 — Win-back</b><span>📞 Mời combo duy trì</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ KHIẾU NẠI & SOS ============ -->
+    <section class="page" id="page-complaints">
+      <div class="grid kpi-grid">
+        <div class="kpi k4"><div class="ic">🚨</div><div class="label">SOS đang mở</div><div class="val">3</div><div class="delta down">Cần xử lý trong 1h</div></div>
+        <div class="kpi k2"><div class="ic">📋</div><div class="label">Khiếu nại tháng này</div><div class="val">12</div><div class="delta">9 đã giải quyết</div></div>
+        <div class="kpi k1"><div class="ic">⏱️</div><div class="label">Thời gian xử lý TB</div><div class="val">2.4h</div><div class="delta">Mục tiêu &lt; 4h</div></div>
+        <div class="kpi k3"><div class="ic">💚</div><div class="label">Tỉ lệ hài lòng sau xử lý</div><div class="val">92<span style="font-size:1rem">%</span></div><div class="delta">▲ 5%</div></div>
+      </div>
+
+      <div class="alert danger" style="margin-top:16px"><span class="ic">🚨</span><div><b>3 SOS cần xử lý ngay:</b> 1 khách phản ánh đau sau filler · 1 khách yêu cầu hoàn tiền · 1 khách dọa review xấu</div><button class="btn danger sm" onclick="toast('🚨 Mở chi tiết SOS','red')">Xử lý ngay</button></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <div><h2>Tickets khiếu nại</h2><div class="sub">Theo SLA: P1 (SOS) &lt; 1h · P2 &lt; 4h · P3 &lt; 24h</div></div>
+          <div style="display:flex;gap:8px">
+            <select style="width:130px"><option>Tất cả</option><option>Đang mở</option><option>Đang xử lý</option><option>Đã xong</option></select>
+            <button class="btn sm" onclick="openModal('new-complaint')">+ Tạo ticket</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Khách</th><th>Loại</th><th>Mức</th><th>Tóm tắt</th><th>Người phụ trách</th><th>Trạng thái</th><th>SLA</th></tr></thead>
+          <tbody id="complaintRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ TASKS ============ -->
+    <section class="page" id="page-tasks">
+      <div class="row r-2-1">
+        <div class="card">
+          <div class="card-head">
+            <div><h2>Công việc hôm nay</h2><div class="sub">14 task · 6 hoàn thành · 8 còn lại</div></div>
+            <div style="display:flex;gap:8px"><select style="width:140px"><option>Tất cả</option><option>Của tôi</option><option>Cao</option></select><button class="btn sm" onclick="openModal('new-task')">+ Thêm task</button></div>
+          </div>
+          <div id="taskList"></div>
+        </div>
+
+        <div class="card">
+          <h3>📊 Hiệu suất team</h3>
+          <div style="margin-top:14px" id="staffPerf"></div>
+          <div class="alert success" style="margin-top:16px"><span class="ic">🎉</span><div><b>Team đang vượt KPI tuần!</b> Tỉ lệ hoàn thành task 89%, cao hơn tuần trước.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STAFF ============ -->
+    <section class="page" id="page-staff">
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">💡</span><div><b>Hướng dẫn nhanh:</b> Bấm vào dòng nhân viên để mở hồ sơ chi tiết. Trong hồ sơ có thể: ① giao việc mới · ② gắn tag (kỹ năng, vai trò) · ③ xem KPI · ④ phân ca · ⑤ chat nội bộ</div></div>
+
+      <div class="row r-2-1">
+        <div class="card">
+          <div class="card-head">
+            <div><h2>Quản trị nhân viên</h2><div class="sub">12 nhân sự · 4 bác sĩ · 6 KTV · 2 lễ tân · Bấm dòng để mở hồ sơ + giao việc</div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost sm" onclick="exportExcel('staff')">⬇ Xuất Excel</button>
+              <button class="btn ghost sm" onclick="openModal('import-data',{target:'staff'})">⬆ Nhập Excel</button>
+              <button class="btn sm" onclick="openModal('new-staff')">+ Thêm nhân viên</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Tags / Kỹ năng</th><th>Ca tháng</th><th>Đánh giá</th><th>Doanh thu</th><th>KPI</th></tr></thead>
+            <tbody id="staffRows"></tbody>
+          </table>
+        </div>
+        <div class="card ai-card" style="color:#fff">
+          <div class="ai-icon">📊</div>
+          <h3>Hiệu suất đội ngũ</h3>
+          <div class="ai-insight"><b>🏆 Best:</b> CEO Phương đứng đầu doanh thu + đánh giá 3 tháng liền.</div>
+          <div class="ai-insight"><b>💡 Đào tạo:</b> KTV Ngọc cần khóa Hifu nâng cao để tăng ticket size.</div>
+          <div class="ai-insight"><b>📈 Tuyển:</b> Booking quá tải 10-12h, cần thêm 1 bác sĩ tiêm chỉnh.</div>
+        </div>
+      </div>
+
+      <div class="row r-3" style="margin-top:14px">
+        <div class="card" style="cursor:pointer" onclick="aiAction('staff-assign')"><div style="font-size:1.4rem">📋</div><h3 style="margin-top:6px">Giao việc hàng loạt</h3><div class="sub">AI gợi ý phân task theo skill</div></div>
+        <div class="card" style="cursor:pointer" onclick="go('schedule')"><div style="font-size:1.4rem">🗓️</div><h3 style="margin-top:6px">Phân ca trực tuần</h3><div class="sub">5 nhân viên · 7 ngày</div></div>
+        <div class="card" style="cursor:pointer" onclick="aiAction('staff-kpi')"><div style="font-size:1.4rem">🎯</div><h3 style="margin-top:6px">Cài KPI tháng</h3><div class="sub">Tự động theo dõi tiến độ</div></div>
+      </div>
+    </section>
+
+    <!-- ============ SCHEDULE / Lịch trực ============ -->
+    <section class="page" id="page-schedule">
+      <div class="card">
+        <div class="card-head"><div><h2>Lịch trực nhân viên — Tuần 18-24/05</h2><div class="sub">Sáng 9-13h · Chiều 13-17h · Tối 17-21h</div></div><button class="btn sm" onclick="openModal('new-shift')">+ Phân ca</button></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Nhân viên</th><th>T2</th><th>T3</th><th>T4 (Hôm nay)</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th></tr></thead>
+            <tbody id="scheduleRows"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:14px;font-size:.78rem;margin-top:14px;flex-wrap:wrap">
+          <div><span style="background:#FFF6E0;color:var(--gold-deep);padding:3px 9px;border-radius:99px;font-weight:700">Sáng</span></div>
+          <div><span style="background:#E6F0FB;color:var(--blue);padding:3px 9px;border-radius:99px;font-weight:700">Chiều</span></div>
+          <div><span style="background:#F4ECF7;color:var(--purple);padding:3px 9px;border-radius:99px;font-weight:700">Tối</span></div>
+          <div><span style="background:#F0F0F0;color:#555;padding:3px 9px;border-radius:99px;font-weight:700">Nghỉ</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MEDICAL RECORDS ============ -->
+    <section class="page" id="page-medical">
+      <div class="card">
+        <div class="card-head">
+          <div><h2>🩺 Hồ sơ y khoa</h2><div class="sub">Lịch sử khám · Phác đồ · Dị ứng · Tiền sử · Cam kết</div></div>
+          <div style="display:flex;gap:8px"><input placeholder="Tìm hồ sơ..." style="width:200px"><button class="btn sm" onclick="openModal('new-medical')">+ Tạo hồ sơ</button></div>
+        </div>
+        <table>
+          <thead><tr><th>Mã HS</th><th>Khách hàng</th><th>Tuổi</th><th>Tiền sử / Dị ứng</th><th>Lần khám gần nhất</th><th>Phác đồ đang theo</th><th></th></tr></thead>
+          <tbody id="medicalRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ BEFORE/AFTER GALLERY ============ -->
+    <section class="page" id="page-gallery">
+      <div class="card-head" style="margin-bottom:14px">
+        <div><h2 class="serif" style="font-size:1.5rem;color:var(--brown-deep)">📸 Bộ sưu tập Trước & Sau</h2><div class="sub" style="font-size:.86rem">428 case · Đã ký consent → có thể dùng marketing · Bấm vào case để xem chi tiết</div></div>
+        <div style="display:flex;gap:8px"><select style="width:160px"><option>Tất cả dịch vụ</option><option>Cắt mí</option><option>Filler</option><option>Hifu</option><option>Hút mỡ</option></select><button class="btn sm" onclick="openModal('new-photo')">+ Thêm case</button></div>
+      </div>
+      <div class="gallery" id="galleryGrid"></div>
+    </section>
+
+    <!-- ============ SERVICES ============ -->
+    <section class="page" id="page-services">
+      <div class="card-head" style="margin-bottom:14px">
+        <div><h2 class="serif" style="font-size:1.5rem;color:var(--brown-deep)">Catalog dịch vụ</h2><div class="sub" style="font-size:.86rem">42 dịch vụ · 10 combo lộ trình</div></div>
+        <button class="btn" onclick="openModal('new-service')">+ Thêm dịch vụ</button>
+      </div>
+      <div class="grid svc-grid" id="svcGrid"></div>
+    </section>
+
+    <!-- ============ REVENUE ============ -->
+    <section class="page" id="page-revenue">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">💰</div><div class="label">Doanh thu tháng</div><div class="val">762tr</div><div class="delta">▲ 22% YoY</div></div>
+        <div class="kpi k2"><div class="ic">📈</div><div class="label">Mục tiêu tháng</div><div class="val">85<span style="font-size:1rem">%</span></div><div class="delta">15% nữa đạt</div></div>
+        <div class="kpi k3"><div class="ic">💳</div><div class="label">Giá trị TB/ca</div><div class="val">3.2tr</div><div class="delta">▲ 8% vs Q1</div></div>
+        <div class="kpi k4"><div class="ic">💸</div><div class="label">Chi phí tháng</div><div class="val">186tr</div><div class="delta">Net margin 76%</div></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><div><h3>Doanh thu 6 tháng gần nhất</h3><div class="sub">Bao gồm dịch vụ, sản phẩm, combo</div></div><select style="width:140px"><option>6 tháng</option><option>12 tháng</option><option>YTD</option></select></div>
+        <canvas id="chartRevenueLarge" height="80"></canvas>
+      </div>
+      <div class="row r-2-1" style="margin-top:16px">
+        <div class="card">
+          <h3>Phân tích doanh thu theo dịch vụ</h3>
+          <canvas id="chartRevByService" height="180"></canvas>
+        </div>
+        <div class="card">
+          <h3>🎯 Mục tiêu Q2/2026</h3>
+          <div style="font-family:'Playfair Display';font-size:2.3rem;font-weight:800;color:var(--brown-deep);text-align:center;margin:10px 0">2.5 tỷ</div>
+          <div class="progress" style="height:12px"><div style="width:62%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-top:7px"><span>Đã đạt 1.55 tỷ</span><span>62%</span></div>
+          <div class="alert info" style="margin-top:14px"><span class="ic">📈</span><div><b>AI dự báo:</b> 87% xác suất đạt mục tiêu nếu giữ tốc độ.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AI ============ -->
+    <section class="page" id="page-ai">
+      <div class="row r-2-1">
+        <div>
+          <div class="ai-card" style="color:#fff;margin-bottom:16px">
+            <div class="ai-icon">🤖</div>
+            <h3 style="font-size:1.4rem">AI Assistant — Tính năng 2026</h3>
+            <p style="opacity:.85;margin-top:5px">Vũ khí AI mà spa hàng đầu 2026 đang dùng — tích hợp sẵn.</p>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:12px">
+            <div class="card" onclick="aiAction('no-show')"><div style="font-size:1.5rem">🎯</div><h3 style="margin-top:6px">No-show Prediction</h3><div class="sub">Chấm điểm rủi ro vắng mặt, nhắn Zalo nhắc 2h trước.</div></div>
+            <div class="card" onclick="aiAction('ltv')"><div style="font-size:1.5rem">💎</div><h3 style="margin-top:6px">LTV Scoring</h3><div class="sub">Tính giá trị trọn đời mỗi khách.</div></div>
+            <div class="card" onclick="aiAction('churn')"><div style="font-size:1.5rem">🚨</div><h3 style="margin-top:6px">Churn Detection</h3><div class="sub">Phát hiện khách sắp rời 30 ngày trước.</div></div>
+            <div class="card" onclick="aiAction('smart-book')"><div style="font-size:1.5rem">📅</div><h3 style="margin-top:6px">Smart Booking</h3><div class="sub">Đề xuất flash-sale lấp slot.</div></div>
+            <div class="card" onclick="aiAction('copy')"><div style="font-size:1.5rem">💬</div><h3 style="margin-top:6px">Auto Marketing Copy</h3><div class="sub">Sinh nội dung Zalo/SMS/FB.</div></div>
+            <div class="card" onclick="aiAction('birthday')"><div style="font-size:1.5rem">🎂</div><h3 style="margin-top:6px">Birthday Auto-greet</h3><div class="sub">Tự gửi voucher sinh nhật.</div></div>
+            <div class="card" onclick="aiAction('qr')"><div style="font-size:1.5rem">📱</div><h3 style="margin-top:6px">QR Check-in</h3><div class="sub">Khách quét QR → cộng điểm tự động.</div></div>
+            <div class="card" onclick="aiAction('reviews')"><div style="font-size:1.5rem">⭐</div><h3 style="margin-top:6px">Review Aggregator</h3><div class="sub">Gom review Google/FB/TikTok.</div></div>
+            <div class="card" onclick="aiAction('forecast')"><div style="font-size:1.5rem">📊</div><h3 style="margin-top:6px">Revenue Forecast</h3><div class="sub">Dự báo doanh thu 30 ngày.</div></div>
+            <div class="card" onclick="aiAction('inventory')"><div style="font-size:1.5rem">📦</div><h3 style="margin-top:6px">Smart Inventory</h3><div class="sub">Cảnh báo + tự đặt restock.</div></div>
+          </div>
+        </div>
+
+        <div class="ai-chat">
+          <div style="border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <span style="width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff">✨</span>
+            <div><b>HANA AI Assistant</b><div style="font-size:.72rem;color:var(--green)" id="aiStatus">● Gemini 2.5 Flash · Sẵn sàng</div></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding-right:4px" id="aiMessages">
+            <div class="ai-msg bot">Chào chị Phương! Em là HANA AI Assistant — nắm rõ thông tin phòng khám, dịch vụ, giá cả. Chị (hoặc khách) hỏi gì về thẩm mỹ, dịch vụ HANA — em trả lời ngay.</div>
+            <div class="ai-msg bot">💡 Ví dụ chị có thể hỏi:<br>• "Soạn tin Zalo mời khách Diamond đi tái khám -15%"<br>• "Khách 38t sau sinh, gợi ý liệu trình"<br>• "Phân tích case khách Yến đang nguy cơ rời"</div>
+          </div>
+          <div style="display:flex;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+            <input id="aiInput" style="flex:1;border:1px solid var(--line);border-radius:99px;padding:9px 15px" placeholder="Hỏi AI bất cứ điều gì…" onkeydown="if(event.key==='Enter')sendAI()">
+            <button class="btn" onclick="sendAI()" id="aiSend">Gửi</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MARKETING ============ -->
+    <section class="page" id="page-marketing">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">📣</div><div class="label">Campaign đang chạy</div><div class="val">4</div><div class="delta">2 Zalo · 2 FB Ads</div></div>
+        <div class="kpi k2"><div class="ic">💰</div><div class="label">Chi MKT tháng</div><div class="val">42tr</div><div class="delta">ROI 4.8x</div></div>
+        <div class="kpi k3"><div class="ic">🎁</div><div class="label">Voucher đã phát</div><div class="val">324</div><div class="delta">112 đã dùng</div></div>
+        <div class="kpi k4"><div class="ic">📲</div><div class="label">Khách đến từ MKT</div><div class="val">68</div><div class="delta">▲ 18 tuần này</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><div><h2>Chiến dịch đang chạy</h2><div class="sub">AI tự tối ưu ngân sách</div></div><button class="btn" onclick="openModal('new-campaign')">+ Tạo chiến dịch</button></div>
+        <div id="campList"></div>
+      </div>
+
+      <div class="row r-2-1" style="margin-top:16px">
+        <div class="card"><h3>📈 Hiệu quả kênh marketing</h3><canvas id="chartMkt" height="180"></canvas></div>
+        <div class="card">
+          <h3>🎁 Hệ thống Loyalty</h3>
+          <div style="text-align:center;padding:14px 0"><div style="font-family:'Playfair Display';font-size:2.3rem;font-weight:800;color:var(--orange-deep)">186</div><div style="color:var(--muted);font-size:.84rem">Khách VIP & Diamond</div></div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;justify-content:space-between;font-size:.84rem;align-items:center"><span class="tier silver">Silver</span><b>1.420</b></div>
+            <div style="display:flex;justify-content:space-between;font-size:.84rem;align-items:center"><span class="tier gold">Gold</span><b>724</b></div>
+            <div style="display:flex;justify-content:space-between;font-size:.84rem;align-items:center"><span class="tier diamond">Diamond</span><b>186</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INVENTORY ============ -->
+    <section class="page" id="page-inventory">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">📦</div><div class="label">Tổng SKU</div><div class="val">142</div><div class="delta">28 bán lẻ</div></div>
+        <div class="kpi k4"><div class="ic">⚠️</div><div class="label">Sắp hết hàng</div><div class="val">8</div><div class="delta down">Đặt gấp</div></div>
+        <div class="kpi k2"><div class="ic">💰</div><div class="label">Giá trị kho</div><div class="val">580tr</div><div class="delta">Vòng 42 ngày</div></div>
+        <div class="kpi k3"><div class="ic">🤖</div><div class="label">AI auto-restock</div><div class="val">12</div><div class="delta">PO chờ duyệt</div></div>
+      </div>
+      <div class="alert danger" style="margin-top:16px"><span class="ic">⚠️</span><div><b>Cần xử:</b> Filler Juvederm còn 8 ngày. AI đã chuẩn bị PO — bấm duyệt là gửi.</div><button class="btn sm" onclick="toast('✅ Đã duyệt PO Filler Juvederm','green')">Duyệt PO</button></div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><div><h2>Vật tư & sản phẩm</h2><div class="sub">Cập nhật realtime</div></div><button class="btn" onclick="openModal('new-stock')">+ Nhập kho</button></div>
+        <table>
+          <thead><tr><th>SKU</th><th>Tên</th><th>Tồn</th><th>Đơn vị</th><th>Mức tối thiểu</th><th>Dự đoán hết</th><th>Trạng thái</th></tr></thead>
+          <tbody id="invRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ REVIEWS ============ -->
+    <section class="page" id="page-reviews">
+      <div class="row r-1-2">
+        <div class="card" style="text-align:center">
+          <div style="font-family:'Playfair Display';font-size:4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1">4.92</div>
+          <div class="stars" style="font-size:1.3rem;margin:6px 0">★★★★★</div>
+          <div style="color:var(--muted)">1.247 đánh giá</div>
+          <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;text-align:left">
+            <div><div style="display:flex;justify-content:space-between;font-size:.8rem"><span>5 sao</span><b>1.087</b></div><div class="progress"><div style="width:87%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.8rem"><span>4 sao</span><b>128</b></div><div class="progress"><div style="width:10%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.8rem"><span>3 sao</span><b>22</b></div><div class="progress"><div style="width:2%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.8rem"><span>2 sao</span><b>6</b></div><div class="progress"><div style="width:.5%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:.8rem"><span>1 sao</span><b>4</b></div><div class="progress"><div style="width:.3%"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Đánh giá mới nhất</h2><div class="sub">Gom Google · FB · TikTok · Zalo</div></div><div style="display:flex;gap:6px"><button class="btn ghost sm">Tất cả</button><button class="btn sm">Cần phản hồi</button></div></div>
+          <div id="reviewList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BOOKING ============ -->
+    <section class="page" id="page-booking">
+      <div class="card">
+        <div class="card-head"><div><h2>Trang đặt lịch online</h2><div class="sub">Chia sẻ link khách đặt 24/7</div></div></div>
+        <div style="background:linear-gradient(135deg,var(--cream),var(--cream-2));border-radius:13px;padding:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div style="width:130px;height:130px;background:#fff;border-radius:13px;display:grid;place-items:center;font-size:4.5rem">📱</div>
+          <div style="flex:1;min-width:260px">
+            <div style="font-family:'Playfair Display';font-size:1.5rem;color:var(--brown-deep);font-weight:800">phammaiphuong.vn</div>
+            <div style="color:var(--muted);margin-top:4px">QR đã in sẵn dán phòng khám</div>
+            <div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap">
+              <button class="btn" onclick="copyLink('https://phammaiphuong.vn')">📋 Copy link</button>
+              <button class="btn ghost" onclick="toast('🖼️ Đang tạo QR HD…')">⬇ Tải QR</button>
+              <button class="btn ghost" onclick="toast('📲 Mở chia sẻ Zalo')">📲 Chia sẻ Zalo</button>
+            </div>
+          </div>
+        </div>
+        <div class="alert info" style="margin-top:16px"><span class="ic">✨</span><div><b>2026 magic:</b> Khách qua link này có thể chọn slot, KTV, trả cọc MoMo/ZaloPay, nhận xác nhận Zalo tự động.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="page" id="page-settings">
+      <div class="card">
+        <div class="card-head"><div><h2>Cài đặt</h2><div class="sub">Cấu hình phòng khám · tài khoản · tích hợp</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('🏥 Mở thông tin phòng khám…')"><h3>🏥 Thông tin phòng khám</h3><div class="sub" style="margin-top:5px">Tên · địa chỉ · hotline · giờ</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('💳 Mở cấu hình thanh toán…')"><h3>💳 Thanh toán</h3><div class="sub" style="margin-top:5px">MoMo · ZaloPay · VNPay · thẻ</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('📲 Mở tích hợp…')"><h3>📲 Tích hợp</h3><div class="sub" style="margin-top:5px">Zalo OA · FB · TikTok · Google</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('👥 Mở phân quyền…')"><h3>👥 Phân quyền</h3><div class="sub" style="margin-top:5px">CEO · bác sĩ · KTV · lễ tân</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('🔔 Mở thông báo…')"><h3>🔔 Thông báo</h3><div class="sub" style="margin-top:5px">Email · push · Zalo · SMS</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('🌐 Mở đa chi nhánh…')"><h3>🌐 Đa chi nhánh</h3><div class="sub" style="margin-top:5px">Sẵn sàng cho HANA 2,3</div></div>
+          <div class="card" style="background:linear-gradient(135deg,#E8F5E9,#C8E6C9);cursor:pointer;border:1px solid #81C784" onclick="backupAll()"><h3>⬇ Tải Backup toàn bộ (.json)</h3><div class="sub" style="margin-top:5px">Lưu tất cả dữ liệu về máy</div></div>
+          <label class="card" style="background:linear-gradient(135deg,#FFF3E0,#FFE0B2);cursor:pointer;border:1px solid #FFB74D;display:block">
+            <h3>⬆ Phục hồi từ Backup (.json)</h3><div class="sub" style="margin-top:5px">Ghi đè dữ liệu hiện tại</div>
+            <input type="file" accept=".json" style="display:none" onchange="restoreAll(this.files[0]);this.value=''">
+          </label>
+          <div class="card" style="background:linear-gradient(135deg,#FFF8EC,#FBEFD8);cursor:pointer;border:1px solid #E8C25A" onclick="openModal('storage-help')"><h3>❓ Hướng dẫn lưu trữ</h3><div class="sub" style="margin-top:5px">Dữ liệu lưu ở đâu · xuất file · DB</div></div>
+          <div class="card" style="background:#FDEAEA;cursor:pointer;border:1px solid #F0AAA8" onclick="if(confirm('Xác nhận xoá toàn bộ dữ liệu localStorage (reset về mặc định)?')){localStorage.clear();location.reload()}"><h3>🗑️ Reset dữ liệu demo</h3><div class="sub" style="margin-top:5px;color:#7E150F">Xoá localStorage, về mặc định</div></div>
+          <div class="card" style="background:var(--cream);cursor:pointer" onclick="location.href='/api/logout'"><h3>↪ Đăng xuất</h3><div class="sub" style="margin-top:5px">Xoá session</div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalEl">
+    <div class="modal-head"><h2 id="modalTitle">Tiêu đề</h2><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+/* ===== MOCK DATA ===== */
+const DATA = {
+  customers: [
+    {id:1, name:'Chị Linh Nguyễn', phone:'0901 234 567', age:38, tier:'diamond', ltv:184500000, lastVisit:'Hôm qua', visits:25, points:4620, aiScore:98, aiTag:'Trung thành', avBg:'var(--grad)'},
+    {id:2, name:'Chị Hương Trần', phone:'0908 567 234', age:34, tier:'gold', ltv:62300000, lastVisit:'3 ngày trước', visits:12, points:1870, aiScore:85, aiTag:'Tốt', avBg:'linear-gradient(135deg,#9B59B6,#8E44AD)'},
+    {id:3, name:'Chị Thu Vũ', phone:'0936 123 456', age:41, tier:'gold', ltv:48700000, lastVisit:'8 ngày trước', visits:8, points:1560, aiScore:72, aiTag:'TB', avBg:'linear-gradient(135deg,#16A085,#27AE60)'},
+    {id:4, name:'Chị Nga Lê', phone:'0973 891 234', age:45, tier:'diamond', ltv:96200000, lastVisit:'Hôm nay', visits:15, points:2890, aiScore:95, aiTag:'Trung thành', avBg:'linear-gradient(135deg,#E67E22,#D35400)'},
+    {id:5, name:'Chị Mai Phạm', phone:'0918 456 789', age:39, tier:'diamond', ltv:238400000, lastVisit:'2 ngày trước', visits:32, points:5890, aiScore:99, aiTag:'VIP', avBg:'linear-gradient(135deg,#3498DB,#2C3E50)'},
+    {id:6, name:'Chị Yến Nguyễn', phone:'0962 345 678', age:32, tier:'gold', ltv:54800000, lastVisit:'67 ngày trước', visits:9, points:1420, aiScore:42, aiTag:'Rủi ro rời', avBg:'linear-gradient(135deg,#E74C3C,#C0392B)', risk:true},
+    {id:7, name:'Chị Phương Đào', phone:'0945 678 901', age:36, tier:'silver', ltv:18200000, lastVisit:'22 ngày trước', visits:4, points:620, aiScore:76, aiTag:'Mới', avBg:'linear-gradient(135deg,#F39C12,#E67E22)'}
+  ],
+  todayApps: [
+    {av:'L', name:'Chị Linh Nguyễn', subtitle:'VIP · 12 lần', service:'Cắt mí mắt', time:'09:30', staff:'BS. Hà', status:'green', statusText:'Đã xác nhận'},
+    {av:'H', name:'Chị Hương Trần', subtitle:'Mới · Lần 1', service:'Tư vấn 1-1 CEO', time:'10:15', staff:'CEO Phương', status:'blue', statusText:'Đang đến', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)'},
+    {av:'T', name:'Chị Thu Vũ', subtitle:'Gold · 8 lần', service:'Trẻ hóa da Hifu', time:'11:00', staff:'BS. Mai', status:'gold', statusText:'Chờ', bg:'linear-gradient(135deg,#16A085,#27AE60)'},
+    {av:'N', name:'Chị Nga Lê', subtitle:'VIP · 15 lần', service:'Tiêm filler môi', time:'14:30', staff:'CEO Phương', status:'gold', statusText:'Chờ', bg:'linear-gradient(135deg,#E67E22,#D35400)'},
+    {av:'M', name:'Chị Mai Phạm', subtitle:'Diamond · 25 lần', service:'Combo trẻ hóa', time:'15:00', staff:'BS. Hà', status:'red', statusText:'Cần gọi', bg:'linear-gradient(135deg,#3498DB,#2C3E50)'}
+  ],
+  staff: [
+    {id:'NV-001', av:'P', name:'Phạm Mai Phương', role:'CEO · Founder', spec:'Tư vấn cao cấp', sessions:168, rating:'4.98 ⭐', revenue:'340tr', kpi:'112%', kpiClass:'green', bg:'var(--grad)', phone:'0855 698 899', email:'phuong@hanapremium.vn', status:'active', tags:['CEO','Tư vấn 1-1','Quản lý','VIP-care'], skills:['Tư vấn lộ trình','Brand voice','Coaching team']},
+    {id:'NV-002', av:'H', name:'Bs. Hà Anh', role:'Bác sĩ phẫu thuật', spec:'Cắt mí, nâng mũi', sessions:142, rating:'4.92 ⭐', revenue:'248tr', kpi:'98%', kpiClass:'green', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', phone:'0912 345 002', email:'ha.anh@hana.vn', status:'active', tags:['Bác sĩ','Phẫu thuật','Senior'], skills:['Cắt mí Hàn','Nâng mũi cấu trúc','Tạo hình']},
+    {id:'NV-003', av:'M', name:'Bs. Mai Linh', role:'Bác sĩ tiêm chỉnh', spec:'Filler, Botox', sessions:118, rating:'4.89 ⭐', revenue:'186tr', kpi:'92%', kpiClass:'', bg:'linear-gradient(135deg,#16A085,#27AE60)', phone:'0912 345 003', email:'mai.linh@hana.vn', status:'active', tags:['Bác sĩ','Tiêm chỉnh','Mid'], skills:['Filler','Botox','Mesotherapy']},
+    {id:'NV-004', av:'N', name:'KTV Ngọc', role:'KTV cao cấp', spec:'Hifu, Trẻ hóa', sessions:96, rating:'4.85 ⭐', revenue:'124tr', kpi:'88%', kpiClass:'', bg:'linear-gradient(135deg,#3498DB,#2980B9)', phone:'0912 345 004', email:'ngoc.kt@hana.vn', status:'active', tags:['KTV','Hifu','Mid'], skills:['Hifu Ultraformer','Trẻ hoá da','Chăm sóc da']},
+    {id:'NV-005', av:'Y', name:'Lễ tân Yến', role:'Front office', spec:'Đặt lịch, đón khách', sessions:'—', rating:'4.96 ⭐', revenue:'—', kpi:'95%', kpiClass:'green', bg:'linear-gradient(135deg,#E67E22,#D35400)', phone:'0912 345 005', email:'yen.lt@hana.vn', status:'active', tags:['Lễ tân','CSKH','Hậu chăm sóc'], skills:['Đặt lịch','Gọi Zalo','Quản lý SOS','Soạn tin']}
+  ],
+  care: [
+    {av:'L', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Linh Trang', service:'Cắt mí (3 tuần trước)', daysSince:21, stage:'Ngày 14 — Tái khám 2', action:'📞 Gọi xác nhận', urgent:false},
+    {av:'M', bg:'linear-gradient(135deg,#16A085,#27AE60)', name:'Chị Mai Anh', service:'Filler môi (hôm qua)', daysSince:1, stage:'Ngày 1 — Gọi hỏi thăm', action:'📞 Gọi ngay', urgent:true},
+    {av:'T', bg:'linear-gradient(135deg,#E67E22,#D35400)', name:'Chị Thu Hương', service:'Hifu (3 ngày)', daysSince:3, stage:'Ngày 3 — Hướng dẫn Zalo', action:'💌 Gửi Zalo', urgent:true},
+    {av:'N', bg:'linear-gradient(135deg,#3498DB,#2C3E50)', name:'Chị Nga Vũ', service:'Combo (7 ngày)', daysSince:7, stage:'Ngày 7 — Tái khám 1', action:'📅 Đặt lịch tái khám', urgent:true},
+    {av:'P', bg:'linear-gradient(135deg,#E74C3C,#C0392B)', name:'Chị Phượng Lê', service:'Nâng mũi (30 ngày)', daysSince:30, stage:'Ngày 30 — Tri ân + voucher', action:'🎁 Gửi voucher 15%', urgent:false},
+    {av:'A', bg:'linear-gradient(135deg,#F39C12,#E67E22)', name:'Chị Anh Đào', service:'Botox (14 ngày)', daysSince:14, stage:'Ngày 14 — Tái khám 2', action:'📞 Gọi xác nhận', urgent:false},
+    {av:'H', bg:'linear-gradient(135deg,#1ABC9C,#16A085)', name:'Chị Hằng Nguyễn', service:'Cắt mí (90 ngày)', daysSince:90, stage:'Ngày 90 — Win-back', action:'📞 Mời combo duy trì', urgent:false},
+    {av:'V', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Vy Trần', service:'Hifu (3 ngày)', daysSince:3, stage:'Ngày 3 — Hướng dẫn Zalo', action:'💌 Gửi Zalo', urgent:true}
+  ],
+  complaints: [
+    {id:'#SOS-0042', name:'Chị Quỳnh Anh', type:'Y khoa', priority:'P1', summary:'Đau nhói sau tiêm filler 2 ngày', owner:'BS. Mai', status:'red', statusText:'SOS — Đang xử lý', sla:'⏱️ 12 phút còn lại'},
+    {id:'#SOS-0041', name:'Chị Hà Linh', type:'Hoàn tiền', priority:'P1', summary:'Yêu cầu hoàn tiền combo Hifu 28tr', owner:'CEO Phương', status:'red', statusText:'SOS', sla:'⏱️ 45 phút còn lại'},
+    {id:'#SOS-0040', name:'Khách ẩn danh', type:'Review xấu', priority:'P1', summary:'Dọa đăng review 1⭐ trên Google', owner:'Lễ tân Yến', status:'red', statusText:'SOS', sla:'⏱️ 50 phút còn lại'},
+    {id:'#TK-0118', name:'Chị Phương Vũ', type:'Dịch vụ', priority:'P2', summary:'KTV trễ giờ 25 phút', owner:'Lễ tân Yến', status:'blue', statusText:'Đang xử lý', sla:'2.5h còn lại'},
+    {id:'#TK-0117', name:'Chị Mai Chi', type:'Sản phẩm', priority:'P3', summary:'Kem chống nắng La Roche bị nóng da', owner:'KTV Ngọc', status:'green', statusText:'Đã xử lý', sla:'✓ Hoàn tất'},
+    {id:'#TK-0116', name:'Chị Yến Lê', type:'Lịch hẹn', priority:'P3', summary:'Đặt lịch không nhận được xác nhận', owner:'Lễ tân Yến', status:'green', statusText:'Đã xử lý', sla:'✓ Hoàn tất'},
+    {id:'#TK-0115', name:'Chị Linh Đào', type:'Khác', priority:'P3', summary:'Hỏi về liệu trình tiếp theo', owner:'Bs. Hà', status:'green', statusText:'Đã trả lời', sla:'✓ Hoàn tất'}
+  ],
+  tasks: [
+    {id:1, title:'Gọi chị Mai Anh hậu chăm sóc ngày 1 sau Filler', priority:'Cao', owner:'Lễ tân Yến', due:'10:30 hôm nay', done:false, tag:'Chăm sóc'},
+    {id:2, title:'Soạn báo cáo doanh thu tháng 5 gửi CEO', priority:'Cao', owner:'KTV Ngọc', due:'17:00 hôm nay', done:false, tag:'Báo cáo'},
+    {id:3, title:'Đặt thêm Filler Juvederm — đã có PO sẵn', priority:'Khẩn', owner:'Bs. Hà', due:'14:00 hôm nay', done:false, tag:'Kho'},
+    {id:4, title:'Xử lý SOS chị Quỳnh Anh đau sau filler', priority:'Khẩn', owner:'Bs. Mai', due:'Trong 1h', done:false, tag:'SOS'},
+    {id:5, title:'Quay video case trước/sau cho Marketing', priority:'TB', owner:'KTV Ngọc', due:'Mai', done:false, tag:'MKT'},
+    {id:6, title:'Họp team đầu tuần 9:00', priority:'TB', owner:'CEO Phương', due:'Sáng nay', done:true, tag:'Họp'},
+    {id:7, title:'Cập nhật phác đồ Hifu 2026 cho team', priority:'TB', owner:'Bs. Hà', due:'Mai', done:false, tag:'Đào tạo'},
+    {id:8, title:'Reply 12 đánh giá Google chưa phản hồi', priority:'TB', owner:'Lễ tân Yến', due:'Hôm nay', done:false, tag:'Review'},
+    {id:9, title:'Khám sàng lọc cho chị Vy Trần lần đầu', priority:'TB', owner:'CEO Phương', due:'10:00 hôm nay', done:true, tag:'Khám'},
+    {id:10, title:'Chuẩn bị slide đào tạo KTV mới', priority:'TB', owner:'Bs. Mai', due:'Thứ 6', done:false, tag:'Đào tạo'},
+    {id:11, title:'Kiểm tra hạn sử dụng Botox Allergan', priority:'TB', owner:'KTV Ngọc', due:'Hôm nay', done:true, tag:'Kho'},
+    {id:12, title:'Gọi chị Yến win-back (67 ngày)', priority:'Cao', owner:'CEO Phương', due:'Hôm nay', done:false, tag:'Win-back'},
+    {id:13, title:'Cập nhật bảng giá dịch vụ Q3', priority:'TB', owner:'CEO Phương', due:'Tuần sau', done:false, tag:'KD'},
+    {id:14, title:'Đóng SOS chị Hà Linh hoàn tiền', priority:'Khẩn', owner:'CEO Phương', due:'Trong 45 phút', done:false, tag:'SOS'}
+  ],
+  schedule: [
+    {name:'CEO Phương', av:'P', bg:'var(--grad)', shifts:['off','morning','allday','morning','allday','off','off']},
+    {name:'Bs. Hà', av:'H', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', shifts:['morning','morning','morning','off','afternoon','afternoon','off']},
+    {name:'Bs. Mai', av:'M', bg:'linear-gradient(135deg,#16A085,#27AE60)', shifts:['afternoon','allday','afternoon','allday','off','morning','off']},
+    {name:'KTV Ngọc', av:'N', bg:'linear-gradient(135deg,#3498DB,#2980B9)', shifts:['evening','evening','evening','evening','evening','off','off']},
+    {name:'Lễ tân Yến', av:'Y', bg:'linear-gradient(135deg,#E67E22,#D35400)', shifts:['allday','allday','allday','allday','allday','morning','off']}
+  ],
+  medical: [
+    {code:'HS-2026-001', name:'Chị Linh Nguyễn', age:38, history:'Dị ứng kháng sinh Penicillin', lastVisit:'19/05/2026', protocol:'Combo trẻ hóa 6 buổi (3/6)'},
+    {code:'HS-2026-002', name:'Chị Hương Trần', age:34, history:'Không có tiền sử đặc biệt', lastVisit:'17/05/2026', protocol:'Cắt mí (đã xong)'},
+    {code:'HS-2026-003', name:'Chị Thu Vũ', age:41, history:'Cao huyết áp nhẹ — đang dùng thuốc', lastVisit:'12/05/2026', protocol:'Hifu Ultraformer 1/3'},
+    {code:'HS-2026-004', name:'Chị Nga Lê', age:45, history:'Tiền sử dị ứng nhẹ với kem chống nắng', lastVisit:'20/05/2026', protocol:'Filler môi (đã xong)'},
+    {code:'HS-2026-005', name:'Chị Mai Phạm', age:39, history:'Không có', lastVisit:'18/05/2026', protocol:'Combo 6 buổi (5/6)'},
+    {code:'HS-2026-006', name:'Chị Yến Nguyễn', age:32, history:'Có thai 12 tuần — KHÔNG TIÊM', lastVisit:'14/03/2026', protocol:'Hoãn liệu trình'}
+  ],
+  inventory: [
+    {sku:'HA-001', name:'Filler Juvederm Voluma', stock:12, unit:'ống', min:20, runOut:'8 ngày', low:true},
+    {sku:'HA-002', name:'Botox Allergan', stock:38, unit:'lọ', min:20, runOut:'32 ngày', low:false},
+    {sku:'HA-003', name:'Kem chống nắng La Roche', stock:6, unit:'tuýp', min:15, runOut:'5 ngày', low:true},
+    {sku:'HA-004', name:'Tinh chất HA serum', stock:52, unit:'chai', min:20, runOut:'45 ngày', low:false},
+    {sku:'HA-005', name:'Mặt nạ phục hồi Premium', stock:128, unit:'miếng', min:50, runOut:'28 ngày', low:false},
+    {sku:'HA-006', name:'Kim tiêm 30G', stock:42, unit:'cây', min:100, runOut:'9 ngày', low:true}
+  ],
+  services: [
+    {ic:'👁️', name:'Cắt mí mắt Hàn Quốc', duration:'45 phút', rating:'4.9', cases:142, price:'8.500.000đ'},
+    {ic:'💉', name:'Tiêm filler môi', duration:'30 phút', rating:'4.85', cases:98, price:'6.000.000đ'},
+    {ic:'✨', name:'Trẻ hóa da Hifu Ultraformer', duration:'60 phút', rating:'4.92', cases:86, price:'15.000.000đ'},
+    {ic:'🌸', name:'Nâng cung mày phun thêu', duration:'90 phút', rating:'4.88', cases:64, price:'7.500.000đ'},
+    {ic:'💎', name:'Combo trẻ hóa toàn diện 6 buổi', duration:'6 buổi', rating:'4.95', cases:42, price:'68.000.000đ'},
+    {ic:'💆‍♀️', name:'Hút mỡ bụng siêu âm', duration:'120 phút', rating:'4.87', cases:28, price:'35.000.000đ'},
+    {ic:'😍', name:'Botox xóa nhăn', duration:'30 phút', rating:'4.9', cases:112, price:'12.000.000đ'},
+    {ic:'🌷', name:'Tư vấn 1-1 cùng CEO', duration:'60 phút', rating:'5.0', cases:220, price:'Miễn phí'}
+  ],
+  campaigns: [
+    {ic:'💬', name:'Zalo OA — Flash-sale 20% khung trống', detail:'AI gửi 1.247 khách phù hợp · ROI dự kiến 12tr', status:'green', statusText:'Đang chạy'},
+    {ic:'🎂', name:'Voucher sinh nhật tự động', detail:'Gửi mỗi sáng cho khách sinh nhật · 18 đã gửi tháng', status:'green', statusText:'Automation'},
+    {ic:'📱', name:'Facebook Ads — Cắt mí Hàn Quốc', detail:'Ngân sách 800k/ngày · CPL 84k · 32 lead/tuần', status:'green', statusText:'Đang chạy'},
+    {ic:'📞', name:'Win-back chị Yến (Gold)', detail:'AI nhắc gọi · Voucher 20% đã gửi · Chờ phản hồi', status:'blue', statusText:'Đang xử lý'}
+  ],
+  reviews: [
+    {av:'L', bg:'var(--grad)', name:'Chị Linh Nguyễn', src:'Google · Hôm qua', stars:5, text:'Chị Phương là người duy nhất em đặt niềm tin. Tư vấn thật, không ép gói. Cắt mí xong 3 năm vẫn đẹp tự nhiên!'},
+    {av:'H', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Hương Trần', src:'Facebook · 2 ngày trước', stars:5, text:'Sau sinh tự ti kinh khủng, theo lộ trình của chị Phương 4 tháng giờ tự tin đăng ảnh không cần app. Cảm ơn HANA!'},
+    {av:'N', bg:'linear-gradient(135deg,#E67E22,#D35400)', name:'Chị Nga Lê', src:'TikTok · 3 ngày trước', stars:5, text:'Tiêm filler ở đây nhẹ tay nhất em từng làm. Hoàn toàn tự nhiên, không cứng đơ.'},
+    {av:'T', bg:'linear-gradient(135deg,#16A085,#27AE60)', name:'Chị Thu Vũ', src:'Google · 4 ngày trước', stars:4, text:'Hifu rất tốt, da căng mịn rõ. Chỉ có chỗ đậu xe hơi khó. Nói chung 9/10!'}
+  ],
+  gallery: [
+    {ic:'👁️→✨', service:'Cắt mí mắt', case:'Chị L · 32 tuổi · 3 tháng sau', tag:'Hot'},
+    {ic:'💋→💄', service:'Filler môi', case:'Chị M · 28 tuổi · 1 tuần sau', tag:''},
+    {ic:'😊→🌟', service:'Hifu Ultraformer', case:'Chị T · 42 tuổi · 1 tháng sau', tag:''},
+    {ic:'🎯→💎', service:'Combo trẻ hóa 6 buổi', case:'Chị N · 38 tuổi · 6 tháng', tag:'Featured'},
+    {ic:'😬→😍', service:'Botox xóa nhăn', case:'Chị P · 45 tuổi · 2 tuần', tag:''},
+    {ic:'👃→✨', service:'Nâng mũi cấu trúc', case:'Chị H · 30 tuổi · 6 tuần', tag:''},
+    {ic:'💆→🌸', service:'Hút mỡ bụng', case:'Chị V · 35 tuổi · 3 tháng', tag:'Hot'},
+    {ic:'😔→😀', service:'Cắt mí khắc phục', case:'Chị Y · 40 tuổi · 2 tháng', tag:''}
+  ]
+};
+
+/* ===== LOCAL STORAGE ===== */
+function loadData(key, fallback){ try{const v=localStorage.getItem('hana_'+key); return v?JSON.parse(v):fallback}catch{return fallback} }
+function saveData(key, val){ try{localStorage.setItem('hana_'+key, JSON.stringify(val))}catch{} }
+
+// Hydrate from localStorage if exists
+Object.keys(DATA).forEach(k=>{ DATA[k] = loadData(k, DATA[k]) });
+
+/* ===== TOAST ===== */
+let toastEl;
+function toast(msg, type='dark'){
+  if(toastEl)toastEl.remove();
+  toastEl=document.createElement('div');
+  toastEl.className='toast '+(type==='ok'?'green':type==='err'?'red':type==='green'?'green':type==='red'?'red':'');
+  toastEl.innerHTML=`<span class="ic">${type==='ok'||type==='green'?'✓':type==='err'||type==='red'?'⚠️':'💡'}</span>${msg}`;
+  document.body.appendChild(toastEl);
+  requestAnimationFrame(()=>toastEl.classList.add('show'));
+  setTimeout(()=>{toastEl?.classList.remove('show');setTimeout(()=>toastEl?.remove(),400)},2800);
+}
+
+/* ===== MODAL ===== */
+const modalBg = document.getElementById('modalBg');
+const modalEl = document.getElementById('modalEl');
+function closeModal(){ modalBg.classList.remove('show'); modalEl.classList.remove('lg','sm') }
+modalBg.addEventListener('click', e=>{ if(e.target===modalBg) closeModal() });
+addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal() });
+
+function openModal(type, ctx){
+  const t = document.getElementById('modalTitle');
+  const b = document.getElementById('modalBody');
+  modalEl.classList.remove('lg','sm');
+
+  if(type==='customer'){
+    const c = ctx;
+    modalEl.classList.add('lg');
+    t.textContent = `Hồ sơ khách: ${c.name}`;
+    b.innerHTML = `
+      <div style="display:flex;gap:18px;align-items:center;margin-bottom:18px">
+        <span class="avatar" style="width:64px;height:64px;background:${c.avBg};font-size:1.4rem">${c.name.charAt(c.name.indexOf(' ')+1)}</span>
+        <div style="flex:1">
+          <div style="font-family:'Playfair Display';font-size:1.3rem;font-weight:800;color:var(--brown-deep)">${c.name}</div>
+          <div style="color:var(--muted)">${c.phone} · ${c.age} tuổi · <span class="tier ${c.tier}">${c.tier}</span></div>
+        </div>
+        <div style="text-align:right"><div style="font-size:.78rem;color:var(--muted)">AI Score</div><div style="font-family:'Playfair Display';font-size:1.8rem;font-weight:800;color:${c.aiScore>80?'var(--green)':c.aiScore>50?'var(--orange-deep)':'var(--red)'}">${c.aiScore}</div></div>
+      </div>
+      <div class="grid r-3" style="grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">LTV</div><b style="font-size:1rem">${(c.ltv/1000000).toFixed(1)}tr</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Số ca</div><b style="font-size:1rem">${c.visits}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Điểm</div><b style="font-size:1rem">${c.points.toLocaleString()}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Gần nhất</div><b style="font-size:.84rem">${c.lastVisit}</b></div>
+      </div>
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:14px 0 8px">📋 Hành động nhanh</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" onclick="toast('📞 Đang kết nối Zalo ${c.phone}...','ok')">📞 Gọi/Zalo ngay</button>
+        <button class="btn sm" onclick="toast('📅 Mở form đặt lịch cho ${c.name}','ok')">📅 Đặt lịch</button>
+        <button class="btn sm" onclick="toast('🎁 Mở chọn voucher gửi cho ${c.name}','ok')">🎁 Gửi voucher</button>
+        <button class="btn ghost sm" onclick="toast('🩺 Xem hồ sơ y khoa ${c.name}','ok');closeModal();go('medical')">🩺 Hồ sơ y khoa</button>
+        <button class="btn ghost sm" onclick="toast('📸 Xem ảnh trước/sau ${c.name}','ok');closeModal();go('gallery')">📸 Trước/Sau</button>
+      </div>
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:18px 0 8px">📝 Lịch sử dịch vụ</h3>
+      <table>
+        <thead><tr><th>Ngày</th><th>Dịch vụ</th><th>KTV</th><th>Giá</th></tr></thead>
+        <tbody>
+          <tr><td>${c.lastVisit}</td><td>${c.tier==='diamond'?'Combo trẻ hóa':'Cắt mí'}</td><td>CEO Phương</td><td>${c.tier==='diamond'?'18.000.000đ':'8.500.000đ'}</td></tr>
+          <tr><td>3 tuần trước</td><td>Filler môi</td><td>BS. Mai</td><td>6.000.000đ</td></tr>
+          <tr><td>2 tháng trước</td><td>Hifu Ultraformer</td><td>BS. Hà</td><td>15.000.000đ</td></tr>
+        </tbody>
+      </table>
+      ${c.risk?`<div class="alert danger" style="margin-top:14px"><span class="ic">⚠️</span><div><b>Cảnh báo AI:</b> Chưa quay lại 67 ngày — gửi voucher 20% ngay để giữ chân.</div><button class="btn sm" onclick="toast('🎁 Đã gửi voucher 20% cho ${c.name}','green');closeModal()">Gửi luôn</button></div>`:''}
+    `;
+  }
+
+  else if(type==='appointment'){
+    const a = ctx;
+    t.textContent = `Lịch hẹn: ${a.name}`;
+    b.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <span class="avatar" style="width:54px;height:54px;background:${a.bg||'var(--grad)'};font-size:1.2rem">${a.av}</span>
+        <div><b style="font-size:1.1rem">${a.name}</b><div style="font-size:.84rem;color:var(--muted)">${a.subtitle}</div></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Dịch vụ</div><b>${a.service}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Giờ</div><b>${a.time}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">KTV</div><b>${a.staff}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Trạng thái</div><span class="status ${a.status}">${a.statusText}</span></div>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn sm green" onclick="toast('✅ Đã xác nhận lịch hẹn','green');closeModal()">✓ Xác nhận đến</button>
+        <button class="btn ghost sm" onclick="toast('📞 Đang gọi xác nhận...')">📞 Gọi nhắc</button>
+        <button class="btn ghost sm" onclick="toast('📅 Mở form đổi giờ')">🔄 Đổi giờ</button>
+        <button class="btn danger sm" onclick="if(confirm('Xác nhận huỷ lịch?')){toast('❌ Đã huỷ lịch','red');closeModal()}">✕ Huỷ lịch</button>
+      </div>
+    `;
+  }
+
+  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-shift' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-complaint' || type==='new-campaign'){
+    const titles = {
+      'new-customer':'➕ Thêm khách hàng mới',
+      'new-staff':'➕ Thêm nhân viên mới',
+      'new-service':'➕ Thêm dịch vụ mới',
+      'new-task':'➕ Thêm công việc',
+      'new-booking':'➕ Tạo lịch hẹn mới',
+      'new-shift':'➕ Phân ca trực',
+      'new-medical':'➕ Tạo hồ sơ y khoa',
+      'new-stock':'➕ Nhập kho mới',
+      'new-photo':'➕ Thêm case trước/sau',
+      'new-complaint':'➕ Tạo ticket khiếu nại',
+      'new-campaign':'➕ Tạo chiến dịch marketing'
+    };
+    t.textContent = titles[type];
+    const forms = {
+      'new-customer': `<label>Họ tên</label><input id="f1" placeholder="Chị Nguyễn Văn A"><label>Số điện thoại</label><input id="f2" placeholder="0912 345 678"><label>Tuổi</label><input id="f3" type="number" placeholder="35"><label>Nguồn</label><select id="f4"><option>Khách giới thiệu</option><option>Facebook</option><option>TikTok</option><option>Google</option><option>Walk-in</option></select><label>Ghi chú</label><textarea id="f5" rows="3" placeholder="Khách quan tâm dịch vụ..."></textarea>`,
+      'new-staff': `<label>Họ tên</label><input id="f1"><label>Vai trò</label><select id="f2"><option>Bác sĩ phẫu thuật</option><option>Bác sĩ tiêm chỉnh</option><option>KTV cao cấp</option><option>KTV</option><option>Lễ tân</option><option>Marketing</option></select><label>Chuyên môn</label><input id="f3" placeholder="Cắt mí, Filler..."><label>SĐT</label><input id="f4">`,
+      'new-service': `<label>Tên dịch vụ</label><input id="f1"><label>Giá (VNĐ)</label><input id="f2" type="number"><label>Thời gian (phút)</label><input id="f3" type="number"><label>Mô tả</label><textarea id="f5" rows="3"></textarea>`,
+      'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
+      'new-booking': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}<option>+ Khách mới</option></select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ngày</label><input id="f3" type="date"><label>Giờ</label><select id="f4">${['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(h=>`<option>${h}</option>`).join('')}</select><label>KTV / Bác sĩ</label><select id="f5">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ghi chú</label><textarea id="f6" rows="2"></textarea>`,
+      'new-shift': `<label>Nhân viên</label><select id="f1">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ngày</label><input id="f2" type="date"><label>Ca</label><select id="f3"><option>Sáng (9-13h)</option><option>Chiều (13-17h)</option><option>Tối (17-21h)</option><option>Cả ngày</option><option>Nghỉ</option></select>`,
+      'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
+      'new-stock': `<label>SKU</label><input id="f1"><label>Tên sản phẩm</label><input id="f2"><label>Số lượng nhập</label><input id="f3" type="number"><label>Đơn vị</label><select id="f4"><option>ống</option><option>lọ</option><option>tuýp</option><option>chai</option><option>miếng</option><option>cây</option><option>hộp</option></select><label>Mức tối thiểu</label><input id="f5" type="number"><label>Nhà cung cấp</label><input id="f6">`,
+      'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
+      'new-complaint': `<label>Khách hàng</label><input id="f1"><label>Loại</label><select id="f2"><option>Y khoa</option><option>Dịch vụ</option><option>Sản phẩm</option><option>Lễ tân</option><option>Hoàn tiền</option><option>Review xấu</option><option>Khác</option></select><label>Mức độ</label><select id="f3"><option>P1 — SOS (cần xử lý &lt; 1h)</option><option>P2 — Cao (&lt; 4h)</option><option>P3 — Thường (&lt; 24h)</option></select><label>Mô tả</label><textarea id="f4" rows="3"></textarea><label>Người phụ trách</label><select id="f5">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select>`,
+      'new-campaign': `<label>Tên chiến dịch</label><input id="f1"><label>Kênh</label><select id="f2"><option>Zalo OA</option><option>Facebook Ads</option><option>TikTok Ads</option><option>Google Ads</option><option>SMS</option><option>Email</option></select><label>Đối tượng</label><select id="f3"><option>Toàn bộ khách</option><option>Diamond</option><option>Gold</option><option>Silver</option><option>Khách mới &lt; 30 ngày</option><option>Khách rủi ro rời</option><option>Sinh nhật tháng</option></select><label>Ngân sách (VNĐ)</label><input id="f4" type="number"><label>Mã giảm giá / quà tặng</label><input id="f5">`
+    };
+    b.innerHTML = `<form id="modalForm" onsubmit="event.preventDefault();handleSubmit('${type}')">${forms[type]||''}<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button type="button" class="btn ghost sm" onclick="closeModal()">Huỷ</button><button type="submit" class="btn sm">Lưu</button></div></form>`;
+  }
+
+  else if(type==='staff-detail'){
+    const s = ctx;
+    modalEl.classList.add('lg');
+    t.textContent = `Hồ sơ nhân viên: ${s.name}`;
+    const myTasks = DATA.tasks.filter(x=>x.owner===s.name);
+    const doneTasks = myTasks.filter(x=>x.done).length;
+    b.innerHTML = `
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px">
+        <span class="avatar" style="width:70px;height:70px;background:${s.bg};font-size:1.5rem">${s.av}</span>
+        <div style="flex:1">
+          <div style="font-family:'Playfair Display';font-size:1.35rem;font-weight:800;color:var(--brown-deep)">${s.name}</div>
+          <div style="color:var(--muted);font-size:.9rem">${s.role} · <span class="status green">${s.status||'active'}</span></div>
+          <div style="display:flex;gap:14px;margin-top:6px;font-size:.82rem;color:var(--muted)"><span>📞 ${s.phone||'—'}</span><span>✉️ ${s.email||'—'}</span><span>🆔 ${s.id||'—'}</span></div>
+        </div>
+        <div style="text-align:right"><div style="font-size:.74rem;color:var(--muted)">KPI tháng</div><div style="font-family:'Playfair Display';font-size:1.9rem;font-weight:800;color:var(--green)">${s.kpi}</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Ca tháng</div><b>${s.sessions}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Đánh giá</div><b>${s.rating}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Doanh thu</div><b>${s.revenue}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Task</div><b>${doneTasks}/${myTasks.length}</b></div>
+      </div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:12px 0 8px">🏷️ Tags / Vai trò</h3>
+      <div id="staffTags" style="margin-bottom:6px">${(s.tags||[]).map(tg=>`<span class="pill" style="margin:2px;display:inline-flex;align-items:center;gap:6px">${tg} <span style="cursor:pointer;color:var(--red)" onclick='removeTag("${s.id}","tags","${tg}")'>×</span></span>`).join('')}</div>
+      <div style="display:flex;gap:6px">
+        <input id="newTagInput" placeholder="Thêm tag mới (vd: Senior, Tiêm chỉnh...)" style="flex:1">
+        <button class="btn ghost sm" onclick="addTag('${s.id}','tags')">+ Tag</button>
+      </div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:14px 0 8px">⚡ Kỹ năng / Chuyên môn</h3>
+      <div id="staffSkills" style="margin-bottom:6px">${(s.skills||[]).map(sk=>`<span class="pill blue" style="margin:2px;display:inline-flex;align-items:center;gap:6px">${sk} <span style="cursor:pointer;color:var(--red)" onclick='removeTag("${s.id}","skills","${sk}")'>×</span></span>`).join('')}</div>
+      <div style="display:flex;gap:6px">
+        <input id="newSkillInput" placeholder="Thêm kỹ năng (vd: Botox, Hifu...)" style="flex:1">
+        <button class="btn ghost sm" onclick="addTag('${s.id}','skills')">+ Kỹ năng</button>
+      </div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:18px 0 8px">📋 Công việc đang làm (${myTasks.length})</h3>
+      <div style="max-height:200px;overflow-y:auto;background:var(--cream);border-radius:10px;padding:10px">
+        ${myTasks.length===0?'<div style="color:var(--muted);text-align:center;padding:14px">Chưa có công việc nào</div>': myTasks.map(t=>`<div style="background:#fff;padding:9px 11px;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:9px;${t.done?'opacity:.6':''}"><input type="checkbox" ${t.done?'checked':''} onchange='toggleTask(${typeof t.id==='number'?t.id:`"${t.id}"`});openModal("staff-detail",${JSON.stringify(s).replace(/'/g,"&#39;")})'><div style="flex:1"><b style="font-size:.88rem">${t.title}</b><div style="font-size:.74rem;color:var(--muted)">${t.due} · <span class="pill ${t.priority==='Khẩn'?'red':t.priority==='Cao'?'':'gray'}">${t.priority}</span></div></div></div>`).join('')}
+      </div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:14px 0 8px">➕ Giao việc mới cho ${s.name}</h3>
+      <div style="display:grid;gap:8px;background:var(--cream);padding:12px;border-radius:10px">
+        <input id="newTaskTitle" placeholder="Tiêu đề công việc...">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <select id="newTaskPriority"><option>Khẩn</option><option selected>Cao</option><option>TB</option><option>Thấp</option></select>
+          <select id="newTaskTag"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>
+        </div>
+        <input id="newTaskDue" placeholder="Hạn (vd: 17:00 hôm nay)" value="Hôm nay">
+        <button class="btn sm" onclick='assignTaskTo("${s.name}")'>📌 Giao việc</button>
+      </div>
+
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:18px">
+        <button class="btn sm green" onclick='toast("📞 Đang gọi ${s.name}...","ok")'>📞 Gọi</button>
+        <button class="btn ghost sm" onclick='toast("💬 Mở chat nội bộ với ${s.name}")'>💬 Chat</button>
+        <button class="btn ghost sm" onclick='closeModal();go("schedule")'>🗓️ Lịch trực</button>
+        <button class="btn ghost sm" onclick='exportToWord("Hồ-sơ-${s.name}","<h1>${s.name}</h1><p>Vai trò: ${s.role}</p><p>Tags: ${(s.tags||[]).join(", ")}</p><p>Kỹ năng: ${(s.skills||[]).join(", ")}</p><p>Doanh thu: ${s.revenue}</p>")'>📄 Xuất hồ sơ Word</button>
+      </div>
+    `;
+  }
+
+  else if(type==='storage-help'){
+    modalEl.classList.add('lg');
+    t.textContent = '💾 Dữ liệu lưu ở đâu? Backup, Export, kết nối DB ngoài';
+    const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
+    b.innerHTML = `
+      <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task · <b>${cnt.hoso}</b> hồ sơ y khoa · <b>${cnt.kho}</b> SKU kho</div></div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">📤 Xuất dữ liệu — Excel & Word</h3>
+      <p>Mỗi bảng đều có nút <b>"⬇ Xuất Excel"</b> ở góc phải. File .xlsx chuẩn, mở được Excel/Google Sheets ngay.</p>
+      <table>
+        <thead><tr><th>Module</th><th>Định dạng</th><th>Bấm</th></tr></thead>
+        <tbody>
+          <tr><td>Khách hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('customers')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Nhân sự</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('staff')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Công việc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('tasks')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Kho hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('inventory')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Hậu chăm sóc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('care')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Khiếu nại</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('complaints')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Hồ sơ y khoa</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('medical')">⬇ Xuất ngay</button></td></tr>
+          <tr><td>Hồ sơ nhân viên đơn lẻ</td><td>Word .doc</td><td>Bấm vào hồ sơ NV → "📄 Xuất hồ sơ Word"</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">📥 Nhập dữ liệu từ Excel bên ngoài</h3>
+      <p>Có sẵn file Excel/CSV khách hàng/nhân sự/kho? Nhập vào trong 30 giây:</p>
+      <ol style="padding-left:22px;margin-bottom:10px">
+        <li>Vào tab tương ứng (vd: Khách hàng)</li>
+        <li>Bấm nút <b>"⬆ Nhập Excel"</b></li>
+        <li>Chọn file .xlsx hoặc .csv</li>
+        <li>Xem trước 20 dòng đầu → bấm <b>"Xác nhận nhập"</b></li>
+        <li>Dữ liệu được <b>thêm mới</b> (không ghi đè bản hiện tại)</li>
+      </ol>
+      <div class="alert warn"><span class="ic">📋</span><div><b>Mẹo cột Excel:</b> Để import chuẩn, hãy <b>xuất Excel trước</b> (bấm Xuất Excel) để xem mẫu cột — rồi sửa và import ngược lại.</div></div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">💾 Backup / Restore toàn bộ</h3>
+      <p>Backup TOÀN BỘ dữ liệu (mọi module) thành 1 file .json — phòng khi đổi máy / mất cache:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn sm" onclick="backupAll()">⬇ Tải Backup .json</button>
+        <label class="btn ghost sm" style="cursor:pointer">⬆ Phục hồi từ .json<input type="file" accept=".json" style="display:none" onchange="restoreAll(this.files[0])"></label>
+      </div>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">🔌 Kết nối Database ngoài (phase 2)</h3>
+      <p>Khi quy mô lớn (nhiều chi nhánh, nhiều người dùng cùng lúc), cần chuyển sang DB thật. Em đề xuất:</p>
+      <table>
+        <thead><tr><th>Option</th><th>Phù hợp khi</th><th>Chi phí</th></tr></thead>
+        <tbody>
+          <tr><td><b>Google Sheets</b></td><td>1-3 nhân viên, đơn giản</td><td>Miễn phí</td></tr>
+          <tr><td><b>Supabase</b> (Postgres)</td><td>5-50 user, realtime sync</td><td>Miễn phí đến 500MB</td></tr>
+          <tr><td><b>Firebase</b></td><td>Mobile + web cùng lúc</td><td>Miễn phí pay-as-you-go</td></tr>
+          <tr><td><b>Pancake POS API</b></td><td>Đã dùng Pancake quản lý spa</td><td>~500k/tháng</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px"><b>Liên hệ kỹ thuật <a href="tel:0855698899" style="color:var(--orange-deep)">0855 698 899</a></b> để chọn phương án phù hợp. Tích hợp ~1-2 tuần.</p>
+
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">🔄 Quy trình hằng ngày đề xuất</h3>
+      <ol style="padding-left:22px">
+        <li><b>Sáng (9:00):</b> Backup .json — lưu vào Google Drive cá nhân</li>
+        <li><b>Khi có file Excel từ Pancake / POS:</b> dùng "⬆ Nhập Excel" để đồng bộ</li>
+        <li><b>Cuối tháng:</b> Xuất Excel doanh thu / khách / kho gửi kế toán</li>
+        <li><b>Hồ sơ y khoa quan trọng:</b> Xuất Word từng hồ sơ → lưu local + Google Drive</li>
+      </ol>
+    `;
+  }
+
+  else if(type==='import-data'){
+    t.textContent = '⬆ Nhập dữ liệu từ Excel';
+    b.innerHTML = `
+      <div class="alert info"><span class="ic">📋</span><div>Hỗ trợ <b>.xlsx</b> và <b>.csv</b>. Để chắc chắn đúng cột, hãy <b>xuất file Excel mẫu trước</b> (bấm "Xuất Excel" ở bảng tương ứng), sửa rồi import ngược lại.</div></div>
+      <label>Chọn file Excel / CSV</label>
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="importExcelFile(this.files[0],'${ctx?.target||'customers'}')" style="padding:10px;background:var(--cream)">
+      <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost sm" onclick="closeModal()">Huỷ</button></div>
+    `;
+  }
+
+  else if(type==='care-detail'){
+    const c = ctx;
+    t.textContent = `Hậu chăm sóc: ${c.name}`;
+    b.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <span class="avatar" style="width:54px;height:54px;background:${c.bg};font-size:1.2rem">${c.av}</span>
+        <div><b style="font-size:1.1rem">${c.name}</b><div style="font-size:.84rem;color:var(--muted)">${c.service}</div></div>
+      </div>
+      <div class="alert ${c.urgent?'warn':'info'}"><span class="ic">${c.urgent?'⚠️':'📋'}</span><div><b>${c.stage}</b><br>Đề xuất: ${c.action}</div></div>
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:14px 0 8px">📝 Mẫu tin nhắn Zalo (AI gợi ý)</h3>
+      <textarea rows="5" placeholder="Em sẽ soạn cho chị..." style="font-size:.88rem">Dạ ${c.name} ơi, em là Yến lễ tân HANA Premium ạ. Hôm nay đã ${c.daysSince} ngày sau khi chị làm ${c.service.split('(')[0].trim()} rồi đúng không ạ? Em muốn hỏi thăm xem chị có thấy ổn không, có cần hỗ trợ gì thêm không ạ? 💕 Nếu chị có thắc mắc gì cứ inbox em hoặc gọi 0855 698 899 nhé!</textarea>
+      <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn sm" onclick="toast('💌 Đã gửi Zalo cho ${c.name}','green');closeModal()">💌 Gửi Zalo</button>
+        <button class="btn ghost sm" onclick="toast('📞 Đang gọi ${c.name}...')">📞 Gọi ngay</button>
+        <button class="btn ghost sm" onclick="toast('✅ Đã đánh dấu hoàn tất','green');closeModal()">✓ Đã liên hệ</button>
+        <button class="btn ghost sm" onclick="toast('⏰ Đã dời sang ngày mai')">⏰ Dời sau</button>
+      </div>
+    `;
+  }
+
+  else if(type==='complaint-detail'){
+    const c = ctx;
+    t.textContent = `${c.id} · ${c.name}`;
+    b.innerHTML = `
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"><span class="pill ${c.priority==='P1'?'red':c.priority==='P2'?'blue':'gray'}">${c.priority}</span><span class="pill">${c.type}</span><span class="status ${c.status}">${c.statusText}</span></div>
+      <div class="alert ${c.status==='red'?'danger':c.status==='blue'?'info':'success'}"><span class="ic">${c.status==='red'?'🚨':c.status==='blue'?'⏳':'✓'}</span><div><b>${c.summary}</b><br><span style="font-size:.84rem">${c.sla} · Phụ trách: <b>${c.owner}</b></span></div></div>
+      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:16px 0 8px">💬 Diễn biến xử lý</h3>
+      <div class="timeline" style="margin-bottom:14px">
+        <div class="tl-item done"><b>09:15 — Tiếp nhận</b><span>Lễ tân Yến tiếp nhận qua Zalo</span></div>
+        <div class="tl-item done"><b>09:22 — Chuyển ${c.owner}</b><span>Phân công xử lý</span></div>
+        <div class="tl-item due"><b>${c.status==='red'?'Đang xử lý':'Hoàn tất'}</b><span>${c.status==='red'?'⏱️ SLA: '+c.sla:'✓ '+c.statusText}</span></div>
+      </div>
+      <label>Ghi chú xử lý</label>
+      <textarea rows="3" placeholder="Ghi chú từng bước xử lý..."></textarea>
+      <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn sm" onclick="toast('💾 Đã cập nhật','green')">💾 Lưu ghi chú</button>
+        <button class="btn green sm" onclick="toast('✅ Ticket đã đóng','green');closeModal()">✓ Đóng ticket</button>
+        <button class="btn ghost sm" onclick="toast('📞 Đang gọi khách...')">📞 Gọi khách</button>
+        <button class="btn ghost sm" onclick="toast('📋 Đã escalate lên CEO')">⬆ Escalate CEO</button>
+      </div>
+    `;
+  }
+
+  modalBg.classList.add('show');
+}
+
+function handleSubmit(type){
+  closeModal();
+  const successMsg = {
+    'new-customer':'➕ Đã thêm khách hàng mới',
+    'new-staff':'➕ Đã thêm nhân viên',
+    'new-service':'➕ Đã thêm dịch vụ',
+    'new-task':'➕ Đã thêm công việc',
+    'new-booking':'📅 Đã tạo lịch hẹn',
+    'new-shift':'🗓️ Đã phân ca',
+    'new-medical':'🩺 Đã tạo hồ sơ y khoa',
+    'new-stock':'📦 Đã nhập kho',
+    'new-photo':'📸 Đã thêm case trước/sau',
+    'new-complaint':'📋 Đã tạo ticket',
+    'new-campaign':'🚀 Đã khởi tạo chiến dịch'
+  };
+  toast(successMsg[type] || '✅ Đã lưu', 'green');
+}
+
+/* ===== ROUTING ===== */
+const titles = {
+  dashboard:['Tổng quan','Xin chào chị Phương · Thứ Tư · 20/05/2026'],
+  calendar:['Lịch hẹn','Quản lý lịch hẹn tuần này'],
+  crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
+  care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
+  complaints:['Khiếu nại & SOS','3 SOS đang mở · SLA &lt;1h'],
+  tasks:['Công việc','14 task hôm nay · 6 đã xong'],
+  staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
+  schedule:['Lịch trực','Tuần 18-24/05/2026'],
+  medical:['Hồ sơ y khoa','Lịch sử khám · Phác đồ · Dị ứng'],
+  gallery:['Trước & Sau','428 case có ký consent dùng marketing'],
+  services:['Dịch vụ','42 dịch vụ + 10 combo'],
+  revenue:['Doanh thu','Tháng 5/2026 · Q2'],
+  inventory:['Kho hàng','142 SKU · 8 sắp hết'],
+  marketing:['Marketing & Loyalty','4 campaign đang chạy'],
+  reviews:['Đánh giá','4.92★ · 1.247 reviews'],
+  ai:['🤖 AI Assistant — 2026','Spa hàng đầu đang dùng'],
+  booking:['Trang đặt lịch online','Link công khai cho khách'],
+  settings:['Cài đặt','Cấu hình hệ thống']
+};
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarBackdrop').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('show');
+  document.body.style.overflow='';
+}
+window.openSidebar=openSidebar;
+window.closeSidebar=closeSidebar;
+
+function go(section){
+  document.querySelectorAll('.nav a[data-section]').forEach(a=>a.classList.toggle('active', a.dataset.section===section));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+section));
+  const [t,s]=titles[section]||['',''];
+  document.getElementById('page-title').firstChild.textContent=t+' ';
+  document.getElementById('page-sub').innerHTML=s;
+  location.hash=section;
+  if(window.innerWidth<=1100)closeSidebar();
+  // scroll lên đầu khi đổi section trên mobile
+  if(window.innerWidth<=767) window.scrollTo({top:0,behavior:'smooth'});
+  if(section==='dashboard')initDashboardCharts();
+  if(section==='revenue')initRevenueCharts();
+  if(section==='marketing')initMktChart();
+}
+document.querySelectorAll('.nav a[data-section]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.section)}));
+addEventListener('hashchange',()=>go((location.hash||'#dashboard').slice(1)));
+
+// ESC đóng sidebar
+addEventListener('keydown',e=>{ if(e.key==='Escape') closeSidebar(); });
+// Swipe-to-close sidebar trên mobile
+(function initSwipeSidebar(){
+  let startX=0, startY=0, tracking=false;
+  const side=document.getElementById('sidebar');
+  if(!side) return;
+  side.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;tracking=true},{passive:true});
+  side.addEventListener('touchmove',e=>{
+    if(!tracking) return;
+    const dx=e.touches[0].clientX-startX, dy=e.touches[0].clientY-startY;
+    if(Math.abs(dx)>Math.abs(dy) && dx<-50){ closeSidebar(); tracking=false; }
+  },{passive:true});
+  side.addEventListener('touchend',()=>tracking=false,{passive:true});
+})();
+
+/* ===== HYDRATION ===== */
+function pillForStatus(s){ return `<span class="status ${s.status}">${s.statusText}</span>` }
+function tierPill(t){ return `<span class="tier ${t}">${t}</span>` }
+
+function renderTodayApps(){
+  document.getElementById('todayApps').innerHTML = DATA.todayApps.map(a=>`
+    <tr class="clickable" onclick='openModal("appointment",${JSON.stringify(a).replace(/'/g,"&#39;")})'>
+      <td><div class="with-av"><span class="avatar" style="background:${a.bg||'var(--grad)'}">${a.av}</span><span><b>${a.name}</b><span>${a.subtitle}</span></span></div></td>
+      <td>${a.service}</td><td>${a.time}</td><td>${a.staff}</td><td>${pillForStatus(a)}</td>
+    </tr>
+  `).join('');
+}
+function renderTopStaff(){
+  document.getElementById('topStaff').innerHTML = DATA.staff.slice(0,4).map(s=>`
+    <div style="display:flex;align-items:center;gap:11px"><span class="avatar" style="background:${s.bg}">${s.av}</span><div style="flex:1"><b>${s.name}</b><div style="font-size:.76rem;color:var(--muted)">${s.sessions} ca · ${s.rating}</div></div><b style="color:var(--orange-deep)">${s.revenue}</b></div>
+  `).join('');
+}
+function renderCRM(){
+  const search = document.getElementById('crmSearch')?.value.toLowerCase()||'';
+  const tier = document.getElementById('crmTier')?.value||'';
+  const rows = DATA.customers.filter(c=>(!search||c.name.toLowerCase().includes(search)||c.phone.includes(search))&&(!tier||c.tier===tier.toLowerCase()));
+  document.getElementById('crmRows').innerHTML = rows.map(c=>`
+    <tr class="clickable" onclick='openModal("customer",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+      <td><div class="with-av"><span class="avatar" style="background:${c.avBg}">${c.name.charAt(c.name.indexOf(' ')+1)}</span><span><b>${c.name}</b><span>${c.phone} · ${c.age}t</span></span></div></td>
+      <td>${tierPill(c.tier)}</td>
+      <td><b>${(c.ltv/1000000).toFixed(1)}tr</b></td>
+      <td>${c.lastVisit}</td>
+      <td>${c.visits}</td>
+      <td><span class="pill ${c.aiScore>80?'green':c.aiScore>50?'':'red'}">${c.aiScore} · ${c.aiTag}</span></td>
+      <td><button class="btn ghost sm" onclick="event.stopPropagation();openModal('customer',${JSON.stringify(c).replace(/'/g,'&#39;')})">Xem</button></td>
+    </tr>
+  `).join('');
+}
+function renderStaff(){
+  document.getElementById('staffRows').innerHTML = DATA.staff.map(s=>`
+    <tr class="clickable" onclick='openModal("staff-detail",${JSON.stringify(s).replace(/'/g,"&#39;")})'>
+      <td><div class="with-av"><span class="avatar" style="background:${s.bg}">${s.av}</span><span><b>${s.name}</b><span>${s.role}</span></span></div></td>
+      <td>${s.spec}</td>
+      <td style="max-width:260px">${(s.tags||[]).slice(0,3).map(t=>`<span class="pill" style="margin:1px 2px;display:inline-block">${t}</span>`).join('')}${s.tags && s.tags.length>3?`<span class="pill gray" style="margin:1px 2px">+${s.tags.length-3}</span>`:''}</td>
+      <td>${s.sessions}</td><td>${s.rating}</td><td><b>${s.revenue}</b></td>
+      <td><span class="pill ${s.kpiClass}">${s.kpi}</span></td>
+    </tr>
+  `).join('');
+}
+function renderCare(){
+  document.getElementById('careRows').innerHTML = DATA.care.map(c=>`
+    <tr class="clickable" onclick='openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+      <td><div class="with-av"><span class="avatar" style="background:${c.bg}">${c.av}</span><span><b>${c.name}</b></span></div></td>
+      <td>${c.service}</td><td>D${c.daysSince}</td>
+      <td><span class="pill ${c.urgent?'red':'blue'}">${c.stage}</span></td>
+      <td>${c.action}</td>
+      <td><button class="btn sm" onclick='event.stopPropagation();openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>Xử lý</button></td>
+    </tr>
+  `).join('');
+}
+function renderComplaints(){
+  document.getElementById('complaintRows').innerHTML = DATA.complaints.map(c=>`
+    <tr class="clickable" onclick='openModal("complaint-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+      <td><b>${c.id}</b></td><td>${c.name}</td><td>${c.type}</td>
+      <td><span class="pill ${c.priority==='P1'?'red':c.priority==='P2'?'blue':'gray'}">${c.priority}</span></td>
+      <td style="max-width:280px">${c.summary}</td>
+      <td>${c.owner}</td><td>${pillForStatus(c)}</td><td><span style="font-size:.78rem">${c.sla}</span></td>
+    </tr>
+  `).join('');
+}
+function renderTasks(){
+  document.getElementById('taskList').innerHTML = DATA.tasks.map(t=>`
+    <div class="task ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange='toggleTask(${t.id})'>
+      <div style="flex:1">
+        <b style="${t.done?'text-decoration:line-through':''}">${t.title}</b>
+        <div class="meta"><span><b>${t.owner}</b></span><span>⏱ ${t.due}</span><span class="pill ${t.priority==='Khẩn'?'red':t.priority==='Cao'?'':'gray'}">${t.priority}</span><span class="pill blue">${t.tag}</span></div>
+      </div>
+      <button class="btn ghost sm" onclick="toast('💬 Mở chat task ${t.id}')">💬</button>
+    </div>
+  `).join('');
+  // Staff perf
+  const grouped = {};
+  DATA.tasks.forEach(t=>{ grouped[t.owner]=grouped[t.owner]||{done:0,total:0}; grouped[t.owner].total++; if(t.done)grouped[t.owner].done++; });
+  document.getElementById('staffPerf').innerHTML = Object.entries(grouped).map(([n,v])=>`
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:5px"><b>${n}</b><span>${v.done}/${v.total}</span></div>
+      <div class="progress"><div style="width:${v.done/v.total*100}%"></div></div>
+    </div>
+  `).join('');
+}
+function toggleTask(id){
+  const t = DATA.tasks.find(x=>String(x.id)===String(id));
+  if(t){ t.done=!t.done; saveData('tasks',DATA.tasks); renderTasks(); toast(t.done?'✓ Đã hoàn tất task':'↺ Bật lại task','ok') }
+}
+window.toggleTask = toggleTask;
+
+function addTag(staffId, field){
+  const inputId = field==='tags' ? 'newTagInput' : 'newSkillInput';
+  const val = (document.getElementById(inputId)?.value||'').trim();
+  if(!val) return;
+  const s = DATA.staff.find(x=>x.id===staffId);
+  if(!s) return;
+  s[field] = s[field] || [];
+  if(!s[field].includes(val)){ s[field].push(val); saveData('staff',DATA.staff); openModal('staff-detail', s); toast(`✓ Đã thêm: ${val}`,'green'); renderStaff(); }
+}
+function removeTag(staffId, field, val){
+  const s = DATA.staff.find(x=>x.id===staffId);
+  if(!s) return;
+  s[field] = (s[field]||[]).filter(t=>t!==val);
+  saveData('staff',DATA.staff);
+  openModal('staff-detail', s); renderStaff();
+  toast(`✓ Đã xoá: ${val}`,'ok');
+}
+function assignTaskTo(name){
+  const title = (document.getElementById('newTaskTitle')?.value||'').trim();
+  if(!title){ toast('⚠️ Nhập tiêu đề','red'); return; }
+  const newTask = {
+    id: Date.now(),
+    title,
+    priority: document.getElementById('newTaskPriority').value,
+    owner: name,
+    due: document.getElementById('newTaskDue').value || 'Hôm nay',
+    tag: document.getElementById('newTaskTag').value,
+    done: false
+  };
+  DATA.tasks.unshift(newTask);
+  saveData('tasks', DATA.tasks);
+  renderTasks();
+  const s = DATA.staff.find(x=>x.name===name);
+  if(s) openModal('staff-detail', s);
+  toast(`📌 Đã giao việc cho ${name}: "${title}"`,'green');
+}
+window.addTag = addTag;
+window.removeTag = removeTag;
+window.assignTaskTo = assignTaskTo;
+
+function updateStorageInfo(){
+  const el = document.getElementById('storageInfo');
+  if(!el) return;
+  const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
+  el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task · ${cnt.hoso} hồ sơ y khoa · ${cnt.kho} SKU kho`;
+}
+
+function renderSchedule(){
+  const shiftClass = {morning:'background:#FFF6E0;color:var(--gold-deep)', afternoon:'background:#E6F0FB;color:var(--blue)', evening:'background:#F4ECF7;color:var(--purple)', allday:'background:linear-gradient(135deg,var(--gold),var(--orange));color:#fff', off:'background:#F0F0F0;color:#555'};
+  const shiftLabel = {morning:'Sáng', afternoon:'Chiều', evening:'Tối', allday:'Cả ngày', off:'Nghỉ'};
+  document.getElementById('scheduleRows').innerHTML = DATA.schedule.map(s=>`
+    <tr>
+      <td><div class="with-av"><span class="avatar" style="background:${s.bg}">${s.av}</span><b>${s.name}</b></div></td>
+      ${s.shifts.map(sh=>`<td><span style="${shiftClass[sh]};padding:4px 9px;border-radius:99px;font-size:.74rem;font-weight:700;display:inline-block">${shiftLabel[sh]}</span></td>`).join('')}
+    </tr>
+  `).join('');
+}
+function renderMedical(){
+  document.getElementById('medicalRows').innerHTML = DATA.medical.map(m=>`
+    <tr class="clickable" onclick='toast("🩺 Mở hồ sơ ${m.code}")'>
+      <td><b>${m.code}</b></td><td>${m.name}</td><td>${m.age}</td><td>${m.history}</td><td>${m.lastVisit}</td><td>${m.protocol}</td>
+      <td><button class="btn ghost sm" onclick='event.stopPropagation();toast("📄 Tải PDF hồ sơ")'>📄 PDF</button></td>
+    </tr>
+  `).join('');
+}
+function renderGallery(){
+  document.getElementById('galleryGrid').innerHTML = DATA.gallery.map(g=>`
+    <div class="photo-pair" onclick='toast("📸 Mở case: ${g.case}")'>
+      <div class="imgs">
+        <div>${g.ic.split('→')[0]}</div>
+        <div>${g.ic.split('→')[1]}</div>
+      </div>
+      <div class="info">
+        <b style="display:block;color:var(--brown-deep)">${g.service}</b>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:3px">${g.case}</div>
+        ${g.tag?`<span class="pill ${g.tag==='Hot'?'red':'green'}" style="margin-top:6px;display:inline-block">${g.tag}</span>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+function renderServices(){
+  document.getElementById('svcGrid').innerHTML = DATA.services.map(s=>`
+    <div class="svc" onclick='toast("💎 Mở chi tiết ${s.name}")'>
+      <div class="pic">${s.ic}</div>
+      <div class="body">
+        <h3>${s.name}</h3>
+        <div class="meta">⏱ ${s.duration} · ⭐ ${s.rating} · ${s.cases} ca</div>
+        <div class="price" style="margin-top:7px">${s.price}</div>
+      </div>
+    </div>
+  `).join('');
+}
+function renderInventory(){
+  document.getElementById('invRows').innerHTML = DATA.inventory.map(i=>`
+    <tr>
+      <td>${i.sku}</td><td>${i.name}</td>
+      <td class="${i.low?'stock-low':'stock-ok'}">${i.stock}</td>
+      <td>${i.unit}</td><td>${i.min}</td>
+      <td class="${i.low?'stock-low':''}">${i.runOut}</td>
+      <td><span class="pill ${i.low?'red':'green'}">${i.low?'SẮP HẾT':'Đủ'}</span></td>
+    </tr>
+  `).join('');
+}
+function renderCampaigns(){
+  document.getElementById('campList').innerHTML = DATA.campaigns.map(c=>`
+    <div class="camp" onclick='toast("📣 Mở chi tiết ${c.name}")'>
+      <span class="ic">${c.ic}</span>
+      <div style="flex:1"><b>${c.name}</b><div style="font-size:.76rem;color:var(--muted)">${c.detail}</div></div>
+      <span class="pill ${c.status}">${c.statusText}</span>
+    </div>
+  `).join('');
+}
+function renderReviews(){
+  document.getElementById('reviewList').innerHTML = DATA.reviews.map(r=>`
+    <div class="review">
+      <span class="avatar" style="background:${r.bg}">${r.av}</span>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between"><b>${r.name}</b><span style="color:var(--muted);font-size:.76rem">${r.src}</span></div>
+        <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+        <p style="margin-top:5px;font-size:.9rem">"${r.text}"</p>
+        ${r.stars<5?`<button class="btn ghost sm" style="margin-top:6px" onclick="toast('✏️ Mở form phản hồi')">↪ Trả lời</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCalendar(){
+  const today=2; // T4
+  const days=[['T2','18'],['T3','19'],['T4','20'],['T5','21'],['T6','22'],['T7','23'],['CN','24']];
+  const times=['09:00','10:00','11:00','14:00','15:00','16:00','17:00'];
+  const bookings = {
+    '09:00': [{day:0,who:'A. Hoa',what:'Cắt mí',cls:''},{day:2,who:'C. Linh',what:'Tư vấn',cls:'b2'},{day:4,who:'C. Mai',what:'Filler',cls:''}],
+    '10:00': [{day:1,who:'C. Nga',what:'Combo',cls:'b3'},{day:2,who:'C. Hương',what:'CEO 1-1',cls:''},{day:5,who:'C. Thu',what:'Hifu',cls:''}],
+    '11:00': [{day:0,who:'C. Phương',what:'Hifu',cls:'b2'},{day:2,who:'C. Thu',what:'Trẻ hóa',cls:''},{day:4,who:'C. Lan',what:'Botox',cls:'b3'}],
+    '14:00': [{day:1,who:'A. Tâm',what:'Hút mỡ',cls:''},{day:2,who:'C. Nga',what:'Filler môi',cls:'b3'},{day:3,who:'',what:'AI: lấp đầy',cls:'ai'},{day:5,who:'C. Yến',what:'Cắt mí',cls:''}],
+    '15:00': [{day:0,who:'C. Hoa',what:'Tái khám',cls:''},{day:2,who:'C. Mai',what:'Combo',cls:'b2'},{day:3,who:'',what:'AI',cls:'ai'},{day:4,who:'C. Linh',what:'Filler',cls:'b3'}],
+    '16:00': [{day:1,who:'A. Long',what:'CEO 1-1',cls:''},{day:3,who:'',what:'AI',cls:'ai'},{day:5,who:'C. Hằng',what:'Hifu',cls:''}],
+    '17:00': [{day:0,who:'C. Anh',what:'Tư vấn',cls:'b2'},{day:2,who:'C. Vy',what:'Trẻ hóa',cls:''},{day:4,who:'C. Hà',what:'Botox',cls:'b3'}]
+  };
+  let html = `<div class="cal-head" style="background:#fff!important"></div>` + days.map((d,i)=>`<div class="cal-head${i===today?' today':''}"><div>${d[0]}</div><div class="d">${d[1]}</div></div>`).join('');
+  times.forEach(time=>{
+    html += `<div class="cal-time">${time}</div>`;
+    for(let day=0;day<7;day++){
+      const b = (bookings[time]||[]).find(x=>x.day===day);
+      if(b && b.cls==='ai'){
+        html += `<div class="cal-slot" style="background:#FFF6E6;border:1px dashed var(--orange)" onclick="aiAction('flash-sale')"><span style="color:var(--orange);font-size:.68rem;font-weight:700">AI: lấp đầy</span></div>`;
+      } else if(b){
+        html += `<div class="cal-slot"><div class="booking ${b.cls}" onclick='openModal("appointment",{name:"${b.who}",av:"${b.who.charAt(b.who.indexOf(" ")+1)||"K"}",subtitle:"${b.what}",service:"${b.what}",time:"${time}",staff:"BS. Hà",status:"green",statusText:"Đã xác nhận"})'><div class="who">${b.who}</div><div class="what">${b.what}</div></div></div>`;
+      } else {
+        html += `<div class="cal-slot" onclick="openModal('new-booking')"></div>`;
+      }
+    }
+  });
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+/* ===== AI ACTIONS ===== */
+function aiAction(t){
+  const msgs = {
+    'flash-sale': '🎯 AI đang khởi tạo flash-sale Zalo OA cho khung trống...',
+    'churn-campaign': '🚀 AI đang chuẩn bị chiến dịch win-back 23 khách rủi ro...',
+    'no-show': '🎯 No-show: AI đã chấm điểm rủi ro cho 24 lịch hôm nay',
+    'ltv': '💎 LTV: AI cập nhật điểm trọn đời 2.847 khách',
+    'churn': '🚨 Churn: AI tìm thấy 23 khách rủi ro rời 30 ngày tới',
+    'smart-book': '📅 Smart Booking: AI đề xuất 3 slot flash-sale',
+    'copy': '💬 AI đang sinh nội dung Zalo/SMS/FB...',
+    'birthday': '🎂 Birthday: AI gửi 4 voucher sinh nhật hôm nay',
+    'qr': '📱 QR check-in đã sẵn ở quầy lễ tân',
+    'reviews': '⭐ AI gom 12 review mới (Google 8 · FB 3 · TikTok 1)',
+    'forecast': '📊 AI dự báo doanh thu 30 ngày: 762tr (±9%)',
+    'inventory': '📦 AI tạo PO cho 8 SKU sắp hết — chờ duyệt',
+    'care-script': '🤖 Em đang soạn 8 tin Zalo cá nhân hoá cho hôm nay...'
+  };
+  toast(msgs[t] || '🤖 AI đang xử lý...','ok');
+}
+window.aiAction = aiAction;
+
+/* ===== AI CHAT ===== */
+const aiHistory = [];
+async function sendAI(){
+  const input = document.getElementById('aiInput');
+  const msgs = document.getElementById('aiMessages');
+  const sendBtn = document.getElementById('aiSend');
+  const status = document.getElementById('aiStatus');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  input.value = '';
+  const um = document.createElement('div'); um.className='ai-msg user'; um.textContent=text; msgs.appendChild(um);
+  const tm = document.createElement('div'); tm.className='ai-msg bot'; tm.textContent='…'; msgs.appendChild(tm);
+  msgs.scrollTop = msgs.scrollHeight;
+  sendBtn.disabled = true;
+  status.textContent = '● Đang suy nghĩ...'; status.style.color = 'var(--orange-deep)';
+  try {
+    const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message:text, history: aiHistory.slice(-10) }) });
+    const data = await res.json();
+    const reply = data.reply || data.error || 'Em chưa kết nối được, chị thử lại nhé.';
+    tm.innerHTML = String(reply).replace(/\n/g,'<br>');
+    aiHistory.push({role:'user',text}); aiHistory.push({role:'model',text:reply});
+  } catch (e) {
+    tm.textContent = 'Lỗi: ' + (e?.message || e); tm.style.color='var(--red)';
+  } finally {
+    sendBtn.disabled = false;
+    status.textContent = '● Gemini 2.5 Flash · Sẵn sàng'; status.style.color='var(--green)';
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+window.sendAI = sendAI;
+
+/* ===== CHARTS ===== */
+// Tinh chỉnh chart cho mobile
+if(window.Chart){
+  Chart.defaults.font.family = "'Be Vietnam Pro',sans-serif";
+  Chart.defaults.responsive = true;
+  if(window.innerWidth<=767){
+    Chart.defaults.font.size = 10.5;
+    Chart.defaults.plugins.legend.labels.boxWidth = 10;
+    Chart.defaults.plugins.legend.labels.padding = 8;
+  }
+}
+let dashCharts={};
+function initDashboardCharts(){
+  if(dashCharts.revenue)return;
+  const ctx=document.getElementById('chartRevenue');
+  if(!ctx)return;
+  dashCharts.revenue=new Chart(ctx,{type:'line',data:{labels:['7/5','8/5','9/5','10/5','11/5','12/5','13/5','14/5','15/5','16/5','17/5','18/5','19/5','20/5'],datasets:[{label:'Tuần này',data:[22,28,25,32,38,42,36,40,45,48,42,52,55,58],borderColor:'#A8231C',backgroundColor:'rgba(168,35,28,.1)',fill:true,tension:.4,borderWidth:3,pointBackgroundColor:'#A8231C',pointRadius:4},{label:'Tuần trước',data:[20,22,24,28,30,33,28,32,35,38,34,42,44,46],borderColor:'#E0762C',backgroundColor:'transparent',borderDash:[5,5],tension:.4,borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{position:'top',align:'end'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
+  const gctx=document.getElementById('chartGender');
+  if(gctx)dashCharts.gender=new Chart(gctx,{type:'doughnut',data:{labels:['Nữ 28-45t','Nữ 45+','Nữ U28','Nam'],datasets:[{data:[58,22,15,5],backgroundColor:['#A8231C','#E0762C','#E8C25A','#5A3620'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}},cutout:'62%'}});
+}
+let revCharts={};
+function initRevenueCharts(){
+  if(revCharts.large)return;
+  const ctx=document.getElementById('chartRevenueLarge');
+  if(ctx)revCharts.large=new Chart(ctx,{type:'bar',data:{labels:['T12/25','T1','T2','T3','T4','T5/26'],datasets:[{label:'Doanh thu (tr)',data:[480,520,580,620,680,762],backgroundColor:'rgba(168,35,28,.85)',borderRadius:8},{label:'Mục tiêu',data:[500,520,560,600,650,720],backgroundColor:'rgba(232,194,90,.7)',borderRadius:8}]},options:{plugins:{legend:{position:'top',align:'end'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
+  const sctx=document.getElementById('chartRevByService');
+  if(sctx)revCharts.svc=new Chart(sctx,{type:'bar',data:{labels:['Cắt mí','Hifu','Filler','Combo','Botox','Nâng cung','Hút mỡ'],datasets:[{data:[180,148,124,108,86,68,48],backgroundColor:['#A8231C','#C9551A','#E0762C','#F39C12','#E8C25A','#C99A2E','#5A3620'],borderRadius:8}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v+'tr'}}}}});
+}
+let mktChart;
+function initMktChart(){
+  if(mktChart)return;
+  const ctx=document.getElementById('chartMkt');
+  if(ctx)mktChart=new Chart(ctx,{type:'bar',data:{labels:['Zalo OA','FB Ads','TikTok','Google','Giới thiệu'],datasets:[{label:'Chi (tr)',data:[8,18,6,7,3],backgroundColor:'rgba(168,35,28,.6)',borderRadius:6},{label:'Doanh thu (tr)',data:[42,68,28,32,38],backgroundColor:'rgba(232,194,90,.8)',borderRadius:6}]},options:{plugins:{legend:{position:'top',align:'end'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
+}
+
+/* ===== TOPBAR ACTIONS ===== */
+document.getElementById('notifBtn').onclick=()=>toast('🔔 5 thông báo mới: 3 SOS · 1 lịch hẹn mới · 1 đánh giá Google 5★');
+document.getElementById('quickAddBtn').onclick=()=>{
+  if(confirm('Thêm nhanh?\n1=Lịch hẹn\n2=Khách hàng\n3=Task\n4=Khiếu nại\n(Bấm OK để mở Lịch hẹn)')) openModal('new-booking');
+};
+document.getElementById('profileBtn').onclick=()=>{ if(confirm('Đăng xuất khỏi tài khoản chị Phương?')) location.href='/api/logout' };
+
+document.getElementById('globalSearch').addEventListener('keydown',e=>{
+  if(e.key==='Enter' && e.target.value.trim()){
+    const q=e.target.value.toLowerCase().trim();
+    const hit = DATA.customers.find(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q));
+    if(hit){ openModal('customer',hit); e.target.value=''; }
+    else toast('🔎 Không tìm thấy "'+e.target.value+'" trong khách hàng');
+  }
+});
+addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){ e.preventDefault(); document.getElementById('globalSearch').focus() }
+});
+
+function copyLink(url){
+  navigator.clipboard?.writeText(url).then(()=>toast('📋 Đã copy: '+url,'green')).catch(()=>toast('📋 '+url));
+}
+window.copyLink=copyLink;
+window.toast=toast;
+window.openModal=openModal;
+window.go=go;
+
+/* ===== REAL EXCEL EXPORT / IMPORT (SheetJS) ===== */
+const EXPORT_CONFIG = {
+  customers: {
+    file:'khach-hang-HANA', sheet:'Khách hàng',
+    map: c => ({'Họ tên':c.name,'SĐT':c.phone,'Tuổi':c.age,'Hạng':c.tier,'LTV (VNĐ)':c.ltv,'Số ca':c.visits,'Điểm':c.points,'AI Score':c.aiScore,'Tag AI':c.aiTag,'Gần nhất':c.lastVisit})
+  },
+  staff: {
+    file:'nhan-su-HANA', sheet:'Nhân sự',
+    map: s => ({'Mã NV':s.id,'Họ tên':s.name,'Vai trò':s.role,'Chuyên môn':s.spec,'SĐT':s.phone||'','Email':s.email||'','Tags':(s.tags||[]).join(', '),'Kỹ năng':(s.skills||[]).join(', '),'Ca tháng':s.sessions,'Đánh giá':s.rating,'Doanh thu':s.revenue,'KPI':s.kpi,'Trạng thái':s.status||'active'})
+  },
+  tasks: {
+    file:'cong-viec-HANA', sheet:'Công việc',
+    map: t => ({'ID':t.id,'Tiêu đề':t.title,'Mức độ':t.priority,'Người phụ trách':t.owner,'Hạn':t.due,'Phân loại':t.tag,'Trạng thái':t.done?'Hoàn thành':'Đang làm'})
+  },
+  inventory: {
+    file:'kho-hang-HANA', sheet:'Kho hàng',
+    map: i => ({'SKU':i.sku,'Tên':i.name,'Tồn':i.stock,'Đơn vị':i.unit,'Min':i.min,'Dự đoán hết':i.runOut,'Trạng thái':i.low?'SẮP HẾT':'Đủ'})
+  },
+  care: {
+    file:'hau-cham-soc-HANA', sheet:'Hậu chăm sóc',
+    map: c => ({'Khách':c.name,'Dịch vụ':c.service,'Ngày từ DV':c.daysSince,'Giai đoạn':c.stage,'Hành động':c.action,'Khẩn':c.urgent?'Có':'Không'})
+  },
+  complaints: {
+    file:'khieu-nai-HANA', sheet:'Khiếu nại',
+    map: c => ({'ID':c.id,'Khách':c.name,'Loại':c.type,'Mức':c.priority,'Tóm tắt':c.summary,'Phụ trách':c.owner,'Trạng thái':c.statusText,'SLA':c.sla})
+  },
+  medical: {
+    file:'ho-so-y-khoa-HANA', sheet:'Hồ sơ',
+    map: m => ({'Mã HS':m.code,'Khách':m.name,'Tuổi':m.age,'Tiền sử / Dị ứng':m.history,'Lần gần nhất':m.lastVisit,'Phác đồ':m.protocol})
+  }
+};
+function exportExcel(key){
+  if(!window.XLSX){ toast('⏳ Đang tải thư viện Excel...'); setTimeout(()=>exportExcel(key),1500); return; }
+  const cfg = EXPORT_CONFIG[key];
+  if(!cfg){ toast('❌ Không có cấu hình export cho '+key,'red'); return; }
+  const rows = DATA[key].map(cfg.map);
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, cfg.sheet);
+  const d = new Date(); const ds = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
+  XLSX.writeFile(wb, `${cfg.file}-${ds}.xlsx`);
+  toast(`✓ Đã tải ${cfg.file}-${ds}.xlsx (${rows.length} dòng)`,'green');
+}
+function exportToWord(title, html){
+  const doc = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>${title}</title></head><body style="font-family:Arial">${html}</body></html>`;
+  const blob = new Blob(['﻿', doc], {type:'application/msword'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${title}.doc`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 100);
+  toast(`✓ Đã tải ${title}.doc`,'green');
+}
+window.exportExcel = exportExcel;
+window.exportToWord = exportToWord;
+window.exportCSV = exportExcel; // alias
+
+function importExcelFile(file, target){
+  if(!window.XLSX){ toast('⏳ Đang tải SheetJS...','red'); return; }
+  const r = new FileReader();
+  r.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      window._importPreview = {target, rows};
+      showImportPreview(target, rows);
+    } catch(err){ toast('❌ Lỗi đọc file: '+err.message,'red'); }
+  };
+  r.readAsArrayBuffer(file);
+}
+function showImportPreview(target, rows){
+  const t = document.getElementById('modalTitle');
+  const b = document.getElementById('modalBody');
+  modalEl.classList.add('lg');
+  t.textContent = `⬆ Nhập Excel — ${rows.length} dòng được phát hiện`;
+  const cols = Object.keys(rows[0]||{});
+  b.innerHTML = `
+    <div class="alert info"><span class="ic">📋</span><div><b>Xem trước:</b> ${rows.length} dòng dữ liệu. Bấm "Xác nhận" sẽ <b>thêm mới</b> vào hệ thống (không ghi đè bản hiện tại).</div></div>
+    <div style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:14px 0">
+      <table style="font-size:.82rem"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${rows.slice(0,20).map(r=>`<tr>${cols.map(c=>`<td>${r[c]||''}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    </div>
+    ${rows.length>20?`<div class="sub">Hiển thị 20/${rows.length} dòng đầu</div>`:''}
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn ghost sm" onclick="closeModal()">Huỷ</button>
+      <button class="btn sm" onclick="confirmImport()">✓ Xác nhận nhập ${rows.length} dòng</button>
+    </div>
+  `;
+  modalBg.classList.add('show');
+}
+function confirmImport(){
+  const {target, rows} = window._importPreview || {};
+  if(!rows) return;
+  // Map back from Excel headers to internal keys
+  const mappers = {
+    customers: r => ({id: Date.now()+Math.random(), name:r['Họ tên']||r.name, phone:r['SĐT']||r.phone, age:+r['Tuổi']||30, tier:(r['Hạng']||r.tier||'silver').toLowerCase(), ltv:+r['LTV (VNĐ)']||0, visits:+r['Số ca']||0, points:+r['Điểm']||0, aiScore:+r['AI Score']||60, aiTag:r['Tag AI']||'Mới', lastVisit:r['Gần nhất']||'Vừa thêm', avBg:'var(--grad)'}),
+    staff: r => ({id:r['Mã NV']||'NV-'+Date.now(), name:r['Họ tên']||r.name, role:r['Vai trò']||'KTV', spec:r['Chuyên môn']||'', phone:r['SĐT']||'', email:r['Email']||'', tags:(r['Tags']||'').split(',').map(t=>t.trim()).filter(Boolean), skills:(r['Kỹ năng']||'').split(',').map(t=>t.trim()).filter(Boolean), sessions:+r['Ca tháng']||0, rating:r['Đánh giá']||'5.0 ⭐', revenue:r['Doanh thu']||'0', kpi:r['KPI']||'100%', kpiClass:'', status:r['Trạng thái']||'active', av:(r['Họ tên']||'X').slice(0,1).toUpperCase(), bg:'linear-gradient(135deg,#16A085,#27AE60)'}),
+    tasks: r => ({id:Date.now()+Math.random(), title:r['Tiêu đề']||r.title, priority:r['Mức độ']||'TB', owner:r['Người phụ trách']||'CEO Phương', due:r['Hạn']||'Hôm nay', tag:r['Phân loại']||'Khác', done:r['Trạng thái']==='Hoàn thành'}),
+    inventory: r => ({sku:r['SKU'], name:r['Tên']||r.name, stock:+r['Tồn']||0, unit:r['Đơn vị']||'cái', min:+r['Min']||10, runOut:r['Dự đoán hết']||'?', low:+r['Tồn']<+r['Min']}),
+    medical: r => ({code:r['Mã HS']||'HS-'+Date.now(), name:r['Khách']||r.name, age:+r['Tuổi']||30, history:r['Tiền sử / Dị ứng']||'', lastVisit:r['Lần gần nhất']||'Mới tạo', protocol:r['Phác đồ']||''})
+  };
+  const mapper = mappers[target];
+  if(!mapper){ toast('❌ Không hỗ trợ import cho '+target,'red'); return; }
+  const newRows = rows.map(mapper);
+  DATA[target] = [...DATA[target], ...newRows];
+  saveData(target, DATA[target]);
+  closeModal();
+  toast(`✓ Đã nhập ${newRows.length} dòng vào ${target}`,'green');
+  // re-render
+  if(target==='customers') renderCRM();
+  if(target==='staff') renderStaff();
+  if(target==='tasks') renderTasks();
+  if(target==='inventory') renderInventory();
+  if(target==='medical') renderMedical();
+}
+window.confirmImport = confirmImport;
+window.importExcelFile = importExcelFile;
+
+/* ===== BACKUP / RESTORE ===== */
+function backupAll(){
+  const blob = new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  const d = new Date(); a.download = `hana-backup-${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}.json`; a.click();
+  toast('✓ Đã tải file backup .json','green');
+}
+function restoreAll(file){
+  const r = new FileReader();
+  r.onload = e=>{
+    try{
+      const obj = JSON.parse(e.target.result);
+      if(!confirm('Phục hồi sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại. Tiếp tục?')) return;
+      Object.keys(obj).forEach(k=>{ DATA[k]=obj[k]; saveData(k,obj[k]); });
+      toast('✓ Đã phục hồi. Đang tải lại trang...','green');
+      setTimeout(()=>location.reload(),800);
+    }catch(err){ toast('❌ File không hợp lệ','red'); }
+  };
+  r.readAsText(file);
+}
+window.backupAll = backupAll;
+window.restoreAll = restoreAll;
+
+/* ===== INIT ===== */
+renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare(); renderComplaints();
+renderTasks(); renderSchedule(); renderMedical(); renderGallery(); renderServices(); renderInventory();
+renderCampaigns(); renderReviews(); renderCalendar();
+initDashboardCharts();
+
+document.getElementById('crmSearch')?.addEventListener('input',renderCRM);
+document.getElementById('crmTier')?.addEventListener('change',renderCRM);
+
+// Apply hash on load
+const init = (location.hash||'#dashboard').slice(1);
+if(init && init!=='dashboard') go(init);
+</script>
+
+</body>
+</html>

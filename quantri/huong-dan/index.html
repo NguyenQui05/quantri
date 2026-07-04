@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hướng dẫn sử dụng · HANA Premium Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#A8231C; --red-deep:#7E150F;
+    --orange:#E0762C; --orange-deep:#C9551A;
+    --gold:#E8C25A; --gold-deep:#C99A2E;
+    --brown:#5A3620; --brown-deep:#3B2113;
+    --cream:#FFF8EC; --cream-2:#FBEFD8;
+    --bg:#FAF7F2; --card:#fff; --line:#F0E5D0;
+    --ink:#2A1B0E; --muted:#8b7a65;
+    --green:#27AE60; --blue:#2C7BE5;
+    --grad:linear-gradient(135deg,#E8C25A 0%,#E0762C 50%,#A8231C 100%);
+    --shadow:0 12px 40px -18px rgba(90,54,32,.35);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.serif{font-family:'Playfair Display',serif;color:var(--brown-deep)}
+  a{color:var(--orange-deep);text-decoration:none;font-weight:600}
+  a:hover{text-decoration:underline}
+  code{background:var(--cream);padding:2px 8px;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:.88em;color:var(--red-deep);border:1px solid var(--line)}
+  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:2px 8px;font-family:ui-monospace,Menlo,monospace;font-size:.82em;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+
+  /* Layout */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  header.top{background:linear-gradient(135deg,var(--brown-deep),var(--red-deep));color:#fff;padding:48px 0 60px;position:relative;overflow:hidden}
+  header.top::before{content:"";position:absolute;right:-100px;top:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,194,90,.25),transparent 65%)}
+  header.top .wrap{position:relative;z-index:2}
+  header.top .crumb{font-size:.84rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px}
+  header.top h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;color:#fff;line-height:1.15}
+  header.top h1 .hl{background:linear-gradient(135deg,var(--gold),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header.top p{max-width:60ch;margin-top:14px;color:rgba(255,255,255,.85);font-size:1.05rem}
+  header.top .meta{display:flex;gap:18px;margin-top:24px;font-size:.86rem;color:rgba(255,255,255,.7);flex-wrap:wrap}
+  header.top .meta span{display:inline-flex;align-items:center;gap:8px}
+  header.top .actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:700;font-size:.92rem;background:var(--grad);color:#fff;box-shadow:0 10px 24px -8px rgba(201,85,26,.5);transition:.25s}
+  .btn:hover{transform:translateY(-2px);text-decoration:none}
+  .btn.ghost{background:rgba(255,255,255,.1);box-shadow:none;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2)}
+
+  /* Body grid */
+  .body{display:grid;grid-template-columns:240px 1fr;gap:42px;padding:42px 0 80px;align-items:start}
+  nav.toc{position:sticky;top:24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  nav.toc h3{font-family:'Be Vietnam Pro';font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-weight:700}
+  nav.toc ol{list-style:none;counter-reset:n;display:flex;flex-direction:column;gap:1px}
+  nav.toc ol li{counter-increment:n}
+  nav.toc ol li a{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;font-size:.88rem;color:var(--ink);font-weight:500;transition:.2s}
+  nav.toc ol li a:hover,nav.toc ol li a.active{background:var(--cream);color:var(--orange-deep);text-decoration:none}
+  nav.toc ol li a::before{content:counter(n,decimal-leading-zero);color:var(--muted);font-weight:700;font-size:.78rem;flex:none}
+
+  main article{display:flex;flex-direction:column;gap:34px}
+
+  section.chap{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 32px;box-shadow:0 4px 14px -8px rgba(90,54,32,.15);scroll-margin-top:24px}
+  section.chap > .head{display:flex;align-items:center;gap:14px;margin-bottom:18px;border-bottom:1px dashed var(--line);padding-bottom:16px}
+  section.chap > .head .ic{width:48px;height:48px;border-radius:14px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:1.4rem;flex:none}
+  section.chap > .head h2{font-size:1.5rem;font-weight:800}
+  section.chap > .head h2 small{display:block;font-family:'Be Vietnam Pro';font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
+  section.chap p{margin-bottom:12px}
+  section.chap ul,section.chap ol{padding-left:20px;margin-bottom:14px}
+  section.chap li{margin-bottom:6px}
+  section.chap h3{font-size:1.12rem;font-weight:700;margin:22px 0 10px;color:var(--brown-deep)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .feature{background:var(--cream);border-radius:12px;padding:14px;border:1px solid var(--line)}
+  .feature b{display:block;color:var(--brown-deep);font-weight:700;margin-bottom:2px;font-size:.92rem}
+  .feature span{font-size:.82rem;color:var(--muted)}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{text-align:left;background:var(--cream);padding:10px 14px;font-weight:700;color:var(--brown-deep);border-bottom:2px solid var(--line)}
+  td{padding:10px 14px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border:0}
+
+  .tip,.warn,.danger,.info{padding:14px 18px;border-radius:12px;margin:14px 0;display:flex;gap:14px;align-items:flex-start;border-left:4px solid}
+  .tip{background:#E6F7EE;border-color:var(--green);color:#1E6B3A}
+  .warn{background:#FFF6E6;border-color:#F5C97C;color:#8B5A00}
+  .danger{background:#FDEAEA;border-color:var(--red);color:var(--red-deep)}
+  .info{background:#E6F0FB;border-color:var(--blue);color:#1A5494}
+  .tip b,.warn b,.danger b,.info b{display:block;margin-bottom:4px}
+  .tip .ic,.warn .ic,.danger .ic,.info .ic{font-size:1.3rem;flex:none}
+
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--cream);color:var(--orange-deep);margin-left:6px}
+  .pill.new{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff}
+  .pill.ai{background:linear-gradient(135deg,var(--orange),var(--red));color:#fff}
+
+  .prompt-list{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+  .prompt-list .q{background:linear-gradient(135deg,var(--cream),var(--cream-2));border-radius:10px;padding:10px 14px;font-size:.92rem;font-style:italic;color:var(--brown-deep);border-left:3px solid var(--orange)}
+
+  .step{counter-reset:step;display:flex;flex-direction:column;gap:14px;margin:14px 0}
+  .step > div{counter-increment:step;background:var(--cream);padding:14px 16px 14px 56px;border-radius:12px;position:relative;font-size:.94rem;border:1px solid var(--line)}
+  .step > div::before{content:counter(step);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem;font-family:'Playfair Display'}
+
+  footer{background:var(--brown-deep);color:rgba(255,255,255,.78);padding:40px 0;text-align:center;font-size:.88rem}
+  footer a{color:var(--gold)}
+
+  @media(max-width:880px){
+    .body{grid-template-columns:1fr;gap:24px}
+    nav.toc{position:static}
+    .grid2,.grid3{grid-template-columns:1fr}
+    section.chap{padding:22px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="crumb">📘 HANA Premium · Tài liệu</div>
+    <h1>Hướng dẫn sử dụng <span class="hl">Dashboard Quản trị</span></h1>
+    <p>Tất cả những gì chị Phương + nhân sự HANA Premium cần biết để vận hành phòng khám từ dashboard này — từ đăng nhập, đọc số liệu, dùng AI Assistant, đến bảo mật.</p>
+    <div class="meta">
+      <span>📅 Cập nhật 20/05/2026</span>
+      <span>🔖 Phiên bản 1.0</span>
+      <span>⏱️ Đọc ~10 phút</span>
+    </div>
+    <div class="actions">
+      <a href="/quantri" class="btn">← Quay lại Dashboard</a>
+      <a href="tel:0855698899" class="btn ghost">📞 Hỗ trợ kỹ thuật</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap body">
+  <nav class="toc">
+    <h3>Mục lục</h3>
+    <ol>
+      <li><a href="#login">Đăng nhập & bảo mật</a></li>
+      <li><a href="#layout">Giao diện tổng thể</a></li>
+      <li><a href="#dashboard">Trang Tổng quan</a></li>
+      <li><a href="#calendar">Lịch hẹn</a></li>
+      <li><a href="#crm">Khách hàng (CRM)</a></li>
+      <li><a href="#services">Dịch vụ</a></li>
+      <li><a href="#staff">Nhân viên</a></li>
+      <li><a href="#revenue">Doanh thu</a></li>
+      <li><a href="#ai">AI Assistant 🤖</a></li>
+      <li><a href="#marketing">Marketing & Loyalty</a></li>
+      <li><a href="#inventory">Kho hàng</a></li>
+      <li><a href="#reviews">Đánh giá</a></li>
+      <li><a href="#settings">Cài đặt</a></li>
+      <li><a href="#shortcut">Phím tắt</a></li>
+      <li><a href="#faq">FAQ & xử lý lỗi</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <article>
+
+    <!-- 1. LOGIN -->
+    <section class="chap" id="login">
+      <div class="head"><div class="ic">🔐</div><h2><small>Chương 1</small>Đăng nhập & bảo mật</h2></div>
+      <p>Dashboard chỉ truy cập được sau khi đăng nhập. Mọi request không có cookie hợp lệ sẽ tự bị chuyển về trang đăng nhập.</p>
+
+      <h3>Thông tin đăng nhập mặc định</h3>
+      <table>
+        <tr><th>Trường</th><th>Giá trị</th></tr>
+        <tr><td>ID đăng nhập</td><td><code>phuong</code></td></tr>
+        <tr><td>Mật khẩu</td><td><code>Hana@2026!</code></td></tr>
+        <tr><td>Thời hạn phiên</td><td>7 ngày (tự động hết hạn → đăng nhập lại)</td></tr>
+      </table>
+
+      <div class="warn"><span class="ic">⚠️</span><div><b>Đổi mật khẩu ngay lần đầu</b>Vào Vercel dashboard (vercel.com) → project <code>hana-dashboard</code> → Settings → Environment Variables → sửa <code>HANA_ADMIN_PASS</code> → Save → Redeploy. Hoặc liên hệ kỹ thuật 0855 698 899.</div></div>
+
+      <h3>Đăng xuất</h3>
+      <p>Bấm icon <code>↪</code> ở khung tên CEO Phương góc dưới sidebar trái. Hoặc bấm vào tên ở thanh trên cùng góc phải → xác nhận đăng xuất.</p>
+
+      <h3>Tầng bảo vệ đang chạy</h3>
+      <div class="grid2">
+        <div class="feature"><b>🛡️ Vercel Edge Middleware</b><span>Chặn truy cập <code>/quantri/*</code> nếu không có cookie hợp lệ</span></div>
+        <div class="feature"><b>🔒 HTTPS + HSTS</b><span>Mọi kết nối mã hoá TLS, trình duyệt từ chối HTTP</span></div>
+        <div class="feature"><b>🔑 HMAC-SHA256 session</b><span>Cookie ký số, không thể giả mạo</span></div>
+        <div class="feature"><b>⏱️ Constant-time compare</b><span>Chống timing attack khi đoán mật khẩu</span></div>
+        <div class="feature"><b>🤖 Chống brute-force</b><span>Sai mật khẩu → chờ 600ms mới trả về</span></div>
+        <div class="feature"><b>🍪 HttpOnly cookie</b><span>JS client không đọc được session → chống XSS</span></div>
+      </div>
+    </section>
+
+    <!-- 2. LAYOUT -->
+    <section class="chap" id="layout">
+      <div class="head"><div class="ic">🧭</div><h2><small>Chương 2</small>Giao diện tổng thể</h2></div>
+      <p>Dashboard chia làm 3 vùng cố định:</p>
+      <div class="grid3">
+        <div class="feature"><b>1. Sidebar trái</b><span>12 mục điều hướng — Tổng quan, Lịch hẹn, Khách hàng, Dịch vụ, Nhân viên, Doanh thu, AI Assistant, Marketing, Kho, Đánh giá, Đặt lịch online, Cài đặt</span></div>
+        <div class="feature"><b>2. Thanh trên cùng</b><span>Tiêu đề trang · ô tìm kiếm · chuông thông báo · profile CEO</span></div>
+        <div class="feature"><b>3. Vùng nội dung</b><span>Đổi theo mục chị bấm bên trái. URL có dấu # — copy/share dễ</span></div>
+      </div>
+      <div class="tip"><span class="ic">💡</span><div><b>Mẹo:</b> Bấm thẳng vào <code>phammaiphuong.vn/quantri#crm</code> để mở thẳng tab Khách hàng — chia sẻ link nhanh cho nhân viên.</div></div>
+    </section>
+
+    <!-- 3. DASHBOARD -->
+    <section class="chap" id="dashboard">
+      <div class="head"><div class="ic">📊</div><h2><small>Chương 3</small>Tổng quan</h2></div>
+      <p>Trang đầu tiên khi đăng nhập — bức tranh toàn cảnh hôm nay.</p>
+
+      <h3>4 KPI quan trọng (4 thẻ trên cùng)</h3>
+      <table>
+        <tr><th>Thẻ</th><th>Ý nghĩa</th><th>Cần lưu ý</th></tr>
+        <tr><td>📅 Lịch hẹn hôm nay</td><td>Tổng số ca khám đã đặt trong ngày</td><td>Mũi tên ▲ xanh = tăng, ▼ đỏ = giảm so hôm qua</td></tr>
+        <tr><td>👥 Khách mới tuần</td><td>Khách lần đầu đến (chưa từng trong CRM)</td><td>Đo hiệu quả marketing</td></tr>
+        <tr><td>💰 Doanh thu tuần</td><td>Tổng tiền dịch vụ + sản phẩm</td><td>So sánh tuần trước → tăng giảm %</td></tr>
+        <tr><td>⭐ NPS</td><td>% khách hài lòng (Net Promoter Score)</td><td>Dưới 80% là báo động</td></tr>
+      </table>
+
+      <h3>Khu vực giữa</h3>
+      <ul>
+        <li><b>Biểu đồ doanh thu 14 ngày:</b> đường đỏ = tuần này, gạch cam = tuần trước. Khoảng cách 2 đường = mức tăng trưởng.</li>
+        <li><b>🤖 AI Insights hôm nay:</b> 3 phát hiện AI tự tổng hợp mỗi sáng — cơ hội, cảnh báo, dự đoán.</li>
+        <li><b>Phân loại khách</b> (donut): tỉ lệ độ tuổi/giới tính.</li>
+        <li><b>Lịch hẹn sắp tới hôm nay:</b> 5 lịch gần nhất + KTV + trạng thái — bấm "Xem tất cả" để qua trang Lịch hẹn.</li>
+      </ul>
+
+      <h3>Khu vực dưới — 3 cột thông tin</h3>
+      <div class="grid3">
+        <div class="feature"><b>🏆 Top dịch vụ tuần</b><span>5 dịch vụ bán chạy nhất + thanh tiến độ</span></div>
+        <div class="feature"><b>👑 Top KTV</b><span>Xếp hạng theo doanh thu + đánh giá</span></div>
+        <div class="feature"><b>🎂 Sự kiện sắp tới</b><span>Sinh nhật khách · kỷ niệm · khách quên tái khám · ngày đặc biệt</span></div>
+      </div>
+    </section>
+
+    <!-- 4. CALENDAR -->
+    <section class="chap" id="calendar">
+      <div class="head"><div class="ic">📅</div><h2><small>Chương 4</small>Lịch hẹn</h2></div>
+      <p>Bảng lịch tuần 7 ngày × 7 khung giờ. Mỗi ô màu = 1 ca hẹn.</p>
+
+      <h3>Mã màu</h3>
+      <ul>
+        <li><b style="color:var(--red)">Đỏ–cam (gradient HANA):</b> ca CEO Phương trực tiếp</li>
+        <li><b style="color:var(--gold-deep)">Vàng:</b> tư vấn / tái khám</li>
+        <li><b style="color:var(--red-deep)">Cam đậm:</b> phẫu thuật / combo lộ trình</li>
+        <li><b>Khung gạch nét đứt:</b> AI gợi ý lấp đầy bằng flash-sale</li>
+      </ul>
+
+      <h3>Thao tác</h3>
+      <div class="step">
+        <div><b>Xem chi tiết ca:</b> bấm vào ô màu → hiện thông tin khách + lịch sử</div>
+        <div><b>Đổi giờ ca:</b> kéo-thả ô màu sang khung giờ khác (đang phát triển)</div>
+        <div><b>Tạo lịch mới:</b> bấm nút <code>+ Tạo lịch mới</code> ở góc trên</div>
+        <div><b>AI lấp khung trống:</b> bấm vào ô gạch nét đứt → AI tự đề xuất chiến dịch flash-sale</div>
+        <div><b>Đổi tuần:</b> bấm <code>← Tuần trước</code> / <code>Tuần sau →</code></div>
+      </div>
+
+      <div class="tip"><span class="ic">💡</span><div><b>Mẹo:</b> AI tự đánh giá rủi ro vắng mặt (no-show) cho từng lịch. Lịch điểm cao → tự gửi Zalo nhắc 2h trước.</div></div>
+    </section>
+
+    <!-- 5. CRM -->
+    <section class="chap" id="crm">
+      <div class="head"><div class="ic">👥</div><h2><small>Chương 5</small>Khách hàng (CRM)</h2></div>
+      <p>Trung tâm dữ liệu khách hàng — 2.847 hồ sơ, AI phân loại tự động.</p>
+
+      <h3>Phân hạng (tier)</h3>
+      <table>
+        <tr><th>Hạng</th><th>Tiêu chí</th><th>Đặc quyền</th></tr>
+        <tr><td><b style="color:#5DA0DC">💎 Diamond</b></td><td>LTV ≥ 100tr hoặc ≥ 20 ca</td><td>CEO tư vấn trực tiếp, ưu tiên slot</td></tr>
+        <tr><td><b style="color:var(--orange-deep)">🥇 Gold</b></td><td>LTV 30-100tr hoặc 8-20 ca</td><td>Voucher tháng, ưu đãi sinh nhật</td></tr>
+        <tr><td><b style="color:#888">🥈 Silver</b></td><td>LTV &lt; 30tr</td><td>Tích điểm loyalty</td></tr>
+      </table>
+
+      <h3>Các chỉ số mới (2026)</h3>
+      <div class="grid2">
+        <div class="feature"><b>LTV (Lifetime Value)</b><span>Tổng tiền khách đã chi từ lần đầu đến nay</span></div>
+        <div class="feature"><b>AI Score</b><span>0–100 — điểm trung thành tổng hợp. Dưới 50 = nguy cơ rời</span></div>
+        <div class="feature"><b>Lần gần nhất</b><span>Đỏ nếu &gt; 60 ngày — đề xuất gọi/voucher</span></div>
+        <div class="feature"><b>Điểm loyalty</b><span>1.000đ chi tiêu = 1 điểm · đổi voucher/quà</span></div>
+      </div>
+
+      <div class="tip"><span class="ic">🎯</span><div><b>Quy trình hằng ngày:</b> mở mục CRM → đọc thẻ "Nguy cơ rời (AI)" → bấm "Gọi ngay" cho khách Đỏ → gửi voucher Zalo. Mất 5 phút/ngày, giữ doanh thu ổn định.</div></div>
+    </section>
+
+    <!-- 6. SERVICES -->
+    <section class="chap" id="services">
+      <div class="head"><div class="ic">💎</div><h2><small>Chương 6</small>Dịch vụ</h2></div>
+      <p>Catalog 42 dịch vụ + 10 combo lộ trình. Mỗi thẻ: thời gian · điểm đánh giá · số ca · giá.</p>
+
+      <h3>Thêm/sửa dịch vụ</h3>
+      <ol>
+        <li>Bấm <code>+ Thêm dịch vụ</code> ở góc trên (đang phát triển)</li>
+        <li>Sửa giá: bấm vào thẻ → form chỉnh sửa</li>
+        <li>Ẩn dịch vụ tạm dừng: toggle "Đang hoạt động"</li>
+      </ol>
+
+      <div class="info"><span class="ic">💰</span><div><b>Định giá AI gợi ý:</b> AI sẽ phân tích lịch sử book của từng dịch vụ → đề xuất giá tối ưu (chưa bật mặc định — bấm AI Assistant để chat).</div></div>
+    </section>
+
+    <!-- 7. STAFF -->
+    <section class="chap" id="staff">
+      <div class="head"><div class="ic">👩‍⚕️</div><h2><small>Chương 7</small>Nhân viên</h2></div>
+      <p>Quản lý 12 nhân sự — bác sĩ, KTV, lễ tân.</p>
+
+      <h3>Bảng hiệu suất</h3>
+      <table>
+        <tr><th>Cột</th><th>Ý nghĩa</th></tr>
+        <tr><td>Ca tháng này</td><td>Số ca đã thực hiện</td></tr>
+        <tr><td>Đánh giá TB</td><td>Trung bình ⭐ từ khách (1-5)</td></tr>
+        <tr><td>Doanh thu mang về</td><td>Tổng tiền dịch vụ nhân viên đó làm</td></tr>
+        <tr><td>KPI</td><td>% đạt mục tiêu tháng — Xanh ≥ 95% / Cam 80-95% / Đỏ &lt; 80%</td></tr>
+      </table>
+
+      <div class="info"><span class="ic">📊</span><div><b>AI suggestion:</b> Cột bên phải tự gợi ý ai cần đào tạo, ai có thể promote, có nên tuyển thêm không.</div></div>
+    </section>
+
+    <!-- 8. REVENUE -->
+    <section class="chap" id="revenue">
+      <div class="head"><div class="ic">💰</div><h2><small>Chương 8</small>Doanh thu & Báo cáo</h2></div>
+      <p>Tất cả về tiền — doanh thu, chi phí, mục tiêu.</p>
+
+      <h3>4 KPI tài chính</h3>
+      <ul>
+        <li><b>Doanh thu tháng:</b> tổng tiền đã thu, so sánh YoY (cùng kỳ năm trước)</li>
+        <li><b>Mục tiêu tháng:</b> % đã đạt — bám sát monthly goal</li>
+        <li><b>Giá trị TB / ca:</b> ARPU = doanh thu / số ca → đo nâng cấp dịch vụ</li>
+        <li><b>Chi phí tháng:</b> nguyên liệu + lương + marketing + mặt bằng → Net margin</li>
+      </ul>
+
+      <h3>Biểu đồ 6 tháng</h3>
+      <p>Cột đỏ = thực tế · cột vàng = mục tiêu. Khi cột đỏ vượt cột vàng = vượt KPI.</p>
+
+      <div class="warn"><span class="ic">📈</span><div><b>AI dự báo doanh thu:</b> AI tính xác suất đạt mục tiêu quý dựa trên xu hướng 30 ngày. Trên 85% = ổn, dưới 70% = cần action.</div></div>
+    </section>
+
+    <!-- 9. AI -->
+    <section class="chap" id="ai">
+      <div class="head"><div class="ic">🤖</div><h2><small>Chương 9</small>AI Assistant <span class="pill new">Gemini 2.5</span></h2></div>
+      <p>Trợ lý AI riêng của HANA — em biết hết về phòng khám, dịch vụ, giá, CEO. Hỏi gì cũng được — em vừa làm trợ lý cho chị Phương vừa chat tư vấn cho khách.</p>
+
+      <h3>10 tính năng AI 2026 tích hợp sẵn</h3>
+      <div class="grid2">
+        <div class="feature"><b>🎯 No-show Prediction</b><span>Chấm điểm rủi ro vắng — tự nhắn Zalo 2h trước</span></div>
+        <div class="feature"><b>💎 LTV Scoring</b><span>Tính giá trị trọn đời mỗi khách</span></div>
+        <div class="feature"><b>🚨 Churn Detection</b><span>Phát hiện khách sắp rời 30 ngày trước</span></div>
+        <div class="feature"><b>📅 Smart Booking</b><span>Đề xuất flash-sale tự động lấp slot</span></div>
+        <div class="feature"><b>💬 Auto Marketing Copy</b><span>Sinh nội dung Zalo/SMS/FB tự động</span></div>
+        <div class="feature"><b>🎂 Birthday Auto-greet</b><span>Tự gửi voucher sinh nhật mỗi sáng</span></div>
+        <div class="feature"><b>📱 QR Check-in</b><span>Khách quét QR → cộng điểm tự động</span></div>
+        <div class="feature"><b>⭐ Review Aggregator</b><span>Gom review Google/FB/TikTok về 1 chỗ</span></div>
+        <div class="feature"><b>📊 Revenue Forecast</b><span>Dự báo doanh thu 30 ngày tới</span></div>
+        <div class="feature"><b>📦 Smart Inventory</b><span>Cảnh báo + tự đặt restock</span></div>
+      </div>
+
+      <h3>Cách dùng chat AI</h3>
+      <div class="step">
+        <div>Bấm mục <b>🤖 AI Assistant</b> ở sidebar trái</div>
+        <div>Khung chat hiện bên phải → gõ câu hỏi vào ô dưới cùng → bấm Gửi (hoặc nhấn Enter)</div>
+        <div>AI lưu lịch sử 10 câu hỏi gần nhất → trả lời theo ngữ cảnh</div>
+      </div>
+
+      <h3>Câu hỏi gợi ý — sao chép vào AI</h3>
+      <div class="prompt-list">
+        <div class="q">"Khách 38 tuổi mới sinh muốn trẻ hoá da, em gợi ý liệu trình thế nào?"</div>
+        <div class="q">"Soạn giúp chị tin Zalo mời khách Diamond đi tái khám tháng này, giảm 15%"</div>
+        <div class="q">"So sánh Hifu Ultraformer với Botox xoá nhăn cho khách 40 tuổi"</div>
+        <div class="q">"Khách hỏi sao HANA đắt hơn nơi khác — em phản hồi thế nào thuyết phục?"</div>
+        <div class="q">"3 cách phát hiện khách đang cân nhắc spa khác để mình giữ chân"</div>
+        <div class="q">"Viết caption Facebook giới thiệu dịch vụ cắt mí, tone chuyên gia ấm áp"</div>
+        <div class="q">"Phân tích case khách Yến đang nguy cơ rời (67 ngày) — kịch bản win-back"</div>
+        <div class="q">"Top 3 sai lầm khách mới hay mắc khi chọn thẩm mỹ — viết bài blog 500 từ"</div>
+      </div>
+
+      <div class="danger"><span class="ic">🔒</span><div><b>Lưu ý y khoa:</b> AI KHÔNG tự chẩn đoán hay hứa kết quả tuyệt đối. Mọi quyết định điều trị do bác sĩ HANA quyết. AI chỉ hỗ trợ marketing, tư vấn sơ bộ, soạn nội dung.</div></div>
+    </section>
+
+    <!-- 10. MARKETING -->
+    <section class="chap" id="marketing">
+      <div class="head"><div class="ic">📢</div><h2><small>Chương 10</small>Marketing & Loyalty</h2></div>
+      <p>Quản lý mọi chiến dịch Zalo OA · Facebook Ads · TikTok · email · SMS.</p>
+
+      <h3>Chiến dịch đang chạy</h3>
+      <ul>
+        <li><b>Đang chạy</b> (xanh): active, AI đang tối ưu</li>
+        <li><b>Automation</b>: chạy tự động theo trigger (sinh nhật, churn risk...)</li>
+        <li><b>Đang xử lý</b> (xanh dương): chờ phản hồi khách</li>
+      </ul>
+
+      <h3>Hệ thống Loyalty</h3>
+      <table>
+        <tr><th>Hạng</th><th>Tổng khách</th><th>Tỉ lệ</th></tr>
+        <tr><td><b>💎 Diamond</b></td><td>186</td><td>6.5%</td></tr>
+        <tr><td><b>🥇 Gold</b></td><td>724</td><td>25.4%</td></tr>
+        <tr><td><b>🥈 Silver</b></td><td>1.420</td><td>49.9%</td></tr>
+      </table>
+    </section>
+
+    <!-- 11. INVENTORY -->
+    <section class="chap" id="inventory">
+      <div class="head"><div class="ic">📦</div><h2><small>Chương 11</small>Kho hàng</h2></div>
+      <p>Quản lý 142 SKU — vật tư y tế + sản phẩm bán lẻ.</p>
+
+      <h3>Cảnh báo realtime</h3>
+      <ul>
+        <li><b style="color:var(--red)">SẮP HẾT (đỏ):</b> tồn dưới mức tối thiểu — AI đề xuất đặt ngay</li>
+        <li><b style="color:var(--green)">Đủ (xanh):</b> tồn ổn, tiếp tục dùng</li>
+      </ul>
+
+      <h3>AI Auto-restock</h3>
+      <p>AI phân tích lịch sử dùng + dự báo nhu cầu → tự lập PO (Purchase Order). Chị chỉ cần bấm <code>Duyệt PO</code> → tự gửi nhà cung cấp.</p>
+
+      <div class="warn"><span class="ic">⏰</span><div><b>Chú ý hạn sử dụng:</b> filler, botox có hạn sử dụng → AI tự nhắc dùng trước hết hạn 30 ngày để tránh huỷ.</div></div>
+    </section>
+
+    <!-- 12. REVIEWS -->
+    <section class="chap" id="reviews">
+      <div class="head"><div class="ic">⭐</div><h2><small>Chương 12</small>Đánh giá</h2></div>
+      <p>Gom mọi đánh giá Google, Facebook, TikTok, Zalo về 1 chỗ.</p>
+
+      <h3>Quy trình xử lý</h3>
+      <div class="step">
+        <div>Mỗi sáng kiểm tra mục <b>"Cần phản hồi"</b> → review &lt; 4 sao</div>
+        <div>Bấm <code>↪ Trả lời</code> → AI gợi ý câu trả lời chuyên nghiệp</div>
+        <div>Sửa lại theo ngữ cảnh → đăng lên</div>
+        <div>Review 5⭐ — gửi lời cảm ơn cá nhân hoá (Zalo)</div>
+      </div>
+
+      <div class="tip"><span class="ic">💎</span><div><b>NPS = 4.92/5</b> hiện tại — top 5% spa Việt Nam. Giữ vững bằng cách phản hồi mọi review &lt; 4⭐ trong 24h.</div></div>
+    </section>
+
+    <!-- 13. SETTINGS -->
+    <section class="chap" id="settings">
+      <div class="head"><div class="ic">⚙️</div><h2><small>Chương 13</small>Cài đặt</h2></div>
+      <ul>
+        <li>🏥 Thông tin phòng khám — địa chỉ, hotline, giờ làm</li>
+        <li>💳 Thanh toán — MoMo, ZaloPay, VNPay, thẻ</li>
+        <li>📲 Tích hợp — Zalo OA, Facebook, TikTok, Google</li>
+        <li>👥 Phân quyền — CEO, bác sĩ, KTV, lễ tân</li>
+        <li>🔔 Thông báo — email, push, Zalo, SMS</li>
+        <li>🌐 Đa chi nhánh — sẵn sàng cho HANA 2, HANA 3</li>
+      </ul>
+    </section>
+
+    <!-- 14. SHORTCUT -->
+    <section class="chap" id="shortcut">
+      <div class="head"><div class="ic">⌨️</div><h2><small>Chương 14</small>Phím tắt</h2></div>
+      <table>
+        <tr><th>Phím</th><th>Tác dụng</th></tr>
+        <tr><td><kbd>⌘</kbd> + <kbd>K</kbd></td><td>Mở tìm kiếm nhanh</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Gửi câu hỏi trong AI chat</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Đóng dropdown/modal</td></tr>
+        <tr><td><kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd></td><td>Hard refresh (xoá cache nếu thấy lỗi)</td></tr>
+      </table>
+      <h3>Hash URLs — chia sẻ nhanh</h3>
+      <ul>
+        <li><code>/quantri#dashboard</code> — Tổng quan</li>
+        <li><code>/quantri#calendar</code> — Lịch hẹn</li>
+        <li><code>/quantri#crm</code> — Khách hàng</li>
+        <li><code>/quantri#ai</code> — AI Assistant</li>
+        <li><code>/quantri#revenue</code> — Doanh thu</li>
+      </ul>
+    </section>
+
+    <!-- 15. FAQ -->
+    <section class="chap" id="faq">
+      <div class="head"><div class="ic">❓</div><h2><small>Chương 15</small>FAQ & xử lý lỗi</h2></div>
+
+      <h3>Tôi quên mật khẩu</h3>
+      <p>Liên hệ kỹ thuật <a href="tel:0855698899">0855 698 899</a> — em sẽ vào Vercel reset env var <code>HANA_ADMIN_PASS</code> trong 5 phút.</p>
+
+      <h3>Trang load chậm / không hiện</h3>
+      <ol>
+        <li>Bấm <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> để clear cache</li>
+        <li>Mở chế độ ẩn danh (<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>) thử lại</li>
+        <li>Kiểm tra Internet</li>
+        <li>Vẫn lỗi → liên hệ kỹ thuật</li>
+      </ol>
+
+      <h3>AI chat trả lời chậm hoặc lỗi</h3>
+      <p>Gemini API đôi khi rate-limit khi traffic cao — chờ 30 giây thử lại. Nếu liên tục lỗi → có thể hết quota miễn phí (500 request/ngày), liên hệ kỹ thuật upgrade plan.</p>
+
+      <h3>Tôi muốn thêm tài khoản cho nhân viên khác</h3>
+      <p>Hiện đang dùng 1 tài khoản chung (CEO). Phân quyền multi-user dự kiến trong phiên bản 1.1 (Q3/2026). Nếu cần gấp, em tạo thêm user qua Vercel — báo em.</p>
+
+      <h3>Số liệu trong dashboard có phải dữ liệu thật?</h3>
+      <p>Hiện đang là <b>dữ liệu demo</b> — phản ánh đúng phong cách phòng khám HANA nhưng số liệu chưa kết nối với phần mềm POS/booking thật. Để kết nối realtime, cần tích hợp API:</p>
+      <ul>
+        <li><b>Pancake / POS hiện tại</b> — gọi webhook khi có lịch/đơn mới</li>
+        <li><b>Zalo OA</b> — đồng bộ chat khách</li>
+        <li><b>Google Calendar</b> — đồng bộ lịch hẹn</li>
+      </ul>
+      <p>Mỗi tích hợp ~1-2 tuần code. Báo em ưu tiên tích hợp nào trước.</p>
+
+      <h3>Tôi muốn thay logo / màu sắc</h3>
+      <p>Sửa file CSS variable trong dashboard — báo em màu mong muốn, em đổi trong 30 phút.</p>
+
+      <h3>Có thể truy cập trên điện thoại không?</h3>
+      <p>Có — dashboard responsive. Sidebar tự ẩn → bấm icon <code>☰</code> ở góc trên trái để mở menu trên mobile.</p>
+    </section>
+
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 HANA Premium Beauty Center · <a href="https://phammaiphuong.vn">phammaiphuong.vn</a></p>
+    <p style="margin-top:8px;color:rgba(255,255,255,.5);font-size:.78rem">Hỗ trợ kỹ thuật: 0855 698 899 · 276 Cao Thắng, Q.10, TP.HCM</p>
+  </div>
+</footer>
+
+<script>
+  // TOC active state
+  const tocLinks = document.querySelectorAll('nav.toc a');
+  const sections = document.querySelectorAll('section.chap');
+  function updateActive(){
+    let current = sections[0].id;
+    sections.forEach(s=>{
+      const r = s.getBoundingClientRect();
+      if (r.top < 120) current = s.id;
+    });
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href')==='#'+current));
+  }
+  addEventListener('scroll', updateActive, {passive:true});
+  updateActive();
+</script>
+
+</body>
+</html>

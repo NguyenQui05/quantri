@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Đăng nhập · HANA Premium Dashboard</title>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(135deg,#FFF8EC 0%,#FBEFD8 50%,#F6E2C2 100%);display:grid;place-items:center;padding:20px;color:#3B2113}
+  .card{background:#fff;border-radius:24px;box-shadow:0 30px 80px -28px rgba(168,35,28,.35);padding:38px 36px;width:min(420px,100%);position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(135deg,#E8C25A,#C99A2E,#E0762C,#A8231C)}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+  .mono{width:52px;height:52px;border-radius:15px;background:radial-gradient(circle at 50% 32%,#fff,#FFF1D8);display:grid;place-items:center;overflow:hidden;box-shadow:0 6px 16px -6px rgba(201,154,46,.55), inset 0 0 0 1.7px rgba(232,194,90,.7)}
+  .mono img{width:100%;height:100%;object-fit:contain;padding:5px;display:block}
+  .brand h1{font-family:'Lora';font-size:1.3rem;font-weight:800;color:#3B2113;line-height:1.1}
+  .brand small{display:block;font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:#C9551A;font-weight:600;margin-top:2px;font-family:'Be Vietnam Pro'}
+  h2{font-family:'Lora';font-size:1.7rem;font-weight:800;margin-bottom:6px}
+  p.sub{color:#8b7a65;font-size:.92rem;margin-bottom:22px}
+  label{display:block;font-size:.84rem;font-weight:600;color:#5A3620;margin-bottom:6px;margin-top:14px}
+  input{width:100%;padding:13px 16px;border:1px solid #F0E5D0;border-radius:12px;font:inherit;font-size:.96rem;background:#FAF7F2;transition:.2s;outline:none}
+  input:focus{border-color:#E0762C;background:#fff;box-shadow:0 0 0 4px rgba(224,118,44,.12)}
+  button{width:100%;margin-top:22px;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,#E8C25A 0%,#C99A2E 38%,#E0762C 72%,#A8231C 100%);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:.25s;font-family:inherit}
+  button:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(201,85,26,.55)}
+  button:disabled{opacity:.6;cursor:wait;transform:none}
+  .err{margin-top:14px;padding:10px 14px;background:#FDEAEA;border:1px solid #F0AAA8;color:#7E150F;border-radius:10px;font-size:.86rem;display:none}
+  .err.show{display:block}
+  .foot{margin-top:22px;text-align:center;font-size:.78rem;color:#8b7a65}
+  .foot a{color:#C9551A;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+  <form class="card" id="loginForm">
+    <div class="brand">
+      <span class="mono"><img src="/logo-mark.png" alt="Logo HANA"></span>
+      <span><h1>HANA Premium</h1><small>Bảng quản trị</small></span>
+    </div>
+    <h2>Đăng nhập</h2>
+    <p class="sub">Khu vực dành cho quản trị viên · CEO Phạm Mai Phương</p>
+
+    <label for="username">ID đăng nhập</label>
+    <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+
+    <label for="password">Mật khẩu</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+    <div class="err" id="err"></div>
+    <button type="submit" id="submitBtn">Đăng nhập</button>
+
+    <div class="foot">Quên mật khẩu? Liên hệ <a href="tel:0855698899">0855 698 899</a></div>
+  </form>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const btn = document.getElementById('submitBtn');
+  const err = document.getElementById('err');
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next') || '/quantri';
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.remove('show');
+    btn.disabled = true; btn.textContent = 'Đang đăng nhập…';
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          username: document.getElementById('username').value.trim(),
+          password: document.getElementById('password').value
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        try{ localStorage.setItem('hana_session', JSON.stringify({user:data.user||'', role:data.role||'Toàn quyền kiểm soát'})); }catch(e){}
+        location.href = next;
+      } else {
+        err.textContent = data.error || 'Sai ID hoặc mật khẩu';
+        err.classList.add('show');
+      }
+    } catch (e) {
+      err.textContent = 'Lỗi kết nối: ' + (e?.message || e);
+      err.classList.add('show');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Đăng nhập';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>OG Card · HANA</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Be+Vietnam+Pro:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  html,body{width:1200px;height:630px;overflow:hidden;background:#FFF8EC}
+  body{
+    font-family:'Be Vietnam Pro',sans-serif;
+    background:
+      radial-gradient(circle at 75% 50%, rgba(232,194,90,.22), transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(168,35,28,.16), transparent 50%),
+      linear-gradient(135deg,#FFF8EC 0%,#FBEFD8 50%,#F6E2C2 100%);
+    display:flex;align-items:center;padding:0 70px;
+    position:relative;
+  }
+  body::before{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(135deg, transparent 60%, rgba(255,255,255,.55) 60%, rgba(255,255,255,.55) 62%, transparent 62%),
+      linear-gradient(135deg, transparent 75%, rgba(168,35,28,.08) 75%);
+    pointer-events:none;
+  }
+  body::after{
+    content:"";position:absolute;left:0;top:0;height:6px;width:100%;
+    background:linear-gradient(90deg,#E8C25A,#C99A2E,#E0762C,#A8231C);
+  }
+  .photo{
+    width:380px;height:480px;flex:none;
+    border-radius:24px;overflow:hidden;
+    box-shadow:0 30px 70px -20px rgba(168,35,28,.55), 0 0 0 6px #fff, 0 0 0 8px rgba(232,194,90,.5);
+    background:#fff;
+    position:relative;z-index:2;
+    transform:rotate(-1.5deg);
+  }
+  .photo img{width:100%;height:100%;object-fit:cover;object-position:center 22%;display:block}
+  .photo::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.18));
+    pointer-events:none;
+  }
+  .content{flex:1;padding-left:65px;position:relative;z-index:2}
+  .brand{
+    display:inline-flex;align-items:center;gap:14px;
+    padding:9px 18px;border-radius:99px;
+    background:rgba(255,255,255,.85);backdrop-filter:blur(8px);
+    border:1.5px solid rgba(232,194,90,.6);
+    margin-bottom:22px;
+    box-shadow:0 10px 24px -10px rgba(168,35,28,.2);
+  }
+  .brand .mono{
+    width:40px;height:40px;border-radius:11px;overflow:hidden;
+    background:radial-gradient(circle at 50% 32%,#fff,#FFF1D8);
+    display:grid;place-items:center;
+    box-shadow:inset 0 0 0 1.6px rgba(232,194,90,.75);
+  }
+  .brand .mono img{width:100%;height:100%;object-fit:contain;padding:4px;display:block}
+  .brand b{font-family:'Lora';font-size:1.15rem;color:#3B2113;font-weight:800;letter-spacing:.01em}
+  .brand small{font-size:.7rem;letter-spacing:.22em;color:#C9551A;font-weight:700;text-transform:uppercase}
+  h1{
+    font-family:'Lora';
+    font-size:3.5rem;font-weight:900;
+    color:#3B2113;letter-spacing:-.02em;line-height:1.05;
+    margin-bottom:14px;
+  }
+  h1 .accent{
+    background:linear-gradient(135deg,#A8231C,#E0762C,#C99A2E);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    display:block;
+  }
+  .tagline{
+    font-size:1.18rem;color:#5A3620;font-weight:600;
+    margin-bottom:24px;line-height:1.45;letter-spacing:.005em;
+  }
+  .meta{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+  .meta-item{display:flex;align-items:center;gap:9px;font-size:.96rem;color:#3B2113;font-weight:700}
+  .meta-item .ic{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,#E8C25A,#E0762C);
+    color:#fff;display:grid;place-items:center;font-size:.85rem;font-weight:800;
+  }
+  .hotline{
+    margin-top:18px;display:inline-flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg,#A8231C,#7E150F);color:#fff;
+    padding:10px 20px;border-radius:99px;
+    font-size:1.1rem;font-weight:800;letter-spacing:.02em;
+    box-shadow:0 12px 28px -10px rgba(168,35,28,.6);
+  }
+  .deco-circle{position:absolute;border-radius:50%;opacity:.55;z-index:0}
+  .deco-circle.c1{width:120px;height:120px;background:linear-gradient(135deg,#E8C25A,#E0762C);top:-30px;right:120px;filter:blur(2px)}
+  .deco-circle.c2{width:70px;height:70px;background:linear-gradient(135deg,#A8231C,#E0762C);bottom:60px;right:60px;filter:blur(1px)}
+  .deco-circle.c3{width:40px;height:40px;background:#E8C25A;top:140px;right:60px}
+</style>
+</head>
+<body>
+  <span class="deco-circle c1"></span>
+  <span class="deco-circle c2"></span>
+  <span class="deco-circle c3"></span>
+
+  <div class="photo">
+    <img src="IMG_6776.JPG" alt="CEO Phạm Mai Phương">
+  </div>
+
+  <div class="content">
+    <div class="brand">
+      <span class="mono"><img src="logo-mark.png" alt="HANA"></span>
+      <span><b>HANA Premium</b> <small style="margin-left:6px">Beauty Center</small></span>
+    </div>
+    <h1>CEO Phạm Mai Phương<span class="accent">Kiến tạo vẻ đẹp Việt</span></h1>
+    <p class="tagline">Đẹp tự nhiên · An toàn y khoa · Chuyên gia đồng hành</p>
+    <div class="meta">
+      <div class="meta-item"><span class="ic">12</span>năm kinh nghiệm</div>
+      <div class="meta-item"><span class="ic">20K</span>khách hàng tin chọn</div>
+      <div class="meta-item"><span class="ic">★</span>NPS 4.92/5</div>
+    </div>
+    <div class="hotline">📞 Hotline · 0855 698 899</div>
+  </div>
+</body>
+</html>

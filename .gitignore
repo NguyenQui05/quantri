@@ -1,0 +1,18 @@
+# Vercel (chứa project/org ID nội bộ)
+.vercel
+
+# macOS
+.DS_Store
+
+# Log runtime
+*.err
+*.log
+
+# Dependencies
+node_modules
+
+# File môi trường bí mật (KHÔNG BAO GIỜ commit)
+.env
+.env.*
+*.key
+*.pem
