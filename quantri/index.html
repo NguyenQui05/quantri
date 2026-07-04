@@ -833,6 +833,7 @@
             <tbody id="pgRows"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
           </table>
         </div>
+        <div id="pgPager" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
       </div>
     </section>
 
@@ -2700,22 +2701,37 @@ function pgFilters(){
     to: document.getElementById('pgTo')?.value||undefined
   };
 }
-async function pgRefresh(){
+let pgPage=0;
+async function pgRefresh(resetPage=true){
+  if(resetPage) pgPage=0;
   const f=pgFilters();
   let d;
-  try{ d=await pgApi({action:'list', ...f}); }
+  try{ d=await pgApi({action:'list', page:pgPage, ...f}); }
   catch(e){ toast('❌ '+e.message,'red'); return; }
   pgRenderKpi(d.sum||{}); pgRenderStaffFilter(d.byStaff||{}, f.assigned_to); pgRenderRows(d.rows||[]);
+  pgRenderPager(d);
   const note=document.getElementById('pgCapNote');
   if(note){
     const s=d.sum||{};
-    let t=`Đang xem ${d.rows?.length||0}/${d.matched||0} số`;
-    if(d.capped) t+=` (hiển thị tối đa 1000 — lọc thêm để xem hết)`;
+    const start=(d.page||0)*(d.pageSize||1000)+1, end=(d.page||0)*(d.pageSize||1000)+(d.rows?.length||0);
+    let t=`Đang xem khách ${start.toLocaleString('vi-VN')}–${end.toLocaleString('vi-VN')} / tổng ${(d.matched||0).toLocaleString('vi-VN')}`;
     if(s.con_no) t+=` · 🔴 ${s.con_no} khách còn nợ (tổng ${(s.tong_no||0).toLocaleString('vi-VN')}đ)`;
     note.textContent=t;
   }
   const b=document.getElementById('phangoiBadge'); if(b) b.textContent=(d.sum&&d.sum.chua_goi)||0;
 }
+function pgRenderPager(d){
+  const el=document.getElementById('pgPager'); if(!el) return;
+  const tp=d.totalPages||1, p=d.page||0;
+  if(tp<=1){ el.innerHTML=''; return; }
+  el.innerHTML=`
+    <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="pgGoPage(0)">« Đầu</button>
+    <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="pgGoPage(${p-1})">‹ Trước</button>
+    <b style="min-width:120px;text-align:center">Trang ${p+1} / ${tp}</b>
+    <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="pgGoPage(${p+1})">Sau ›</button>
+    <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="pgGoPage(${tp-1})">Cuối »</button>`;
+}
+function pgGoPage(n){ pgPage=Math.max(0,n); pgRefresh(false); const t=document.getElementById('page-phangoi'); if(t) t.scrollIntoView({behavior:'smooth'}); }
 function pgClearFilter(){
   ['pgSearch','pgFrom','pgTo'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
   const st=document.getElementById('pgFilterStatus'); if(st) st.value='';
@@ -2793,7 +2809,7 @@ async function pgDelete(id){
   try{ await pgApi({action:'delete', id}); toast('Đã xoá','dark'); pgRefresh(); }
   catch(e){ toast('❌ '+e.message,'red'); }
 }
-window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh; window.pgClearFilter=pgClearFilter;
+window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh; window.pgClearFilter=pgClearFilter; window.pgGoPage=pgGoPage;
 
 function go(section){
   if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section='dashboard'; }

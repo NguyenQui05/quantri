@@ -74,15 +74,19 @@ function buildFilterParams(body, { withAssigned = true } = {}) {
 
 // Danh sách + tổng hợp (thống kê chính xác qua RPC, không bị giới hạn 1000 dòng)
 async function listLeads(res, body) {
+  const PAGE = 1000;
+  const page = Math.max(0, parseInt(body.page, 10) || 0);
   const params = buildFilterParams(body);
   params.set('select', '*');
   params.set('order', 'lead_date.desc.nullslast');
-  params.set('limit', '1000');
+  params.set('limit', String(PAGE));
+  params.set('offset', String(page * PAGE));
   const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact' }) });
   const rows = await r.json();
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
   const cr = r.headers.get('content-range') || '';
   const matched = parseInt(cr.split('/')[1] || '0', 10) || rows.length;
+  const totalPages = Math.max(1, Math.ceil(matched / PAGE));
 
   // tổng hợp chính xác toàn tập (theo bộ lọc) qua hàm SQL
   let stats = {};
@@ -99,7 +103,7 @@ async function listLeads(res, body) {
     hen_lich: stats.hen_lich ?? 0, khong_nghe: stats.khong_nghe ?? 0, tu_choi: stats.tu_choi ?? 0,
     xong: stats.xong ?? 0, chua_chia: stats.chua_chia ?? 0, con_no: stats.con_no ?? 0, tong_no: stats.tong_no ?? 0
   };
-  return res.status(200).json({ rows, sum, byStaff: stats.by_staff || {}, matched, capped: matched > rows.length });
+  return res.status(200).json({ rows, sum, byStaff: stats.by_staff || {}, matched, page, totalPages, pageSize: PAGE, capped: matched > PAGE });
 }
 
 // Nhập SĐT hàng loạt (bỏ trùng theo phone) — kèm ngày + nợ nếu có
