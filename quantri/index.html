@@ -524,7 +524,6 @@
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="telesale"><span class="ic">📞</span>Telesale &amp; Lễ tân</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
-      <a data-section="medical"><span class="ic">🩺</span>Hồ sơ y khoa</a>
       <a data-section="gallery"><span class="ic">📸</span>Trước & Sau</a>
 
       <div class="group">Kinh doanh</div>
@@ -1041,19 +1040,6 @@
     </section>
 
     <!-- ============ MEDICAL RECORDS ============ -->
-    <section class="page" id="page-medical">
-      <div class="card">
-        <div class="card-head">
-          <div><h2>🩺 Hồ sơ y khoa</h2><div class="sub">Lịch sử khám · Phác đồ · Dị ứng · Tiền sử · Cam kết</div></div>
-          <div style="display:flex;gap:8px"><input placeholder="Tìm hồ sơ..." style="width:200px"><button class="btn sm" onclick="openModal('new-medical')">+ Tạo hồ sơ</button></div>
-        </div>
-        <table>
-          <thead><tr><th>Mã HS</th><th>Khách hàng</th><th>Tuổi</th><th>Tiền sử / Dị ứng</th><th>Lần khám gần nhất</th><th>Phác đồ đang theo</th><th></th></tr></thead>
-          <tbody id="medicalRows"></tbody>
-        </table>
-      </div>
-    </section>
-
     <!-- ============ BEFORE/AFTER GALLERY ============ -->
     <section class="page" id="page-gallery">
       <div class="card-head" style="margin-bottom:14px">
@@ -1801,7 +1787,6 @@ function openModal(type, ctx){
         <button class="btn sm" onclick="toast('📞 Đang kết nối Zalo ${c.phone}...','ok')">📞 Gọi/Zalo ngay</button>
         <button class="btn sm" onclick="toast('📅 Mở form đặt lịch cho ${c.name}','ok')">📅 Đặt lịch</button>
         <button class="btn sm" onclick="toast('🎁 Mở chọn voucher gửi cho ${c.name}','ok')">🎁 Gửi voucher</button>
-        <button class="btn ghost sm" onclick="toast('🩺 Xem hồ sơ y khoa ${c.name}','ok');closeModal();go('medical')">🩺 Hồ sơ y khoa</button>
         <button class="btn ghost sm" onclick="toast('📸 Xem ảnh trước/sau ${c.name}','ok');closeModal();go('gallery')">📸 Trước/Sau</button>
       </div>
       <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:18px 0 8px">📝 Lịch sử dịch vụ</h3>
@@ -1991,7 +1976,7 @@ function openModal(type, ctx){
     t.textContent = '💾 Dữ liệu lưu ở đâu? Backup, Export, kết nối DB ngoài';
     const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
     b.innerHTML = `
-      <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task · <b>${cnt.hoso}</b> hồ sơ y khoa · <b>${cnt.kho}</b> SKU kho</div></div>
+      <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task · <b>${cnt.kho}</b> SKU kho</div></div>
 
       <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">📤 Xuất dữ liệu — Excel & Word</h3>
       <p>Mỗi bảng đều có nút <b>"⬇ Xuất Excel"</b> ở góc phải. File .xlsx chuẩn, mở được Excel/Google Sheets ngay.</p>
@@ -2004,7 +1989,6 @@ function openModal(type, ctx){
           <tr><td>Kho hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('inventory')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hậu chăm sóc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('care')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Khiếu nại</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('complaints')">⬇ Xuất ngay</button></td></tr>
-          <tr><td>Hồ sơ y khoa</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('medical')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hồ sơ nhân viên đơn lẻ</td><td>Word .doc</td><td>Bấm vào hồ sơ NV → "📄 Xuất hồ sơ Word"</td></tr>
         </tbody>
       </table>
@@ -2045,7 +2029,6 @@ function openModal(type, ctx){
         <li><b>Sáng (9:00):</b> Backup .json — lưu vào Google Drive cá nhân</li>
         <li><b>Khi có file Excel từ Pancake / POS:</b> dùng "⬆ Nhập Excel" để đồng bộ</li>
         <li><b>Cuối tháng:</b> Xuất Excel doanh thu / khách / kho gửi kế toán</li>
-        <li><b>Hồ sơ y khoa quan trọng:</b> Xuất Word từng hồ sơ → lưu local + Google Drive</li>
       </ol>
     `;
   }
@@ -2659,7 +2642,6 @@ const titles = {
   luong:['💵 Bảng lương bác sĩ — Phụ phẫu','Bảng công theo từng bác sĩ × tháng · từ file Excel nội bộ'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   telesale:['📞 Telesale & Lễ tân','KPI cuộc gọi · khách mời đến · hoa hồng telesale tháng 5/2026'],
-  medical:['Hồ sơ y khoa','Lịch sử khám · Phác đồ · Dị ứng'],
   gallery:['Trước & Sau','428 case có ký consent dùng marketing'],
   services:['Dịch vụ','13 nhóm · 118 dịch vụ · giá chuẩn'],
   revenue:['Doanh thu','Tháng 5/2026 · Q2'],
@@ -3151,7 +3133,7 @@ function updateStorageInfo(){
   const el = document.getElementById('storageInfo');
   if(!el) return;
   const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
-  el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task · ${cnt.hoso} hồ sơ y khoa · ${cnt.kho} SKU kho`;
+  el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task · ${cnt.kho} SKU kho`;
 }
 
 function renderSchedule(){
@@ -3780,7 +3762,6 @@ function confirmImport(){
   if(target==='staff') renderStaff();
   if(target==='tasks') renderTasks();
   if(target==='inventory') renderInventory();
-  if(target==='medical') renderMedical();
 }
 window.confirmImport = confirmImport;
 window.importExcelFile = importExcelFile;
@@ -4194,7 +4175,6 @@ const QS_INDEX = [
   {sec:'tasks',title:'Công việc',hint:'Task hôm nay · giao việc · ưu tiên',ic:'📋'},
   {sec:'staff',title:'Nhân viên',hint:'Hiệu suất · tag · giao việc · KPI',ic:'👩‍⚕️'},
   {sec:'schedule',title:'Lịch trực',hint:'Ca trực · phân công · đổi ca',ic:'🗓️'},
-  {sec:'medical',title:'Hồ sơ y khoa',hint:'Lịch sử khám · phác đồ · dị ứng',ic:'🩺'},
   {sec:'gallery',title:'Trước & Sau',hint:'Ảnh case · consent · dùng marketing',ic:'📸'},
   {sec:'services',title:'Dịch vụ',hint:'13 nhóm · 118 dịch vụ · bảng giá chuẩn',ic:'💎'},
   {sec:'revenue',title:'Doanh thu',hint:'Báo cáo doanh thu · trend · breakdown',ic:'💰'},
@@ -4999,7 +4979,7 @@ window.roleDoLogin=roleDoLogin; window.roleSkip=roleSkip; window.roleLogout=role
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare(); renderComplaints();
-renderTasks(); renderSchedule(); renderMedical(); renderGallery(); renderServices(); renderInventory();
+renderTasks(); renderSchedule(); renderGallery(); renderServices(); renderInventory();
 renderCampaigns(); gmRender(); renderReviews(); renderCalendar(); renderAppointments(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v5'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v5'); } }catch(e){} // nạp lại với ngày chuẩn theo tháng + sắp xếp mới nhất — 1 lần
