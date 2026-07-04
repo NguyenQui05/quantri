@@ -2762,10 +2762,78 @@ function pgRenderRows(rows){
       <td>${pgEscHtml(r.assigned_to||'—')}</td>
       <td><select class="pg-status" style="width:100%">${opts}</select></td>
       <td><input class="pg-note" value="${pgEscAttr(r.call_note||'')}" placeholder="Ghi chú..." style="width:100%"></td>
-      <td style="white-space:nowrap"><button class="btn sm" onclick="pgSave('${r.id}',this)">Lưu</button>${canDelete()?` <button class="btn ghost sm" onclick="pgDelete('${r.id}')">🗑</button>`:''}</td>
+      <td style="white-space:nowrap"><button class="btn ghost sm" onclick="pgToggleCalls('${r.id}',this)" title="Lịch sử các lần gọi">📞 Lần gọi</button> <button class="btn sm" onclick="pgSave('${r.id}',this)">Lưu</button>${canDelete()?` <button class="btn ghost sm" onclick="pgDelete('${r.id}')">🗑</button>`:''}</td>
     </tr>`;
   }).join('');
 }
+
+/* ===== LỊCH SỬ CUỘC GỌI (mỗi khách nhiều lần gọi) ===== */
+async function pgToggleCalls(leadId, btn){
+  const tr=btn.closest('tr'); if(!tr) return;
+  const nxt=tr.nextElementSibling;
+  if(nxt && nxt.classList.contains('pg-detail') && nxt.dataset.for===leadId){ nxt.remove(); btn.style.opacity=''; return; }
+  btn.style.opacity='.5';
+  let d;
+  try{ d=await pgApi({action:'calls', lead_id:leadId}); }
+  catch(e){ toast('❌ '+e.message,'red'); btn.style.opacity=''; return; }
+  btn.style.opacity='';
+  const name=tr.querySelector('td:nth-child(2)')?.textContent||'';
+  const phone=tr.querySelector('td:nth-child(1)')?.textContent||'';
+  const detail=document.createElement('tr');
+  detail.className='pg-detail'; detail.dataset.for=leadId;
+  detail.innerHTML=`<td colspan="8" style="background:rgba(212,160,60,.06);padding:14px 18px">${pgCallsHtml(leadId, d.rows||[], `${phone} · ${name}`)}</td>`;
+  tr.after(detail);
+}
+function pgCallsHtml(leadId, calls, title){
+  const stOpts=(cur)=>Object.entries(PG_STATUS).map(([k,v])=>`<option value="${k}"${cur===k?' selected':''}>${v}</option>`).join('');
+  const rowsHtml=calls.length? calls.map(c=>`
+    <tr data-cid="${c.id}">
+      <td style="text-align:center"><b>${c.seq}</b></td>
+      <td><input type="date" class="pgc-date" value="${c.call_date||''}" style="font-size:.82rem"></td>
+      <td><select class="pgc-status" style="width:100%">${stOpts(c.status)}</select></td>
+      <td><input class="pgc-caller" value="${pgEscAttr(c.caller||'')}" placeholder="Người gọi" style="width:100%"></td>
+      <td><input class="pgc-note" value="${pgEscAttr(c.note||'')}" placeholder="Ghi chú lần gọi..." style="width:100%"></td>
+      <td style="white-space:nowrap"><button class="btn sm" onclick="pgSaveCall('${c.id}',this)">Lưu</button> <button class="btn ghost sm" onclick="pgDeleteCall('${c.id}','${leadId}',this)">🗑</button></td>
+    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:12px">Chưa có lần gọi nào. Bấm "＋ Thêm lần gọi" để bắt đầu.</td></tr>`;
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <b>📞 Lịch sử gọi — ${pgEscHtml(title)}</b>
+      <button class="btn sm" onclick="pgAddCall('${leadId}',this)">＋ Thêm lần gọi</button>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%">
+      <thead><tr><th style="width:44px">Lần</th><th style="width:130px">Ngày gọi</th><th style="width:130px">Tình trạng</th><th style="width:130px">Người gọi</th><th>Ghi chú</th><th style="width:110px"></th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div>`;
+}
+async function pgReloadCalls(leadId){
+  const detail=document.querySelector(`tr.pg-detail[data-for="${leadId}"]`); if(!detail) return;
+  const tr=detail.previousElementSibling;
+  const btn=tr?.querySelector('button[onclick*="pgToggleCalls"]');
+  // đóng rồi mở lại để refresh
+  detail.remove(); if(btn) await pgToggleCalls(leadId, btn);
+}
+async function pgAddCall(leadId, btn){
+  const today=new Date().toISOString().slice(0,10);
+  try{ await pgApi({action:'call_add', lead_id:leadId, call_date:today, status:'da_goi'});
+    toast('✅ Đã thêm 1 lần gọi','green'); await pgReloadCalls(leadId); pgRefresh(false);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgSaveCall(id, btn){
+  const tr=btn.closest('tr'); if(!tr) return;
+  const payload={action:'call_update', id,
+    call_date: tr.querySelector('.pgc-date')?.value||null,
+    status: tr.querySelector('.pgc-status')?.value,
+    caller: tr.querySelector('.pgc-caller')?.value||'',
+    note: tr.querySelector('.pgc-note')?.value||''};
+  try{ await pgApi(payload); toast('✅ Đã lưu lần gọi','green'); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgDeleteCall(id, leadId, btn){
+  if(!confirm('Xoá lần gọi này?')) return;
+  try{ await pgApi({action:'call_delete', id}); toast('Đã xoá','dark'); await pgReloadCalls(leadId); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.pgToggleCalls=pgToggleCalls; window.pgAddCall=pgAddCall; window.pgSaveCall=pgSaveCall; window.pgDeleteCall=pgDeleteCall;
 async function pgImport(){
   const ta=document.getElementById('pgImportInput'); if(!ta) return;
   const src=(document.getElementById('pgImportSource')?.value||'').trim();
