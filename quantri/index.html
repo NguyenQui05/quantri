@@ -513,6 +513,7 @@
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
       <a data-section="leads"><span class="ic">📥</span>Lead từ web<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
       <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
+      <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
       <a data-section="complaints"><span class="ic">🚨</span>Khiếu nại & SOS<span class="badge">3</span></a>
 
       <div class="group">Vận hành</div>
@@ -769,6 +770,63 @@
             <div class="tl-item"><b>Ngày 30 — Tri ân</b><span>🎁 Zalo cảm ơn + voucher 15%</span></div>
             <div class="tl-item"><b>Ngày 90 — Win-back</b><span>📞 Mời combo duy trì</span></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PHÂN GỌI KHÁCH (telesale distribution) ============ -->
+    <section class="page" id="page-phangoi">
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">📇</div><div class="label">Tổng SĐT trong hệ thống</div><div class="val" id="pgK1">—</div><div class="delta">đã nhập</div></div>
+        <div class="kpi k2"><div class="ic">📤</div><div class="label">Chưa chia cho ai</div><div class="val" id="pgK2">—</div><div class="delta">chờ phân phối</div></div>
+        <div class="kpi k3"><div class="ic">✅</div><div class="label">Đã gọi</div><div class="val" id="pgK3">—</div><div class="delta">hoàn tất liên hệ</div></div>
+        <div class="kpi k4"><div class="ic">⏳</div><div class="label">Còn phải gọi</div><div class="val" id="pgK4">—</div><div class="delta">chưa liên hệ</div></div>
+      </div>
+
+      <div class="alert info" style="margin-top:16px"><span class="ic">📲</span><div><b>Quy trình:</b> ① Dán danh sách SĐT vào ô "Nhập số" → Nhập · ② Điền tên nhân viên trực → bấm <b>Chia đều</b> (hệ thống tự chia vòng tròn) · ③ Nhân viên gọi xong đổi trạng thái + ghi chú → Lưu. Mọi dữ liệu lưu trên Supabase, các máy dùng chung thấy realtime.</div></div>
+
+      <div class="row r-1-1" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head"><h2>① Nhập số điện thoại</h2></div>
+          <p class="sub" style="margin:0 0 8px">Mỗi dòng 1 số. Có thể kèm tên: <code>0901234567, Chị Lan</code> — số nào trùng sẽ tự bỏ qua.</p>
+          <textarea id="pgImportInput" rows="6" style="width:100%;font-family:inherit;font-size:.9rem" placeholder="0901234567, Chị Lan&#10;0912345678, Cô Hà&#10;0987654321"></textarea>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+            <input id="pgImportSource" placeholder="Nguồn (vd: Data lạnh T7, FB Ads...)" style="flex:1;min-width:160px">
+            <button class="btn" onclick="pgImport()">📥 Nhập số vào hệ thống</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>② Chia đều cho nhân viên</h2></div>
+          <p class="sub" style="margin:0 0 8px">Mỗi dòng 1 tên nhân viên trực gọi hôm nay:</p>
+          <textarea id="pgStaffInput" rows="6" style="width:100%;font-family:inherit;font-size:.9rem" placeholder="Hương&#10;Ngọc&#10;Linh&#10;Trang"></textarea>
+          <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.85rem;color:var(--muted)"><input type="checkbox" id="pgRedistribute"> Chia lại CẢ những số đã chia trước đó (mặc định chỉ chia số mới)</label>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="pgDistribute()">🎯 Chia đều tự động</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <h2>③ Danh sách phân gọi</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="pgFilterStaff" onchange="pgRefresh()"><option value="">Tất cả nhân viên</option></select>
+            <select id="pgFilterStatus" onchange="pgRefresh()">
+              <option value="">Mọi trạng thái</option>
+              <option value="chua_goi">⚪ Chưa gọi</option>
+              <option value="da_goi">✅ Đã gọi</option>
+              <option value="hen_lich">📅 Hẹn lịch</option>
+              <option value="khong_nghe">📵 Không nghe</option>
+              <option value="tu_choi">🚫 Từ chối</option>
+              <option value="xong">🎉 Chốt xong</option>
+            </select>
+            <button class="btn ghost sm" onclick="pgRefresh()">🔄 Tải lại</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>SĐT</th><th>Tên</th><th>Nhân viên</th><th>Trạng thái</th><th>Ghi chú</th><th></th></tr></thead>
+            <tbody id="pgRows"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -2577,6 +2635,7 @@ const titles = {
   crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
   leads:['📥 Lead từ web','Khách đăng ký từ phammaiphuong.vn'],
   care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
+  phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   complaints:['Khiếu nại & SOS','3 SOS đang mở · SLA &lt;1h'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
@@ -2610,6 +2669,97 @@ function closeSidebar(){
 window.openSidebar=openSidebar;
 window.closeSidebar=closeSidebar;
 
+/* ===== PHÂN GỌI KHÁCH (telesale distribution · Supabase) ===== */
+const PG_STATUS = { chua_goi:'⚪ Chưa gọi', da_goi:'✅ Đã gọi', hen_lich:'📅 Hẹn lịch', khong_nghe:'📵 Không nghe', tu_choi:'🚫 Từ chối', xong:'🎉 Chốt xong' };
+function pgEscHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function pgEscAttr(s){ return pgEscHtml(s); }
+function pgStaffDefault(){ return ['Hương','Ngọc','Linh','Trang']; }
+function pgGetStaff(){ try{ const s=JSON.parse(localStorage.getItem('pg_staff')||'null'); if(Array.isArray(s)&&s.length) return s; }catch(e){} return pgStaffDefault(); }
+function pgSetStaff(list){ try{ localStorage.setItem('pg_staff', JSON.stringify(list)); }catch(e){} }
+async function pgApi(payload){
+  const r = await fetch('/api/telesale',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
+}
+async function phangoiLoad(){
+  const ta=document.getElementById('pgStaffInput'); if(ta && !ta.value.trim()) ta.value=pgGetStaff().join('\n');
+  await pgRefresh();
+}
+async function pgRefresh(){
+  const staffFilter=document.getElementById('pgFilterStaff')?.value||'';
+  const statusFilter=document.getElementById('pgFilterStatus')?.value||'';
+  let d;
+  try{ d=await pgApi({action:'list', assigned_to:staffFilter||undefined, status:statusFilter||undefined}); }
+  catch(e){ toast('❌ '+e.message,'red'); return; }
+  pgRenderKpi(d.sum||{}); pgRenderStaffFilter(d.byStaff||{}, staffFilter); pgRenderRows(d.rows||[]);
+  const b=document.getElementById('phangoiBadge'); if(b) b.textContent=(d.sum&&d.sum.chua_goi)||0;
+}
+function pgRenderKpi(s){ const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v||0;};
+  set('pgK1', s.total); set('pgK2', s.chua_chia); set('pgK3', s.da_goi); set('pgK4', s.chua_goi); }
+function pgRenderStaffFilter(byStaff, cur){
+  const sel=document.getElementById('pgFilterStaff'); if(!sel) return;
+  const names=Object.keys(byStaff).sort();
+  sel.innerHTML='<option value="">Tất cả nhân viên</option>'+names.map(n=>`<option value="${pgEscAttr(n)}">${pgEscHtml(n)} (${byStaff[n]})</option>`).join('');
+  sel.value=cur||'';
+}
+function pgRenderRows(rows){
+  const tb=document.getElementById('pgRows'); if(!tb) return;
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Chưa có số nào. Nhập SĐT ở ô trên rồi bấm "Chia đều".</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>{
+    const opts=Object.entries(PG_STATUS).map(([k,v])=>`<option value="${k}"${r.status===k?' selected':''}>${v}</option>`).join('');
+    return `<tr data-id="${r.id}">
+      <td><b>${pgEscHtml(r.phone)}</b></td>
+      <td>${pgEscHtml(r.full_name||'')}</td>
+      <td>${pgEscHtml(r.assigned_to||'—')}</td>
+      <td><select class="pg-status" style="width:100%">${opts}</select></td>
+      <td><input class="pg-note" value="${pgEscAttr(r.call_note||'')}" placeholder="Ghi chú..." style="width:100%"></td>
+      <td style="white-space:nowrap"><button class="btn sm" onclick="pgSave('${r.id}',this)">Lưu</button>${canDelete()?` <button class="btn ghost sm" onclick="pgDelete('${r.id}')">🗑</button>`:''}</td>
+    </tr>`;
+  }).join('');
+}
+async function pgImport(){
+  const ta=document.getElementById('pgImportInput'); if(!ta) return;
+  const src=(document.getElementById('pgImportSource')?.value||'').trim();
+  const items=[];
+  ta.value.split(/\n/).forEach(line=>{
+    const parts=line.split(/[,\t;]/).map(x=>x.trim());
+    let phone='', name='';
+    parts.forEach(p=>{ const d=p.replace(/\D/g,''); if(!phone && d.length>=9 && d.length<=12) phone=p; else if(!name && p) name=p; });
+    if(phone) items.push({phone, full_name:name, source:src});
+  });
+  if(!items.length){ toast('Không thấy số điện thoại hợp lệ','red'); return; }
+  try{ const d=await pgApi({action:'import', items});
+    toast(`✅ Nhập ${d.inserted} số mới${d.skipped?` · bỏ ${d.skipped} trùng`:''}`,'green');
+    ta.value=''; await pgRefresh();
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgDistribute(){
+  const ta=document.getElementById('pgStaffInput');
+  const staff=(ta?.value||'').split(/\n/).map(s=>s.trim()).filter(Boolean);
+  if(!staff.length){ toast('Nhập tên nhân viên (mỗi dòng 1 người)','red'); return; }
+  pgSetStaff(staff);
+  const includeAll=document.getElementById('pgRedistribute')?.checked||false;
+  try{ const d=await pgApi({action:'distribute', staff, includeAll});
+    if(!d.assigned){ toast(d.message||'Không có số cần chia','dark'); return; }
+    const detail=Object.entries(d.perStaff).map(([k,v])=>`${k}:${v}`).join(' · ');
+    toast(`✅ Đã chia ${d.assigned} số — ${detail}`,'green'); await pgRefresh();
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgSave(id, btn){
+  const tr=btn.closest('tr'); if(!tr) return;
+  const status=tr.querySelector('.pg-status')?.value;
+  const call_note=tr.querySelector('.pg-note')?.value||'';
+  try{ await pgApi({action:'update', id, status, call_note}); toast('✅ Đã lưu','green'); pgRefresh(); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgDelete(id){
+  if(!confirm('Xoá số này khỏi danh sách?')) return;
+  try{ await pgApi({action:'delete', id}); toast('Đã xoá','dark'); pgRefresh(); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh;
+
 function go(section){
   if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section='dashboard'; }
   document.querySelectorAll('.nav a[data-section]').forEach(a=>a.classList.toggle('active', a.dataset.section===section));
@@ -2632,6 +2782,7 @@ function go(section){
   if(section==='luong') luongLoad();
   if(section==='tour')  tourLoad();
   if(section==='telesale') telesaleLoad();
+  if(section==='phangoi') phangoiLoad();
 }
 document.querySelectorAll('.nav a[data-section]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.section)}));
 addEventListener('hashchange',()=>go((location.hash||'#dashboard').slice(1)));
@@ -4649,8 +4800,8 @@ const ROLE_MENUS={
   'Kỹ thuật viên':['dashboard','calendar','schedule','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Sale':['dashboard','leads','telesale','crm','care','complaints'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','services','telesale']
+  'Sale':['dashboard','leads','telesale','phangoi','crm','care','complaints'],
+  'Sale trực tiếp':['dashboard','crm','billing','leads','services','telesale','phangoi']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
