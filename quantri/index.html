@@ -839,8 +839,8 @@
         <div id="pgPagerTop" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap"></div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>SĐT</th><th>Tên</th><th>Ngày</th><th>Nợ</th><th>Nhân viên</th><th>Trạng thái</th><th>Ghi chú</th><th></th></tr></thead>
-            <tbody id="pgRows"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
+            <thead><tr><th>SĐT</th><th>Tên</th><th>Ngày</th><th>Nợ</th><th>Nhân viên</th><th>Trạng thái</th><th style="text-align:center">Cuộc gọi</th><th>Ghi chú</th><th></th></tr></thead>
+            <tbody id="pgRows"><tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
           </table>
         </div>
         <div id="pgPager" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
@@ -2789,7 +2789,7 @@ function pgRenderStaffFilter(byStaff, cur){
 function pgFmtDate(s){ if(!s) return '—'; const p=String(s).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
 function pgRenderRows(rows){
   const tb=document.getElementById('pgRows'); if(!tb) return;
-  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Không có số nào khớp. Nhập SĐT hoặc đổi bộ lọc.</td></tr>'; return; }
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">Không có số nào khớp. Nhập SĐT hoặc đổi bộ lọc.</td></tr>'; return; }
   tb.innerHTML=rows.map(r=>{
     const opts=Object.entries(PG_STATUS).map(([k,v])=>`<option value="${k}"${r.status===k?' selected':''}>${v}</option>`).join('');
     const debt=Number(r.debt)||0;
@@ -2801,6 +2801,7 @@ function pgRenderRows(rows){
       <td>${debtCell}</td>
       <td>${pgEscHtml(r.assigned_to||'—')}</td>
       <td><select class="pg-status" style="width:100%">${opts}</select></td>
+      <td style="text-align:center">${Number(r.call_count)>0?`<b style="color:var(--orange-deep)">${r.call_count}</b>`:'<span style="color:var(--muted)">0</span>'}</td>
       <td><input class="pg-note" value="${pgEscAttr(r.call_note||'')}" placeholder="Ghi chú..." style="width:100%"></td>
       <td style="white-space:nowrap"><button class="btn ghost sm" onclick="pgToggleCalls('${r.id}',this)" title="Lịch sử các lần gọi">📞 Lần gọi</button> <button class="btn sm" onclick="pgSave('${r.id}',this)">Lưu</button>${canDelete()?` <button class="btn ghost sm" onclick="pgDelete('${r.id}')">🗑</button>`:''}</td>
     </tr>`;
@@ -2821,7 +2822,7 @@ async function pgToggleCalls(leadId, btn){
   const phone=tr.querySelector('td:nth-child(1)')?.textContent||'';
   const detail=document.createElement('tr');
   detail.className='pg-detail'; detail.dataset.for=leadId;
-  detail.innerHTML=`<td colspan="8" style="background:rgba(212,160,60,.06);padding:14px 18px">${pgCallsHtml(leadId, d.rows||[], `${phone} · ${name}`)}</td>`;
+  detail.innerHTML=`<td colspan="9" style="background:rgba(212,160,60,.06);padding:14px 18px">${pgCallsHtml(leadId, d.rows||[], `${phone} · ${name}`)}</td>`;
   tr.after(detail);
 }
 function pgCallsHtml(leadId, calls, title){
@@ -2870,7 +2871,7 @@ async function pgSaveCall(id, btn){
 }
 async function pgDeleteCall(id, leadId, btn){
   if(!confirm('Xoá lần gọi này?')) return;
-  try{ await pgApi({action:'call_delete', id}); toast('Đã xoá','dark'); await pgReloadCalls(leadId); }
+  try{ await pgApi({action:'call_delete', id}); toast('Đã xoá','dark'); await pgReloadCalls(leadId); pgRefresh(false); }
   catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.pgToggleCalls=pgToggleCalls; window.pgAddCall=pgAddCall; window.pgSaveCall=pgSaveCall; window.pgDeleteCall=pgDeleteCall;

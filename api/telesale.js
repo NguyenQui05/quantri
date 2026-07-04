@@ -92,6 +92,21 @@ async function listLeads(res, body) {
   const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact' }) });
   const rows = await r.json();
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+
+  // Đếm số lần đã gọi cho từng lead trong trang hiện tại (không chặn nếu lỗi)
+  try {
+    const ids = rows.map(x => x.id).filter(Boolean);
+    const countMap = {};
+    for (let i = 0; i < ids.length; i += 50) {
+      const chunk = ids.slice(i, i + 50);
+      const ccr = await fetch(sb(`${CALLS}?lead_id=in.(${chunk.join(',')})&select=lead_id&limit=5000`), { headers: sbHeaders() });
+      if (!ccr.ok) continue;
+      const calls = await ccr.json();
+      if (Array.isArray(calls)) for (const c of calls) countMap[c.lead_id] = (countMap[c.lead_id] || 0) + 1;
+    }
+    rows.forEach(x => { x.call_count = countMap[x.id] || 0; });
+  } catch (e) { /* mặc định không có call_count */ }
+
   const cr = r.headers.get('content-range') || '';
   const matched = parseInt(cr.split('/')[1] || '0', 10) || rows.length;
   const totalPages = Math.max(1, Math.ceil(matched / PAGE));
