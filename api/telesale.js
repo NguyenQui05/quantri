@@ -56,6 +56,9 @@ export default async function handler(req, res) {
     if (action === 'call_add')    return await addCall(res, body, sess);
     if (action === 'call_update') return await updateCall(res, body);
     if (action === 'call_delete') return await deleteCall(res, body);
+    if (action === 'staff_list')  return await listStaff(res, body);
+    if (action === 'staff_add')   return await addStaff(res, body);
+    if (action === 'staff_delete')return await deleteStaff(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('telesale api error:', e?.message || e);
@@ -250,12 +253,18 @@ async function listCalls(res, body) {
   return res.status(200).json({ rows });
 }
 
-// Thêm 1 lần gọi (seq tự tăng, người gọi mặc định = người đăng nhập)
+// Thêm 1 lần gọi (seq tự tăng; người gọi mặc định = nhân viên được chia khách này)
 async function addCall(res, body, sess) {
   const lead = String(body.lead_id || '');
   if (!lead) return res.status(400).json({ error: 'Thiếu lead_id' });
   const status = CALL_STATUSES.includes(body.status) ? body.status : 'da_goi';
-  const caller = String(body.caller || sess?.u || '').slice(0, 60);
+  // lấy nhân viên được chia khách này làm người gọi mặc định
+  let assignedTo = '';
+  try {
+    const lr = await fetch(sb(`${TABLE}?id=eq.${lead}&select=assigned_to&limit=1`), { headers: sbHeaders() });
+    const ld = await lr.json(); assignedTo = (Array.isArray(ld) && ld[0]?.assigned_to) || '';
+  } catch (e) { /* bỏ qua */ }
+  const caller = String(body.caller || assignedTo || sess?.u || '').slice(0, 60);
   // seq = số lần gọi hiện có + 1
   const cr = await fetch(sb(`${CALLS}?lead_id=eq.${lead}&select=seq&order=seq.desc&limit=1`), { headers: sbHeaders() });
   const cur = await cr.json();
@@ -296,6 +305,38 @@ async function deleteCall(res, body) {
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${CALLS}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
+  return res.status(200).json({ ok: true });
+}
+
+const STAFF = 'telesale_staff';
+
+// Danh sách nhân viên + năng suất (số cuộc gọi trong khoảng ngày, khách được chia)
+async function listStaff(res, body) {
+  const r = await fetch(sb('rpc/telesale_staff_stats'), {
+    method: 'POST', headers: sbHeaders(),
+    body: JSON.stringify({ p_from: body.from || null, p_to: body.to || null })
+  });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc nhân viên' });
+  return res.status(200).json({ rows });
+}
+
+async function addStaff(res, body) {
+  const name = String(body.name || '').trim().slice(0, 60);
+  if (!name) return res.status(400).json({ error: 'Thiếu tên nhân viên' });
+  const r = await fetch(sb(`${STAFF}?on_conflict=name`), {
+    method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=minimal' }),
+    body: JSON.stringify({ name })
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi thêm nhân viên' }); }
+  return res.status(200).json({ ok: true });
+}
+
+async function deleteStaff(res, body) {
+  const id = String(body.id || '');
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  const r = await fetch(sb(`${STAFF}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
   return res.status(200).json({ ok: true });
 }

@@ -797,11 +797,20 @@
         </div>
 
         <div class="card">
-          <div class="card-head"><h2>② Chia đều cho nhân viên</h2></div>
-          <p class="sub" style="margin:0 0 8px">Mỗi dòng 1 tên nhân viên trực gọi hôm nay:</p>
-          <textarea id="pgStaffInput" rows="6" style="width:100%;font-family:inherit;font-size:.9rem" placeholder="Hương&#10;Ngọc&#10;Linh&#10;Trang"></textarea>
-          <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.85rem;color:var(--muted)"><input type="checkbox" id="pgRedistribute"> Chia lại CẢ những số đã chia trước đó (mặc định chỉ chia số mới)</label>
-          <button class="btn" style="width:100%;margin-top:8px" onclick="pgDistribute()">🎯 Chia đều tự động</button>
+          <div class="card-head"><h2>② Nhân viên & năng suất gọi</h2></div>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <input id="pgNewStaff" placeholder="Tên nhân viên mới..." style="flex:1" onkeydown="if(event.key==='Enter')pgAddStaff()">
+            <button class="btn sm" onclick="pgAddStaff()">＋ Thêm nhân viên</button>
+          </div>
+          <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:6px">📊 Đo năng suất ngày: <input type="date" id="pgStaffDate" onchange="pgLoadStaff()" style="font-size:.82rem"></label>
+          <div style="overflow-x:auto">
+            <table style="width:100%">
+              <thead><tr><th>Nhân viên</th><th style="text-align:center">Cuộc gọi<br><span style="font-weight:400;font-size:.72rem;color:var(--muted)">ngày đo</span></th><th style="text-align:center">Được chia</th><th style="text-align:center">Đã gọi</th><th></th></tr></thead>
+              <tbody id="pgStaffList"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">Đang tải…</td></tr></tbody>
+            </table>
+          </div>
+          <label style="display:flex;gap:6px;align-items:center;margin-top:10px;font-size:.85rem;color:var(--muted)"><input type="checkbox" id="pgRedistribute"> Chia lại CẢ những số đã chia trước đó (mặc định chỉ chia số mới)</label>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="pgDistribute()">🎯 Chia đều cho các nhân viên trên</button>
         </div>
       </div>
 
@@ -2689,10 +2698,41 @@ async function pgApi(payload){
   if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
   return d;
 }
+let pgStaffNames=[];
 async function phangoiLoad(){
-  const ta=document.getElementById('pgStaffInput'); if(ta && !ta.value.trim()) ta.value=pgGetStaff().join('\n');
+  const dt=document.getElementById('pgStaffDate'); if(dt && !dt.value) dt.value=new Date().toISOString().slice(0,10);
+  await pgLoadStaff();
   await pgRefresh();
 }
+async function pgLoadStaff(){
+  const d=document.getElementById('pgStaffDate')?.value||new Date().toISOString().slice(0,10);
+  let r;
+  try{ r=await pgApi({action:'staff_list', from:d, to:d}); }
+  catch(e){ toast('❌ '+e.message,'red'); return; }
+  const rows=r.rows||[];
+  pgStaffNames=rows.filter(s=>s.active!==false).map(s=>s.name);
+  const tb=document.getElementById('pgStaffList'); if(!tb) return;
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">Chưa có nhân viên. Thêm ở ô trên.</td></tr>'; return; }
+  tb.innerHTML=rows.map(s=>`<tr>
+    <td><b>${pgEscHtml(s.name)}</b></td>
+    <td style="text-align:center"><b style="color:var(--gold-deep,var(--gold))">${s.calls_range||0}</b></td>
+    <td style="text-align:center">${s.leads_assigned||0}</td>
+    <td style="text-align:center">${s.leads_done||0}</td>
+    <td style="text-align:center">${canDelete()?`<button class="btn ghost sm" onclick="pgDeleteStaff('${s.id}','${pgEscAttr(s.name)}')">🗑</button>`:''}</td>
+  </tr>`).join('');
+}
+async function pgAddStaff(){
+  const inp=document.getElementById('pgNewStaff'); const name=(inp?.value||'').trim();
+  if(!name){ toast('Nhập tên nhân viên','red'); return; }
+  try{ await pgApi({action:'staff_add', name}); if(inp) inp.value=''; toast('✅ Đã thêm '+name,'green'); await pgLoadStaff(); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function pgDeleteStaff(id, name){
+  if(!confirm(`Xoá nhân viên "${name}" khỏi danh sách? (Lịch sử cuộc gọi vẫn giữ)`)) return;
+  try{ await pgApi({action:'staff_delete', id}); toast('Đã xoá','dark'); await pgLoadStaff(); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.pgLoadStaff=pgLoadStaff; window.pgAddStaff=pgAddStaff; window.pgDeleteStaff=pgDeleteStaff;
 function pgFilters(){
   return {
     assigned_to: document.getElementById('pgFilterStaff')?.value||undefined,
@@ -2791,7 +2831,7 @@ function pgCallsHtml(leadId, calls, title){
       <td style="text-align:center"><b>${c.seq}</b></td>
       <td><input type="date" class="pgc-date" value="${c.call_date||''}" style="font-size:.82rem"></td>
       <td><select class="pgc-status" style="width:100%">${stOpts(c.status)}</select></td>
-      <td><input class="pgc-caller" value="${pgEscAttr(c.caller||'')}" placeholder="Người gọi" style="width:100%"></td>
+      <td><select class="pgc-caller" style="width:100%"><option value="">— chọn —</option>${(pgStaffNames||[]).map(n=>`<option value="${pgEscAttr(n)}"${c.caller===n?' selected':''}>${pgEscHtml(n)}</option>`).join('')}${c.caller&&!(pgStaffNames||[]).includes(c.caller)?`<option value="${pgEscAttr(c.caller)}" selected>${pgEscHtml(c.caller)}</option>`:''}</select></td>
       <td><input class="pgc-note" value="${pgEscAttr(c.note||'')}" placeholder="Ghi chú lần gọi..." style="width:100%"></td>
       <td style="white-space:nowrap"><button class="btn sm" onclick="pgSaveCall('${c.id}',this)">Lưu</button> <button class="btn ghost sm" onclick="pgDeleteCall('${c.id}','${leadId}',this)">🗑</button></td>
     </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:12px">Chưa có lần gọi nào. Bấm "＋ Thêm lần gọi" để bắt đầu.</td></tr>`;
@@ -2851,10 +2891,8 @@ async function pgImport(){
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 async function pgDistribute(){
-  const ta=document.getElementById('pgStaffInput');
-  const staff=(ta?.value||'').split(/\n/).map(s=>s.trim()).filter(Boolean);
-  if(!staff.length){ toast('Nhập tên nhân viên (mỗi dòng 1 người)','red'); return; }
-  pgSetStaff(staff);
+  const staff=(pgStaffNames||[]).slice();
+  if(!staff.length){ toast('Chưa có nhân viên. Thêm nhân viên ở mục ② trước.','red'); return; }
   const includeAll=document.getElementById('pgRedistribute')?.checked||false;
   const f=pgFilters();
   const seg=(f.from||f.to||f.search)?' (theo bộ lọc đang chọn)':'';
