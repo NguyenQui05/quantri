@@ -827,6 +827,7 @@
           <button class="btn ghost sm" onclick="pgClearFilter()">✖ Xoá lọc</button>
         </div>
         <div id="pgCapNote" style="font-size:.78rem;color:var(--muted);margin-bottom:6px"></div>
+        <div id="pgPagerTop" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap"></div>
         <div style="overflow-x:auto">
           <table>
             <thead><tr><th>SĐT</th><th>Tên</th><th>Ngày</th><th>Nợ</th><th>Nhân viên</th><th>Trạng thái</th><th>Ghi chú</th><th></th></tr></thead>
@@ -2721,15 +2722,14 @@ async function pgRefresh(resetPage=true){
   const b=document.getElementById('phangoiBadge'); if(b) b.textContent=(d.sum&&d.sum.chua_goi)||0;
 }
 function pgRenderPager(d){
-  const el=document.getElementById('pgPager'); if(!el) return;
   const tp=d.totalPages||1, p=d.page||0;
-  if(tp<=1){ el.innerHTML=''; return; }
-  el.innerHTML=`
+  const html = tp<=1 ? '' : `
     <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="pgGoPage(0)">« Đầu</button>
     <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="pgGoPage(${p-1})">‹ Trước</button>
     <b style="min-width:120px;text-align:center">Trang ${p+1} / ${tp}</b>
     <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="pgGoPage(${p+1})">Sau ›</button>
     <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="pgGoPage(${tp-1})">Cuối »</button>`;
+  ['pgPagerTop','pgPager'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; });
 }
 function pgGoPage(n){ pgPage=Math.max(0,n); pgRefresh(false); const t=document.getElementById('page-phangoi'); if(t) t.scrollIntoView({behavior:'smooth'}); }
 function pgClearFilter(){
