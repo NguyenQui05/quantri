@@ -58,28 +58,51 @@ export default async function handler(req, res) {
   }
 }
 
-// Danh sách + tổng hợp
-async function listLeads(res, body) {
-  const params = new URLSearchParams();
-  params.set('select', '*');
-  params.set('order', 'created_at.desc');
-  if (body.assigned_to) params.set('assigned_to', `eq.${body.assigned_to}`);
-  if (body.status) params.set('status', `eq.${body.status}`);
-  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
-  const rows = await r.json();
-  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
-  // tổng hợp
-  const sum = { total: rows.length, chua_goi: 0, da_goi: 0, hen_lich: 0, khong_nghe: 0, tu_choi: 0, xong: 0, chua_chia: 0 };
-  const byStaff = {};
-  for (const row of rows) {
-    if (sum[row.status] != null) sum[row.status]++;
-    if (!row.assigned_to) sum.chua_chia++;
-    else byStaff[row.assigned_to] = (byStaff[row.assigned_to] || 0) + 1;
+// Bộ lọc chung: nhân viên, trạng thái, khoảng ngày, tìm kiếm
+function buildFilterParams(body, { withAssigned = true } = {}) {
+  const p = new URLSearchParams();
+  if (withAssigned && body.assigned_to) p.set('assigned_to', `eq.${body.assigned_to}`);
+  if (body.status) p.set('status', `eq.${body.status}`);
+  if (body.from) p.append('lead_date', `gte.${body.from}`);
+  if (body.to) p.append('lead_date', `lte.${body.to}`);
+  if (body.search) {
+    const s = String(body.search).replace(/[(),*]/g, ' ').trim();
+    if (s) p.set('or', `(phone.ilike.*${s}*,full_name.ilike.*${s}*)`);
   }
-  return res.status(200).json({ rows, sum, byStaff });
+  return p;
 }
 
-// Nhập SĐT hàng loạt (bỏ trùng theo phone)
+// Danh sách + tổng hợp (thống kê chính xác qua RPC, không bị giới hạn 1000 dòng)
+async function listLeads(res, body) {
+  const params = buildFilterParams(body);
+  params.set('select', '*');
+  params.set('order', 'lead_date.desc.nullslast');
+  params.set('limit', '1000');
+  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact' }) });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  const cr = r.headers.get('content-range') || '';
+  const matched = parseInt(cr.split('/')[1] || '0', 10) || rows.length;
+
+  // tổng hợp chính xác toàn tập (theo bộ lọc) qua hàm SQL
+  let stats = {};
+  try {
+    const st = await fetch(sb('rpc/telesale_stats'), {
+      method: 'POST', headers: sbHeaders(),
+      body: JSON.stringify({ p_from: body.from || null, p_to: body.to || null, p_search: body.search || null })
+    });
+    if (st.ok) stats = await st.json();
+  } catch (e) { /* fallback dưới */ }
+
+  const sum = {
+    total: stats.total ?? matched, chua_goi: stats.chua_goi ?? 0, da_goi: stats.da_goi ?? 0,
+    hen_lich: stats.hen_lich ?? 0, khong_nghe: stats.khong_nghe ?? 0, tu_choi: stats.tu_choi ?? 0,
+    xong: stats.xong ?? 0, chua_chia: stats.chua_chia ?? 0, con_no: stats.con_no ?? 0, tong_no: stats.tong_no ?? 0
+  };
+  return res.status(200).json({ rows, sum, byStaff: stats.by_staff || {}, matched, capped: matched > rows.length });
+}
+
+// Nhập SĐT hàng loạt (bỏ trùng theo phone) — kèm ngày + nợ nếu có
 async function importLeads(res, body) {
   const items = Array.isArray(body.items) ? body.items : [];
   const clean = [];
@@ -89,15 +112,18 @@ async function importLeads(res, body) {
     if (digits.length < 9 || digits.length > 12) continue;
     if (seen.has(digits)) continue;
     seen.add(digits);
+    const debt = Math.max(0, parseInt(it.debt, 10) || 0);
     clean.push({
       phone: digits,
       full_name: String(it.full_name || '').trim().slice(0, 80),
       source: String(it.source || '').trim().slice(0, 120),
+      lead_date: it.lead_date || null,
+      debt,
+      call_note: debt > 0 ? `Còn nợ: ${debt.toLocaleString('vi-VN')}đ` : '',
       status: 'chua_goi'
     });
   }
   if (!clean.length) return res.status(400).json({ error: 'Không có số điện thoại hợp lệ' });
-  // upsert, bỏ qua số đã tồn tại
   const r = await fetch(sb(`${TABLE}?on_conflict=phone`), {
     method: 'POST',
     headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=representation' }),
@@ -108,42 +134,60 @@ async function importLeads(res, body) {
   return res.status(200).json({ inserted: out.length, submitted: clean.length, skipped: clean.length - out.length });
 }
 
-// Chia đều vòng tròn cho các nhân viên (chỉ chia số CHƯA có người + chưa gọi)
+// Lấy toàn bộ id khớp bộ lọc (phân trang, vượt giới hạn 1000)
+async function fetchAllIds(params) {
+  const ids = [];
+  let from = 0; const page = 1000;
+  while (true) {
+    const r = await fetch(sb(`${TABLE}?${params.toString()}`), {
+      headers: sbHeaders({ 'Range-Unit': 'items', Range: `${from}-${from + page - 1}` })
+    });
+    const chunk = await r.json();
+    if (!r.ok) throw new Error(chunk?.message || 'Lỗi đọc dữ liệu');
+    ids.push(...chunk.map(x => x.id));
+    if (chunk.length < page) break;
+    from += page;
+  }
+  return ids;
+}
+
+// Chia đều vòng tròn — theo bộ lọc hiện tại (ngày/tìm kiếm), chỉ số CHƯA gọi
 async function distribute(res, body) {
   const staff = (Array.isArray(body.staff) ? body.staff : [])
     .map(s => String(s).trim()).filter(Boolean);
   if (!staff.length) return res.status(400).json({ error: 'Chưa chọn nhân viên nhận' });
 
-  const includeAll = !!body.includeAll; // true = chia lại tất cả; false = chỉ số chưa chia
-  const params = new URLSearchParams();
+  const includeAll = !!body.includeAll; // true = chia lại cả số đã chia
+  const params = buildFilterParams(body, { withAssigned: false });
   params.set('select', 'id');
   params.set('status', 'eq.chua_goi');
-  if (!includeAll) params.set('assigned_to', 'eq.'); // assigned_to rỗng
-  params.set('order', 'created_at.asc');
-  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
-  const rows = await r.json();
-  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
-  if (!rows.length) return res.status(200).json({ assigned: 0, perStaff: {}, message: 'Không có số nào cần chia' });
+  if (!includeAll) params.set('assigned_to', 'eq.');
+  params.set('order', 'lead_date.asc.nullslast');
 
-  // gom id theo từng nhân viên (round-robin)
+  let ids;
+  try { ids = await fetchAllIds(params); }
+  catch (e) { return res.status(500).json({ error: String(e.message || e) }); }
+  if (!ids.length) return res.status(200).json({ assigned: 0, perStaff: {}, message: 'Không có số nào cần chia' });
+
   const groups = {}; staff.forEach(s => groups[s] = []);
-  rows.forEach((row, i) => groups[staff[i % staff.length]].push(row.id));
+  ids.forEach((id, i) => groups[staff[i % staff.length]].push(id));
 
   const now = new Date().toISOString();
   const perStaff = {};
   for (const s of staff) {
-    const ids = groups[s];
-    if (!ids.length) { perStaff[s] = 0; continue; }
-    const q = `id=in.(${ids.join(',')})`;
-    const up = await fetch(sb(`${TABLE}?${q}`), {
-      method: 'PATCH',
-      headers: sbHeaders({ Prefer: 'return=minimal' }),
-      body: JSON.stringify({ assigned_to: s, assigned_at: now })
-    });
-    if (!up.ok) { const e = await up.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi khi chia' }); }
-    perStaff[s] = ids.length;
+    const g = groups[s];
+    if (!g.length) { perStaff[s] = 0; continue; }
+    for (let i = 0; i < g.length; i += 200) {
+      const part = g.slice(i, i + 200);
+      const up = await fetch(sb(`${TABLE}?id=in.(${part.join(',')})`), {
+        method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({ assigned_to: s, assigned_at: now })
+      });
+      if (!up.ok) { const e = await up.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi khi chia' }); }
+    }
+    perStaff[s] = g.length;
   }
-  return res.status(200).json({ assigned: rows.length, perStaff });
+  return res.status(200).json({ assigned: ids.length, perStaff });
 }
 
 // Cập nhật trạng thái/ghi chú một số

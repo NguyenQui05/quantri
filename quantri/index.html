@@ -808,24 +808,29 @@
       <div class="card" style="margin-top:16px">
         <div class="card-head">
           <h2>③ Danh sách phân gọi</h2>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <select id="pgFilterStaff" onchange="pgRefresh()"><option value="">Tất cả nhân viên</option></select>
-            <select id="pgFilterStatus" onchange="pgRefresh()">
-              <option value="">Mọi trạng thái</option>
-              <option value="chua_goi">⚪ Chưa gọi</option>
-              <option value="da_goi">✅ Đã gọi</option>
-              <option value="hen_lich">📅 Hẹn lịch</option>
-              <option value="khong_nghe">📵 Không nghe</option>
-              <option value="tu_choi">🚫 Từ chối</option>
-              <option value="xong">🎉 Chốt xong</option>
-            </select>
-            <button class="btn ghost sm" onclick="pgRefresh()">🔄 Tải lại</button>
-          </div>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input id="pgSearch" placeholder="🔎 Tìm SĐT hoặc tên khách..." style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')pgRefresh()">
+          <label style="font-size:.8rem;color:var(--muted)">Từ ngày <input type="date" id="pgFrom" onchange="pgRefresh()" style="font-size:.85rem"></label>
+          <label style="font-size:.8rem;color:var(--muted)">Đến <input type="date" id="pgTo" onchange="pgRefresh()" style="font-size:.85rem"></label>
+          <select id="pgFilterStaff" onchange="pgRefresh()"><option value="">Tất cả NV</option></select>
+          <select id="pgFilterStatus" onchange="pgRefresh()">
+            <option value="">Mọi trạng thái</option>
+            <option value="chua_goi">⚪ Chưa gọi</option>
+            <option value="da_goi">✅ Đã gọi</option>
+            <option value="hen_lich">📅 Hẹn lịch</option>
+            <option value="khong_nghe">📵 Không nghe</option>
+            <option value="tu_choi">🚫 Từ chối</option>
+            <option value="xong">🎉 Chốt xong</option>
+          </select>
+          <button class="btn sm" onclick="pgRefresh()">🔎 Lọc</button>
+          <button class="btn ghost sm" onclick="pgClearFilter()">✖ Xoá lọc</button>
+        </div>
+        <div id="pgCapNote" style="font-size:.78rem;color:var(--muted);margin-bottom:6px"></div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>SĐT</th><th>Tên</th><th>Nhân viên</th><th>Trạng thái</th><th>Ghi chú</th><th></th></tr></thead>
-            <tbody id="pgRows"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
+            <thead><tr><th>SĐT</th><th>Tên</th><th>Ngày</th><th>Nợ</th><th>Nhân viên</th><th>Trạng thái</th><th>Ghi chú</th><th></th></tr></thead>
+            <tbody id="pgRows"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2686,31 +2691,58 @@ async function phangoiLoad(){
   const ta=document.getElementById('pgStaffInput'); if(ta && !ta.value.trim()) ta.value=pgGetStaff().join('\n');
   await pgRefresh();
 }
+function pgFilters(){
+  return {
+    assigned_to: document.getElementById('pgFilterStaff')?.value||undefined,
+    status: document.getElementById('pgFilterStatus')?.value||undefined,
+    search: document.getElementById('pgSearch')?.value.trim()||undefined,
+    from: document.getElementById('pgFrom')?.value||undefined,
+    to: document.getElementById('pgTo')?.value||undefined
+  };
+}
 async function pgRefresh(){
-  const staffFilter=document.getElementById('pgFilterStaff')?.value||'';
-  const statusFilter=document.getElementById('pgFilterStatus')?.value||'';
+  const f=pgFilters();
   let d;
-  try{ d=await pgApi({action:'list', assigned_to:staffFilter||undefined, status:statusFilter||undefined}); }
+  try{ d=await pgApi({action:'list', ...f}); }
   catch(e){ toast('❌ '+e.message,'red'); return; }
-  pgRenderKpi(d.sum||{}); pgRenderStaffFilter(d.byStaff||{}, staffFilter); pgRenderRows(d.rows||[]);
+  pgRenderKpi(d.sum||{}); pgRenderStaffFilter(d.byStaff||{}, f.assigned_to); pgRenderRows(d.rows||[]);
+  const note=document.getElementById('pgCapNote');
+  if(note){
+    const s=d.sum||{};
+    let t=`Đang xem ${d.rows?.length||0}/${d.matched||0} số`;
+    if(d.capped) t+=` (hiển thị tối đa 1000 — lọc thêm để xem hết)`;
+    if(s.con_no) t+=` · 🔴 ${s.con_no} khách còn nợ (tổng ${(s.tong_no||0).toLocaleString('vi-VN')}đ)`;
+    note.textContent=t;
+  }
   const b=document.getElementById('phangoiBadge'); if(b) b.textContent=(d.sum&&d.sum.chua_goi)||0;
 }
-function pgRenderKpi(s){ const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v||0;};
+function pgClearFilter(){
+  ['pgSearch','pgFrom','pgTo'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+  const st=document.getElementById('pgFilterStatus'); if(st) st.value='';
+  const nv=document.getElementById('pgFilterStaff'); if(nv) nv.value='';
+  pgRefresh();
+}
+function pgRenderKpi(s){ const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=(v||0).toLocaleString('vi-VN');};
   set('pgK1', s.total); set('pgK2', s.chua_chia); set('pgK3', s.da_goi); set('pgK4', s.chua_goi); }
 function pgRenderStaffFilter(byStaff, cur){
   const sel=document.getElementById('pgFilterStaff'); if(!sel) return;
   const names=Object.keys(byStaff).sort();
-  sel.innerHTML='<option value="">Tất cả nhân viên</option>'+names.map(n=>`<option value="${pgEscAttr(n)}">${pgEscHtml(n)} (${byStaff[n]})</option>`).join('');
+  sel.innerHTML='<option value="">Tất cả NV</option>'+names.map(n=>`<option value="${pgEscAttr(n)}">${pgEscHtml(n)} (${byStaff[n]})</option>`).join('');
   sel.value=cur||'';
 }
+function pgFmtDate(s){ if(!s) return '—'; const p=String(s).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
 function pgRenderRows(rows){
   const tb=document.getElementById('pgRows'); if(!tb) return;
-  if(!rows.length){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Chưa có số nào. Nhập SĐT ở ô trên rồi bấm "Chia đều".</td></tr>'; return; }
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Không có số nào khớp. Nhập SĐT hoặc đổi bộ lọc.</td></tr>'; return; }
   tb.innerHTML=rows.map(r=>{
     const opts=Object.entries(PG_STATUS).map(([k,v])=>`<option value="${k}"${r.status===k?' selected':''}>${v}</option>`).join('');
+    const debt=Number(r.debt)||0;
+    const debtCell=debt>0?`<span style="color:var(--red);font-weight:700;white-space:nowrap">${debt.toLocaleString('vi-VN')}đ</span>`:'<span style="color:var(--muted)">—</span>';
     return `<tr data-id="${r.id}">
       <td><b>${pgEscHtml(r.phone)}</b></td>
       <td>${pgEscHtml(r.full_name||'')}</td>
+      <td style="white-space:nowrap">${pgFmtDate(r.lead_date)}</td>
+      <td>${debtCell}</td>
       <td>${pgEscHtml(r.assigned_to||'—')}</td>
       <td><select class="pg-status" style="width:100%">${opts}</select></td>
       <td><input class="pg-note" value="${pgEscAttr(r.call_note||'')}" placeholder="Ghi chú..." style="width:100%"></td>
@@ -2740,7 +2772,10 @@ async function pgDistribute(){
   if(!staff.length){ toast('Nhập tên nhân viên (mỗi dòng 1 người)','red'); return; }
   pgSetStaff(staff);
   const includeAll=document.getElementById('pgRedistribute')?.checked||false;
-  try{ const d=await pgApi({action:'distribute', staff, includeAll});
+  const f=pgFilters();
+  const seg=(f.from||f.to||f.search)?' (theo bộ lọc đang chọn)':'';
+  if(!confirm(`Chia đều số CHƯA gọi${seg} cho ${staff.length} nhân viên: ${staff.join(', ')}?`)) return;
+  try{ const d=await pgApi({action:'distribute', staff, includeAll, from:f.from, to:f.to, search:f.search});
     if(!d.assigned){ toast(d.message||'Không có số cần chia','dark'); return; }
     const detail=Object.entries(d.perStaff).map(([k,v])=>`${k}:${v}`).join(' · ');
     toast(`✅ Đã chia ${d.assigned} số — ${detail}`,'green'); await pgRefresh();
@@ -2758,7 +2793,7 @@ async function pgDelete(id){
   try{ await pgApi({action:'delete', id}); toast('Đã xoá','dark'); pgRefresh(); }
   catch(e){ toast('❌ '+e.message,'red'); }
 }
-window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh;
+window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh; window.pgClearFilter=pgClearFilter;
 
 function go(section){
   if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section='dashboard'; }
