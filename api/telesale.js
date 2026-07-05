@@ -89,7 +89,15 @@ async function listLeads(res, body) {
   params.set('order', 'lead_date.desc.nullslast');
   params.set('limit', String(PAGE));
   params.set('offset', String(page * PAGE));
-  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact' }) });
+
+  // Chạy SONG SONG: (1) danh sách trang + đếm tổng, (2) thống kê KPI toàn tập
+  const listP = fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact' }) });
+  const statsP = fetch(sb('rpc/telesale_stats'), {
+    method: 'POST', headers: sbHeaders(),
+    body: JSON.stringify({ p_from: body.from || null, p_to: body.to || null, p_search: body.search || null })
+  }).then(x => x.ok ? x.json() : {}).catch(() => ({}));
+
+  const r = await listP;
   const rows = await r.json();
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
 
@@ -113,15 +121,7 @@ async function listLeads(res, body) {
   const matched = parseInt(cr.split('/')[1] || '0', 10) || rows.length;
   const totalPages = Math.max(1, Math.ceil(matched / PAGE));
 
-  // tổng hợp chính xác toàn tập (theo bộ lọc) qua hàm SQL
-  let stats = {};
-  try {
-    const st = await fetch(sb('rpc/telesale_stats'), {
-      method: 'POST', headers: sbHeaders(),
-      body: JSON.stringify({ p_from: body.from || null, p_to: body.to || null, p_search: body.search || null })
-    });
-    if (st.ok) stats = await st.json();
-  } catch (e) { /* fallback dưới */ }
+  const stats = await statsP;  // đã chạy song song ở trên
 
   const sum = {
     total: stats.total ?? matched, chua_goi: stats.chua_goi ?? 0, da_goi: stats.da_goi ?? 0,
