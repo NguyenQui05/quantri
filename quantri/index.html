@@ -4615,27 +4615,32 @@ function aggregateMarketing(){
   return {srcs,T,days,names,hasFunnel,hasLead,hasRev,roas};
 }
 const MKT_SHEET_ID='1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E';
-const MKT_MONTHS=[
-  {k:'Tháng 6/2026', gid:1504707702},
-  {k:'Tháng 5/2026', gid:2041813515},
-  {k:'Tháng 4/2026', gid:1181644140},
-  {k:'Tháng 3/2026', gid:454168019},
-  {k:'Tháng 2/2026', gid:1846062081},
-  {k:'Tháng 1/2026', gid:1461770423},
-  {k:'Tháng 12/2025', gid:694008788}
-];
+// Tab trong Sheet đặt tên dạng "BÁO CÁO MKT T<số tháng>" (VD: BÁO CÁO MKT T7).
+// Tự sinh danh sách tháng từ tháng HIỆN TẠI lùi về T12/2025 → khỏi sửa code mỗi tháng.
+function buildMktMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({k:'Tháng '+m+'/'+y, tab:'BÁO CÁO MKT T'+m});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const MKT_MONTHS=buildMktMonths();
 const MKT_CACHE={};
-async function marketingMonth(gid){
-  if(MKT_CACHE[gid]===undefined){ try{ MKT_CACHE[gid]=await fetchSheet(MKT_SHEET_ID,{gid}); }catch(e){ MKT_CACHE[gid]=null; } }
-  const mk = MKT_CACHE[gid] ? parseMarketingReport(MKT_CACHE[gid]) : null;
+async function marketingMonth(tab){
+  if(MKT_CACHE[tab]===undefined){ try{ MKT_CACHE[tab]=await fetchSheet(MKT_SHEET_ID,{tab}); }catch(e){ MKT_CACHE[tab]=null; } }
+  const mk = MKT_CACHE[tab] ? parseMarketingReport(MKT_CACHE[tab]) : null;
   if(!mk) return {T:{spend:0,mess:0,sdt:0,khach:0,lead:0,rev:0},days:[],hasFunnel:false,hasLead:false,hasRev:false,roas:0,ok:false};
   return {T:{spend:mk.totSpend,mess:mk.totMess,sdt:mk.totSdt,khach:mk.totKhach,lead:mk.totLead,rev:mk.totRev},days:mk.days,hasFunnel:mk.hasFunnel,hasLead:mk.hasLead,hasRev:mk.hasRev,roas:mk.totSpend?(mk.totRev/mk.totSpend):0,ok:true};
 }
 async function renderMarketing(){
-  const cur=MKT_MONTHS[0];                 // luôn hiện tháng mới nhất (Tháng 6) trên đầu
+  const cur=MKT_MONTHS[0];                 // luôn hiện tháng hiện tại trên đầu
   const monthKey=cur.k;
   const topEl=document.getElementById('mktTopMonth'); if(topEl) topEl.textContent=monthKey;
-  const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.gid);
+  const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.tab);
   const grid=gel('mktKpiGrid'), funnel=gel('mktFunnel'), daily=gel('mktDaily'), sub=gel('mktReportSub');
   if(!ok || !days.length){
     if(grid) grid.innerHTML='<div class="kpi k2"><div class="ic">💰</div><div class="label">Chi phí quảng cáo</div><div class="val">—</div><div class="delta">'+monthKey+'</div></div>';
@@ -4706,7 +4711,7 @@ async function loadPrevMonths(){
   const box=document.getElementById('mktPrevMonths'), btn=document.getElementById('mktMoreBtn'); if(!box) return;
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang tải...'; }
   const prev=MKT_MONTHS.slice(1); // T5 trở về trước
-  const data=await Promise.all(prev.map(m=>marketingMonth(m.gid).then(d=>({m,d})).catch(()=>({m,d:null}))));
+  const data=await Promise.all(prev.map(m=>marketingMonth(m.tab).then(d=>({m,d})).catch(()=>({m,d:null}))));
   const chip=(label,val,color)=>`<div style="border:1px dashed var(--line);border-radius:10px;padding:8px 12px;min-width:92px"><div class="sub" style="font-size:.68rem">${label}</div><div style="font-weight:800;font-size:.96rem;color:${color||'#3B2113'}">${val}</div></div>`;
   box.innerHTML=data.map(({m,d})=>{
     if(!d||!d.ok){ return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:#FBF6F1"><b style="color:var(--brown-deep)">${m.k}</b> <span class="sub" style="font-size:.74rem">— chưa có dữ liệu</span></div>`; }
