@@ -524,20 +524,16 @@
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="telesale"><span class="ic">📞</span>Telesale &amp; Lễ tân</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
-      <a data-section="gallery"><span class="ic">📸</span>Trước & Sau</a>
 
       <div class="group">Kinh doanh</div>
-      <a data-section="services"><span class="ic">💎</span>Dịch vụ</a>
       <a data-section="revenue"><span class="ic">💰</span>Doanh thu</a>
       <a data-section="inventory"><span class="ic">📦</span>Kho hàng</a>
       <a data-section="marketing"><span class="ic">📢</span>Marketing</a>
-      <a data-section="reviews"><span class="ic">⭐</span>Đánh giá</a>
 
       <div class="group">2026 — Thông minh</div>
       <a data-section="ai"><span class="ic">🤖</span>AI Assistant<span class="badge" style="background:var(--gold-deep)">MỚI</span></a>
 
       <div class="group">Khác</div>
-      <a data-section="booking"><span class="ic">🔗</span>Trang đặt lịch</a>
       <a href="/quantri/huong-dan" target="_blank"><span class="ic">📘</span>Hướng dẫn</a>
       <a data-section="accounts"><span class="ic">👤</span>Tài khoản</a>
       <a data-section="settings"><span class="ic">⚙️</span>Cài đặt</a>
@@ -577,7 +573,7 @@
         <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val" id="ovApptVal">—</div><div class="delta" id="ovApptDelta">đang tải…</div><canvas id="sparkK1" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val">47</div><div class="delta">▲ 12 khách</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label" id="ovRevLabel">Doanh thu</div><div class="val" id="ovRevVal">—</div><div class="delta" id="ovRevDelta">Kết nối Data Hub</div><canvas id="sparkK3" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
-        <div class="kpi k4" onclick="go('reviews')"><div class="ic">⭐</div><div class="label">Hài lòng (NPS)</div><div class="val">94<span style="font-size:1rem">%</span></div><div class="delta">▲ 3 điểm</div><canvas id="sparkK4" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k4"><div class="ic">⭐</div><div class="label">Hài lòng (NPS)</div><div class="val">94<span style="font-size:1rem">%</span></div><div class="delta">▲ 3 điểm</div><canvas id="sparkK4" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
       </div>
 
       <div class="row r-2-1">
@@ -1041,23 +1037,6 @@
 
     <!-- ============ MEDICAL RECORDS ============ -->
     <!-- ============ BEFORE/AFTER GALLERY ============ -->
-    <section class="page" id="page-gallery">
-      <div class="card-head" style="margin-bottom:14px">
-        <div><h2 class="serif" style="font-size:1.5rem;color:var(--brown-deep)">📸 Bộ sưu tập Trước & Sau</h2><div class="sub" style="font-size:.86rem">428 case · Đã ký consent → có thể dùng marketing · Bấm vào case để xem chi tiết</div></div>
-        <div style="display:flex;gap:8px"><select style="width:160px"><option>Tất cả dịch vụ</option><option>Cắt mí</option><option>Filler</option><option>Hifu</option><option>Hút mỡ</option></select><button class="btn sm" onclick="openModal('new-photo')">+ Thêm case</button></div>
-      </div>
-      <div class="gallery" id="galleryGrid"></div>
-    </section>
-
-    <!-- ============ SERVICES ============ -->
-    <section class="page" id="page-services">
-      <div class="card-head" style="margin-bottom:14px">
-        <div><h2 class="serif" style="font-size:1.5rem;color:var(--brown-deep)">Catalog dịch vụ</h2><div class="sub" style="font-size:.86rem">13 nhóm · 118 dịch vụ · bảng giá chuẩn HANA</div></div>
-        <button class="btn" onclick="openModal('new-service')">+ Thêm dịch vụ</button>
-      </div>
-      <div class="grid svc-grid" id="svcGrid"></div>
-    </section>
-
     <!-- ============ REVENUE ============ -->
     <section class="page" id="page-revenue">
       <div id="revAlert"></div>
@@ -1190,62 +1169,6 @@
           <thead><tr><th>SKU</th><th>Tên</th><th>Tồn</th><th>Đơn vị</th><th>Mức tối thiểu</th><th>Dự đoán hết</th><th>Trạng thái</th></tr></thead>
           <tbody id="invRows"></tbody>
         </table>
-      </div>
-    </section>
-
-    <!-- ============ REVIEWS ============ -->
-    <section class="page" id="page-reviews">
-      <div class="row r-1-2">
-        <div class="card" style="text-align:center">
-          <div id="gm-rating" style="font-family:'Lora';font-size:4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1">5,0</div>
-          <div class="stars" id="gm-stars" style="font-size:1.3rem;margin:6px 0">★★★★★</div>
-          <div style="color:var(--muted)"><b id="gm-count">2</b> đánh giá · Google Maps</div>
-          <div style="margin-top:6px;font-size:.72rem;color:var(--muted)">Cập nhật: <span id="gm-updated">—</span></div>
-          <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-            <a href="https://maps.app.goo.gl/j9SgMsZAtXVW85Er6" target="_blank" rel="noopener" class="btn ghost sm">📍 Mở Maps</a>
-            <button class="btn sm" onclick="gmEdit()">✏️ Cập nhật con số</button>
-          </div>
-          <div id="gm-editor" style="display:none;margin-top:12px;text-align:left;background:var(--cream);padding:12px;border-radius:10px">
-            <label style="font-size:.74rem;color:var(--muted)">⭐ Sao trung bình (0–5)</label>
-            <input id="gm-in-rating" type="number" step="0.1" min="0" max="5" style="width:100%;margin:4px 0 8px;padding:7px;border:1px solid var(--line);border-radius:8px">
-            <label style="font-size:.74rem;color:var(--muted)">📝 Tổng số lượt đánh giá</label>
-            <input id="gm-in-count" type="number" min="0" style="width:100%;margin:4px 0 10px;padding:7px;border:1px solid var(--line);border-radius:8px">
-            <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:.8rem;color:var(--orange-deep)">+ Thêm 1 review thật (tùy chọn)</summary>
-              <input id="gm-in-name" placeholder="Tên khách" style="width:100%;margin:6px 0;padding:7px;border:1px solid var(--line);border-radius:8px">
-              <select id="gm-in-src" style="width:100%;margin:0 0 6px;padding:7px;border:1px solid var(--line);border-radius:8px"><option>Google</option><option>Facebook</option><option>TikTok</option><option>Zalo</option></select>
-              <input id="gm-in-stars" type="number" min="1" max="5" value="5" placeholder="Số sao 1–5" style="width:100%;margin:0 0 6px;padding:7px;border:1px solid var(--line);border-radius:8px">
-              <textarea id="gm-in-text" rows="2" placeholder="Nội dung review (nguyên văn)" style="width:100%;padding:7px;border:1px solid var(--line);border-radius:8px"></textarea>
-            </details>
-            <div style="display:flex;gap:8px">
-              <button class="btn sm" onclick="gmSaveEdit()">💾 Lưu</button>
-              <button class="btn ghost sm" onclick="gmEdit(false)">Hủy</button>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div><h2>Đánh giá mới nhất</h2><div class="sub">Gom Google · FB · TikTok · Zalo</div></div><div style="display:flex;gap:6px"><button class="btn ghost sm">Tất cả</button><button class="btn sm">Cần phản hồi</button></div></div>
-          <div id="reviewList"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ BOOKING ============ -->
-    <section class="page" id="page-booking">
-      <div class="card">
-        <div class="card-head"><div><h2>Trang đặt lịch online</h2><div class="sub">Chia sẻ link khách đặt 24/7</div></div></div>
-        <div style="background:linear-gradient(135deg,var(--cream),var(--cream-2));border-radius:13px;padding:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-          <div style="width:130px;height:130px;background:#fff;border-radius:13px;display:grid;place-items:center;font-size:4.5rem">📱</div>
-          <div style="flex:1;min-width:260px">
-            <div style="font-family:'Lora';font-size:1.5rem;color:var(--brown-deep);font-weight:800">phammaiphuong.vn</div>
-            <div style="color:var(--muted);margin-top:4px">QR đã in sẵn dán phòng khám</div>
-            <div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap">
-              <button class="btn" onclick="copyLink('https://phammaiphuong.vn')">📋 Copy link</button>
-              <button class="btn ghost" onclick="toast('🖼️ Đang tạo QR HD…')">⬇ Tải QR</button>
-              <button class="btn ghost" onclick="toast('📲 Mở chia sẻ Zalo')">📲 Chia sẻ Zalo</button>
-            </div>
-          </div>
-        </div>
-        <div class="alert info" style="margin-top:16px"><span class="ic">✨</span><div><b>2026 magic:</b> Khách qua link này có thể chọn slot, KTV, trả cọc MoMo/ZaloPay, nhận xác nhận Zalo tự động.</div></div>
       </div>
     </section>
 
@@ -1787,7 +1710,6 @@ function openModal(type, ctx){
         <button class="btn sm" onclick="toast('📞 Đang kết nối Zalo ${c.phone}...','ok')">📞 Gọi/Zalo ngay</button>
         <button class="btn sm" onclick="toast('📅 Mở form đặt lịch cho ${c.name}','ok')">📅 Đặt lịch</button>
         <button class="btn sm" onclick="toast('🎁 Mở chọn voucher gửi cho ${c.name}','ok')">🎁 Gửi voucher</button>
-        <button class="btn ghost sm" onclick="toast('📸 Xem ảnh trước/sau ${c.name}','ok');closeModal();go('gallery')">📸 Trước/Sau</button>
       </div>
       <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:18px 0 8px">📝 Lịch sử dịch vụ</h3>
       <table>
@@ -2642,14 +2564,10 @@ const titles = {
   luong:['💵 Bảng lương bác sĩ — Phụ phẫu','Bảng công theo từng bác sĩ × tháng · từ file Excel nội bộ'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   telesale:['📞 Telesale & Lễ tân','KPI cuộc gọi · khách mời đến · hoa hồng telesale tháng 5/2026'],
-  gallery:['Trước & Sau','428 case có ký consent dùng marketing'],
-  services:['Dịch vụ','13 nhóm · 118 dịch vụ · giá chuẩn'],
   revenue:['Doanh thu','Tháng 5/2026 · Q2'],
   inventory:['Kho hàng','142 SKU · 8 sắp hết'],
   marketing:['Marketing & Loyalty','4 campaign đang chạy'],
-  reviews:['Đánh giá','Google Maps · phản hồi review'],
   ai:['🤖 AI Assistant — 2026','Spa hàng đầu đang dùng'],
-  booking:['Trang đặt lịch online','Link công khai cho khách'],
   billing:['🧾 Hóa đơn','Tạo & in bill 80mm cho khách tại quầy'],
   accounts:['👤 Tài khoản','Tạo & phân quyền tài khoản nhân viên'],
   settings:['Cài đặt','Cấu hình hệ thống']
@@ -4175,14 +4093,11 @@ const QS_INDEX = [
   {sec:'tasks',title:'Công việc',hint:'Task hôm nay · giao việc · ưu tiên',ic:'📋'},
   {sec:'staff',title:'Nhân viên',hint:'Hiệu suất · tag · giao việc · KPI',ic:'👩‍⚕️'},
   {sec:'schedule',title:'Lịch trực',hint:'Ca trực · phân công · đổi ca',ic:'🗓️'},
-  {sec:'gallery',title:'Trước & Sau',hint:'Ảnh case · consent · dùng marketing',ic:'📸'},
-  {sec:'services',title:'Dịch vụ',hint:'13 nhóm · 118 dịch vụ · bảng giá chuẩn',ic:'💎'},
   {sec:'revenue',title:'Doanh thu',hint:'Báo cáo doanh thu · trend · breakdown',ic:'💰'},
   {sec:'billing',title:'Hóa đơn',hint:'Tạo & in bill 80mm · lịch sử hóa đơn',ic:'🧾'},
   {sec:'accounts',title:'Tài khoản',hint:'Tạo tài khoản · chức vụ · phân quyền nhân viên',ic:'👤'},
   {sec:'inventory',title:'Kho hàng',hint:'142 SKU · cảnh báo hết hàng · nhập xuất',ic:'📦'},
   {sec:'marketing',title:'Marketing & Loyalty',hint:'4 campaign · ROAS · referral',ic:'📢'},
-  {sec:'reviews',title:'Đánh giá',hint:'Google Maps · phản hồi review',ic:'⭐'},
   {sec:'ai',title:'AI Assistant',hint:'Hỏi Gemini về vận hành · phân tích',ic:'🤖'},
   {sec:'settings',title:'Cài đặt',hint:'Backup · phục hồi · phân quyền · logout',ic:'⚙️'}
 ];
@@ -4979,8 +4894,8 @@ window.roleDoLogin=roleDoLogin; window.roleSkip=roleSkip; window.roleLogout=role
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare(); renderComplaints();
-renderTasks(); renderSchedule(); renderGallery(); renderServices(); renderInventory();
-renderCampaigns(); gmRender(); renderReviews(); renderCalendar(); renderAppointments(); renderLeads();
+renderTasks(); renderSchedule(); renderInventory();
+renderCampaigns(); renderCalendar(); renderAppointments(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v5'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v5'); } }catch(e){} // nạp lại với ngày chuẩn theo tháng + sắp xếp mới nhất — 1 lần
 setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ syncLeadsFromSheet(true); renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); renderAppointments(); syncOverviewAppts(); }); else { renderRevenue(); syncOverviewRevenue(); } }, 800);
