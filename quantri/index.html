@@ -514,7 +514,6 @@
       <a data-section="leads"><span class="ic">📥</span>Lead từ web<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
       <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
       <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
-      <a data-section="complaints"><span class="ic">🚨</span>Khiếu nại & SOS<span class="badge">3</span></a>
 
       <div class="group">Vận hành</div>
       <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
@@ -839,32 +838,6 @@
           </table>
         </div>
         <div id="pgPager" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
-      </div>
-    </section>
-
-    <!-- ============ KHIẾU NẠI & SOS ============ -->
-    <section class="page" id="page-complaints">
-      <div class="grid kpi-grid">
-        <div class="kpi k4"><div class="ic">🚨</div><div class="label">SOS đang mở</div><div class="val">3</div><div class="delta down">Cần xử lý trong 1h</div></div>
-        <div class="kpi k2"><div class="ic">📋</div><div class="label">Khiếu nại tháng này</div><div class="val">12</div><div class="delta">9 đã giải quyết</div></div>
-        <div class="kpi k1"><div class="ic">⏱️</div><div class="label">Thời gian xử lý TB</div><div class="val">2.4h</div><div class="delta">Mục tiêu &lt; 4h</div></div>
-        <div class="kpi k3"><div class="ic">💚</div><div class="label">Tỉ lệ hài lòng sau xử lý</div><div class="val">92<span style="font-size:1rem">%</span></div><div class="delta">▲ 5%</div></div>
-      </div>
-
-      <div class="alert danger" style="margin-top:16px"><span class="ic">🚨</span><div><b>3 SOS cần xử lý ngay:</b> 1 khách phản ánh đau sau filler · 1 khách yêu cầu hoàn tiền · 1 khách dọa review xấu</div><button class="btn danger sm" onclick="toast('🚨 Mở chi tiết SOS','red')">Xử lý ngay</button></div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="card-head">
-          <div><h2>Tickets khiếu nại</h2><div class="sub">Theo SLA: P1 (SOS) &lt; 1h · P2 &lt; 4h · P3 &lt; 24h</div></div>
-          <div style="display:flex;gap:8px">
-            <select style="width:130px"><option>Tất cả</option><option>Đang mở</option><option>Đang xử lý</option><option>Đã xong</option></select>
-            <button class="btn sm" onclick="openModal('new-complaint')">+ Tạo ticket</button>
-          </div>
-        </div>
-        <table>
-          <thead><tr><th>ID</th><th>Khách</th><th>Loại</th><th>Mức</th><th>Tóm tắt</th><th>Người phụ trách</th><th>Trạng thái</th><th>SLA</th></tr></thead>
-          <tbody id="complaintRows"></tbody>
-        </table>
       </div>
     </section>
 
@@ -1411,15 +1384,6 @@ const DATA = {
     {av:'H', bg:'linear-gradient(135deg,#1ABC9C,#16A085)', name:'Chị Hằng Nguyễn', service:'Cắt mí (90 ngày)', daysSince:90, stage:'Ngày 90 — Win-back', action:'📞 Mời combo duy trì', urgent:false},
     {av:'V', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Vy Trần', service:'Hifu (3 ngày)', daysSince:3, stage:'Ngày 3 — Hướng dẫn Zalo', action:'💌 Gửi Zalo', urgent:true}
   ],
-  complaints: [
-    {id:'#SOS-0042', name:'Chị Quỳnh Anh', type:'Y khoa', priority:'P1', summary:'Đau nhói sau tiêm filler 2 ngày', owner:'BS. Mai', status:'red', statusText:'SOS — Đang xử lý', sla:'⏱️ 12 phút còn lại'},
-    {id:'#SOS-0041', name:'Chị Hà Linh', type:'Hoàn tiền', priority:'P1', summary:'Yêu cầu hoàn tiền combo Hifu 28tr', owner:'CEO Phương', status:'red', statusText:'SOS', sla:'⏱️ 45 phút còn lại'},
-    {id:'#SOS-0040', name:'Khách ẩn danh', type:'Review xấu', priority:'P1', summary:'Dọa đăng review 1⭐ trên Google', owner:'Lễ tân Yến', status:'red', statusText:'SOS', sla:'⏱️ 50 phút còn lại'},
-    {id:'#TK-0118', name:'Chị Phương Vũ', type:'Dịch vụ', priority:'P2', summary:'KTV trễ giờ 25 phút', owner:'Lễ tân Yến', status:'blue', statusText:'Đang xử lý', sla:'2.5h còn lại'},
-    {id:'#TK-0117', name:'Chị Mai Chi', type:'Sản phẩm', priority:'P3', summary:'Kem chống nắng La Roche bị nóng da', owner:'KTV Ngọc', status:'green', statusText:'Đã xử lý', sla:'✓ Hoàn tất'},
-    {id:'#TK-0116', name:'Chị Yến Lê', type:'Lịch hẹn', priority:'P3', summary:'Đặt lịch không nhận được xác nhận', owner:'Lễ tân Yến', status:'green', statusText:'Đã xử lý', sla:'✓ Hoàn tất'},
-    {id:'#TK-0115', name:'Chị Linh Đào', type:'Khác', priority:'P3', summary:'Hỏi về liệu trình tiếp theo', owner:'Bs. Hà', status:'green', statusText:'Đã trả lời', sla:'✓ Hoàn tất'}
-  ],
   tasks: [
     {id:1, title:'Gọi chị Mai Anh hậu chăm sóc ngày 1 sau Filler', priority:'Cao', owner:'Lễ tân Yến', due:'10:30 hôm nay', done:false, tag:'Chăm sóc'},
     {id:2, title:'Soạn báo cáo doanh thu tháng 5 gửi CEO', priority:'Cao', owner:'KTV Ngọc', due:'17:00 hôm nay', done:false, tag:'Báo cáo'},
@@ -1799,7 +1763,7 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-shift' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-complaint' || type==='new-campaign'){
+  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-shift' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-campaign'){
     const titles = {
       'new-customer':'➕ Thêm khách hàng mới',
       'new-staff':'➕ Thêm nhân viên mới',
@@ -1810,7 +1774,6 @@ function openModal(type, ctx){
       'new-medical':'➕ Tạo hồ sơ y khoa',
       'new-stock':'➕ Nhập kho mới',
       'new-photo':'➕ Thêm case trước/sau',
-      'new-complaint':'➕ Tạo ticket khiếu nại',
       'new-campaign':'➕ Tạo chiến dịch marketing'
     };
     t.textContent = titles[type];
@@ -1824,7 +1787,6 @@ function openModal(type, ctx){
       'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
       'new-stock': `<label>SKU</label><input id="f1"><label>Tên sản phẩm</label><input id="f2"><label>Số lượng nhập</label><input id="f3" type="number"><label>Đơn vị</label><select id="f4"><option>ống</option><option>lọ</option><option>tuýp</option><option>chai</option><option>miếng</option><option>cây</option><option>hộp</option></select><label>Mức tối thiểu</label><input id="f5" type="number"><label>Nhà cung cấp</label><input id="f6">`,
       'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
-      'new-complaint': `<label>Khách hàng</label><input id="f1"><label>Loại</label><select id="f2"><option>Y khoa</option><option>Dịch vụ</option><option>Sản phẩm</option><option>Lễ tân</option><option>Hoàn tiền</option><option>Review xấu</option><option>Khác</option></select><label>Mức độ</label><select id="f3"><option>P1 — SOS (cần xử lý &lt; 1h)</option><option>P2 — Cao (&lt; 4h)</option><option>P3 — Thường (&lt; 24h)</option></select><label>Mô tả</label><textarea id="f4" rows="3"></textarea><label>Người phụ trách</label><select id="f5">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select>`,
       'new-campaign': `<label>Tên chiến dịch</label><input id="f1"><label>Kênh</label><select id="f2"><option>Zalo OA</option><option>Facebook Ads</option><option>TikTok Ads</option><option>Google Ads</option><option>SMS</option><option>Email</option></select><label>Đối tượng</label><select id="f3"><option>Toàn bộ khách</option><option>Diamond</option><option>Gold</option><option>Silver</option><option>Khách mới &lt; 30 ngày</option><option>Khách rủi ro rời</option><option>Sinh nhật tháng</option></select><label>Ngân sách (VNĐ)</label><input id="f4" type="number"><label>Mã giảm giá / quà tặng</label><input id="f5">`
     };
     b.innerHTML = `<form id="modalForm" onsubmit="event.preventDefault();handleSubmit('${type}')">${forms[type]||''}<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button type="button" class="btn ghost sm" onclick="closeModal()">Huỷ</button><button type="submit" class="btn sm">Lưu</button></div></form>`;
@@ -1910,7 +1872,6 @@ function openModal(type, ctx){
           <tr><td>Công việc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('tasks')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Kho hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('inventory')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hậu chăm sóc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('care')">⬇ Xuất ngay</button></td></tr>
-          <tr><td>Khiếu nại</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('complaints')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hồ sơ nhân viên đơn lẻ</td><td>Word .doc</td><td>Bấm vào hồ sơ NV → "📄 Xuất hồ sơ Word"</td></tr>
         </tbody>
       </table>
@@ -1985,28 +1946,6 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='complaint-detail'){
-    const c = ctx;
-    t.textContent = `${c.id} · ${c.name}`;
-    b.innerHTML = `
-      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"><span class="pill ${c.priority==='P1'?'red':c.priority==='P2'?'blue':'gray'}">${c.priority}</span><span class="pill">${c.type}</span><span class="status ${c.status}">${c.statusText}</span></div>
-      <div class="alert ${c.status==='red'?'danger':c.status==='blue'?'info':'success'}"><span class="ic">${c.status==='red'?'🚨':c.status==='blue'?'⏳':'✓'}</span><div><b>${c.summary}</b><br><span style="font-size:.84rem">${c.sla} · Phụ trách: <b>${c.owner}</b></span></div></div>
-      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:16px 0 8px">💬 Diễn biến xử lý</h3>
-      <div class="timeline" style="margin-bottom:14px">
-        <div class="tl-item done"><b>09:15 — Tiếp nhận</b><span>Lễ tân Yến tiếp nhận qua Zalo</span></div>
-        <div class="tl-item done"><b>09:22 — Chuyển ${c.owner}</b><span>Phân công xử lý</span></div>
-        <div class="tl-item due"><b>${c.status==='red'?'Đang xử lý':'Hoàn tất'}</b><span>${c.status==='red'?'⏱️ SLA: '+c.sla:'✓ '+c.statusText}</span></div>
-      </div>
-      <label>Ghi chú xử lý</label>
-      <textarea rows="3" placeholder="Ghi chú từng bước xử lý..."></textarea>
-      <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn sm" onclick="toast('💾 Đã cập nhật','green')">💾 Lưu ghi chú</button>
-        <button class="btn green sm" onclick="toast('✅ Ticket đã đóng','green');closeModal()">✓ Đóng ticket</button>
-        <button class="btn ghost sm" onclick="toast('📞 Đang gọi khách...')">📞 Gọi khách</button>
-        <button class="btn ghost sm" onclick="toast('📋 Đã escalate lên CEO')">⬆ Escalate CEO</button>
-      </div>
-    `;
-  }
 
   modalBg.classList.add('show');
 }
@@ -2023,7 +1962,6 @@ function handleSubmit(type){
     'new-medical':'🩺 Đã tạo hồ sơ y khoa',
     'new-stock':'📦 Đã nhập kho',
     'new-photo':'📸 Đã thêm case trước/sau',
-    'new-complaint':'📋 Đã tạo ticket',
     'new-campaign':'🚀 Đã khởi tạo chiến dịch'
   };
   toast(successMsg[type] || '✅ Đã lưu', 'green');
@@ -2557,7 +2495,6 @@ const titles = {
   leads:['📥 Lead từ web','Khách đăng ký từ phammaiphuong.vn'],
   care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
-  complaints:['Khiếu nại & SOS','3 SOS đang mở · SLA &lt;1h'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
   schedule:['Lịch trực','Tuần 18-24/05/2026'],
@@ -2967,16 +2904,6 @@ function renderCare(){
       <td><span class="pill ${c.urgent?'red':'blue'}">${c.stage}</span></td>
       <td>${c.action}</td>
       <td><button class="btn sm" onclick='event.stopPropagation();openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>Xử lý</button></td>
-    </tr>
-  `).join('');
-}
-function renderComplaints(){
-  document.getElementById('complaintRows').innerHTML = DATA.complaints.map(c=>`
-    <tr class="clickable" onclick='openModal("complaint-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
-      <td><b>${c.id}</b></td><td>${c.name}</td><td>${c.type}</td>
-      <td><span class="pill ${c.priority==='P1'?'red':c.priority==='P2'?'blue':'gray'}">${c.priority}</span></td>
-      <td style="max-width:280px">${c.summary}</td>
-      <td>${c.owner}</td><td>${pillForStatus(c)}</td><td><span style="font-size:.78rem">${c.sla}</span></td>
     </tr>
   `).join('');
 }
@@ -3543,9 +3470,9 @@ function initMktChart(force){
 }
 
 /* ===== TOPBAR ACTIONS ===== */
-document.getElementById('notifBtn').onclick=()=>toast('🔔 5 thông báo mới: 3 SOS · 1 lịch hẹn mới · 1 đánh giá Google 5★');
+document.getElementById('notifBtn').onclick=()=>toast('🔔 2 thông báo mới: 1 lịch hẹn mới · 1 đánh giá Google 5★');
 document.getElementById('quickAddBtn').onclick=()=>{
-  if(confirm('Thêm nhanh?\n1=Lịch hẹn\n2=Khách hàng\n3=Task\n4=Khiếu nại\n(Bấm OK để mở Lịch hẹn)')) openModal('new-booking');
+  if(confirm('Thêm nhanh?\n1=Lịch hẹn\n2=Khách hàng\n3=Task\n(Bấm OK để mở Lịch hẹn)')) openModal('new-booking');
 };
 document.getElementById('profileBtn').onclick=()=>{ if(confirm('Đăng xuất khỏi tài khoản chị Phương?')) location.href='/api/logout' };
 
@@ -3590,10 +3517,6 @@ const EXPORT_CONFIG = {
   care: {
     file:'hau-cham-soc-HANA', sheet:'Hậu chăm sóc',
     map: c => ({'Khách':c.name,'Dịch vụ':c.service,'Ngày từ DV':c.daysSince,'Giai đoạn':c.stage,'Hành động':c.action,'Khẩn':c.urgent?'Có':'Không'})
-  },
-  complaints: {
-    file:'khieu-nai-HANA', sheet:'Khiếu nại',
-    map: c => ({'ID':c.id,'Khách':c.name,'Loại':c.type,'Mức':c.priority,'Tóm tắt':c.summary,'Phụ trách':c.owner,'Trạng thái':c.statusText,'SLA':c.sla})
   },
   medical: {
     file:'ho-so-y-khoa-HANA', sheet:'Hồ sơ',
@@ -3998,7 +3921,6 @@ function buildNotifDropdown(){
   // Mock các notif khác
   items.push({type:'task',icon:'📋',color:'blue',title:'3 task quá hạn',sub:'Cần xử lý gấp trong hôm nay',time:'2h',action:()=>go('tasks')});
   items.push({type:'inv',icon:'📦',color:'red',title:'8 SKU sắp hết hàng',sub:'Cần đặt thêm mỹ phẩm',time:'4h',action:()=>go('inventory')});
-  items.push({type:'sos',icon:'🚨',color:'red',title:'1 SOS khiếu nại mới',sub:'Khách phản hồi sau filler',time:'5h',action:()=>go('complaints')});
   return items;
 }
 function toggleNotif(){
@@ -4089,7 +4011,6 @@ const QS_INDEX = [
   {sec:'calendar',title:'Lịch hẹn',hint:'Quản lý lịch hẹn tuần · tạo booking mới',ic:'📅'},
   {sec:'crm',title:'Khách hàng',hint:'2.847 khách · VIP · Diamond · lịch sử',ic:'👥'},
   {sec:'care',title:'Hậu chăm sóc',hint:'Follow-up sau điều trị · SOP 7 mốc',ic:'🛎️'},
-  {sec:'complaints',title:'Khiếu nại & SOS',hint:'Xử lý khiếu nại · SOS gấp · SLA',ic:'🚨'},
   {sec:'tasks',title:'Công việc',hint:'Task hôm nay · giao việc · ưu tiên',ic:'📋'},
   {sec:'staff',title:'Nhân viên',hint:'Hiệu suất · tag · giao việc · KPI',ic:'👩‍⚕️'},
   {sec:'schedule',title:'Lịch trực',hint:'Ca trực · phân công · đổi ca',ic:'🗓️'},
@@ -4875,7 +4796,7 @@ const ROLE_MENUS={
   'Kỹ thuật viên':['dashboard','calendar','schedule','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Sale':['dashboard','leads','telesale','phangoi','crm','care','complaints'],
+  'Sale':['dashboard','leads','telesale','phangoi','crm','care'],
   'Sale trực tiếp':['dashboard','crm','billing','leads','services','telesale','phangoi']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
@@ -4915,7 +4836,7 @@ async function roleInitFromServer(){
 window.roleDoLogin=roleDoLogin; window.roleSkip=roleSkip; window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromServer=roleInitFromServer;
 
 /* ===== INIT ===== */
-renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare(); renderComplaints();
+renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare();
 renderTasks(); renderSchedule(); renderInventory();
 renderCampaigns(); renderCalendar(); renderAppointments(); renderLeads();
 seedDataSources(); renderDataSources();
