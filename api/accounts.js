@@ -80,13 +80,16 @@ async function createAccount(res, body, sess) {
   if (password.length < 4) return res.status(400).json({ error: 'Mật khẩu tối thiểu 4 ký tự' });
   if (!VALID_ROLES.includes(role)) return res.status(400).json({ error: 'Vai trò không hợp lệ' });
 
+  // Kiểm tra trùng tên (không phân biệt hoa/thường) trước khi thêm — an toàn hơn ON CONFLICT với index lower()
+  const chk = await fetch(sb(`${TABLE}?username=ilike.${encodeURIComponent(username)}&select=id&limit=1`), { headers: sbHeaders() });
+  const existing = await chk.json().catch(() => []);
+  if (Array.isArray(existing) && existing.length) return res.status(409).json({ error: 'Tên đăng nhập đã tồn tại' });
+
   const row = { username, password_hash: hashPassword(password), role, full_name: fullName, created_by: sess.u || '' };
-  const r = await fetch(sb(`${TABLE}?on_conflict=username`), {
-    method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=representation' }), body: JSON.stringify(row)
+  const r = await fetch(sb(TABLE), {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row)
   });
-  const out = await r.json();
-  if (!r.ok) return res.status(500).json({ error: out?.message || 'Lỗi tạo tài khoản' });
-  if (!Array.isArray(out) || !out.length) return res.status(409).json({ error: 'Tên đăng nhập đã tồn tại' });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi tạo tài khoản' }); }
   return res.status(200).json({ ok: true });
 }
 
