@@ -1286,7 +1286,7 @@
 
     <!-- ============ TÀI KHOẢN ============ -->
     <section class="page" id="page-accounts">
-      <div class="alert info" style="margin-bottom:14px"><span class="ic">🔐</span><div><b>Quản lý tài khoản nhân viên.</b> Chị (Toàn quyền) tạo tài khoản đăng nhập + phân chức vụ. <b>Lưu ý:</b> tài khoản lưu nội bộ trên máy này — để mỗi nhân viên đăng nhập riêng + bảo mật cấp server, nhắn em nâng cấp hệ thống đăng nhập.</div></div>
+      <div class="alert success" style="margin-bottom:14px"><span class="ic">🔐</span><div><b>Quản lý tài khoản nhân viên — ĐĂNG NHẬP THẬT.</b> Tài khoản tạo ở đây lưu trên máy chủ (mật khẩu mã hoá), dùng đăng nhập được ngay trên mọi thiết bị.</div></div>
       <div class="row r-1-1" style="align-items:start">
         <div class="card">
           <div class="card-head"><div><h2>➕ Tạo tài khoản</h2><div class="sub">Tên đăng nhập · mật khẩu · chức vụ</div></div></div>
@@ -1324,25 +1324,13 @@
       </div>
       <div class="card" style="margin-top:16px">
         <div class="card-head"><div><h2>👥 Danh sách tài khoản</h2><div class="sub" id="ac-sub">Tài khoản đã tạo</div></div></div>
-        <table><thead><tr><th>Tên đăng nhập</th><th>Mật khẩu</th><th>Chức vụ</th><th>Ngày tạo</th><th></th></tr></thead><tbody id="ac-rows"></tbody></table>
+        <table><thead><tr><th>Tên đăng nhập</th><th>Chức vụ</th><th>Trạng thái</th><th>Ngày tạo</th><th></th></tr></thead><tbody id="ac-rows"></tbody></table>
       </div>
     </section>
 
   </main>
 </div>
 
-<!-- ============ ĐĂNG NHẬP VAI TRÒ ============ -->
-<div id="roleOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(58,33,19,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:16px;padding:26px;width:340px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-    <div style="text-align:center;margin-bottom:14px"><div style="font-family:'Lora';font-size:1.3rem;font-weight:800;color:var(--brown-deep)">Đăng nhập vai trò</div><div class="sub" style="font-size:.84rem">Chọn tài khoản để vào hệ thống</div></div>
-    <label class="bl">Tài khoản</label>
-    <select id="ro-user" class="bi"></select>
-    <label class="bl">Mật khẩu</label>
-    <input id="ro-pass" class="bi" type="password" autocomplete="off" onkeydown="if(event.key==='Enter')roleDoLogin()">
-    <button class="btn" onclick="roleDoLogin()" style="width:100%;margin-top:14px">Đăng nhập</button>
-    <div style="text-align:center;margin-top:12px"><a href="#" onclick="roleSkip();return false" style="font-size:.8rem;color:var(--muted)">Vào với Toàn quyền (chủ phòng khám) →</a></div>
-  </div>
-</div>
 
 <!-- ============ MODAL ============ -->
 <div class="modal-bg" id="modalBg">
@@ -4769,42 +4757,69 @@ window.billExport=function(){ const bills=billGetBills(); if(!bills.length){ toa
 
 /* ===== TÀI KHOẢN (quản lý nội bộ) ===== */
 const ACCT_ROLES={'Toàn quyền kiểm soát':{c:'#A8231C',b:'#FBE7DA',i:'👑'},'Lễ tân':{c:'#1565C0',b:'#E3F2FD',i:'🛎️'},'Kỹ thuật viên':{c:'#2E7D32',b:'#E8F5E9',i:'💆‍♀️'},'Bác sĩ':{c:'#6A1B9A',b:'#F3E5F5',i:'🩺'},'Phụ phẫu':{c:'#3949AB',b:'#E8EAF6',i:'🧑‍⚕️'},'Sale':{c:'#E65100',b:'#FFE5CC',i:'📈'},'Sale trực tiếp':{c:'#00695C',b:'#E0F2F1',i:'🤝'}};
-function acctGet(){ try{return JSON.parse(localStorage.getItem('hana_accounts')||'[]');}catch(e){return [];} }
-function acctSave(a){ try{localStorage.setItem('hana_accounts',JSON.stringify(a));}catch(e){} }
+async function acctApi(payload){
+  const r=await fetch('/api/accounts',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
+}
 function acctRoleBadge(role){ const r=ACCT_ROLES[role]||{c:'#555',b:'#eee',i:'👤'}; return `<span style="background:${r.b};color:${r.c};padding:2px 10px;border-radius:10px;font-size:.78rem;font-weight:700;white-space:nowrap">${r.i} ${role}</span>`; }
 function acctTogglePass(id,btn){ const el=document.getElementById(id); if(!el)return; if(el.type==='password'){el.type='text';if(btn)btn.textContent='🙈 Ẩn';} else {el.type='password';if(btn)btn.textContent='👁 Hiện';} }
-function acctCreate(){
+async function acctCreate(){
   const u=(document.getElementById('ac-user').value||'').trim();
   const p=(document.getElementById('ac-pass').value||'');
   const role=document.getElementById('ac-role').value;
   if(!u){ toast('⚠️ Nhập tên đăng nhập','red'); return; }
   if(/\s/.test(u)){ toast('⚠️ Tên đăng nhập không được chứa khoảng trắng','red'); return; }
   if(p.length<4){ toast('⚠️ Mật khẩu tối thiểu 4 ký tự','red'); return; }
-  const list=acctGet();
-  if(list.some(a=>(a.user||'').toLowerCase()===u.toLowerCase())){ toast('⚠️ Tên đăng nhập đã tồn tại','red'); return; }
-  list.push({user:u,pass:p,role,at:(typeof billNow==='function'?billNow():new Date().toLocaleString('vi-VN'))});
-  acctSave(list);
-  document.getElementById('ac-user').value=''; document.getElementById('ac-pass').value='';
-  acctRender(); if(typeof ding==='function')ding(); toast('✓ Đã tạo tài khoản "'+u+'" · '+role,'green');
+  try{
+    await acctApi({action:'create', username:u, password:p, role});
+    document.getElementById('ac-user').value=''; document.getElementById('ac-pass').value='';
+    await acctRender(); if(typeof ding==='function')ding(); toast('✓ Đã tạo tài khoản "'+u+'" · '+role+' — đăng nhập được ngay','green');
+  }catch(e){ toast('❌ '+e.message,'red'); }
 }
-function acctDelete(i){ if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xóa','red'); return; } const list=acctGet(); if(!list[i])return; if(!confirm('Xoá tài khoản "'+list[i].user+'"?'))return; list.splice(i,1); acctSave(list); acctRender(); toast('🗑️ Đã xoá tài khoản','dark'); }
-function acctResetPass(i){ const list=acctGet(); if(!list[i])return; const np=prompt('Đặt mật khẩu mới cho "'+list[i].user+'" (tối thiểu 4 ký tự):',''); if(np==null)return; if(np.length<4){toast('⚠️ Mật khẩu quá ngắn','red');return;} list[i].pass=np; acctSave(list); acctRender(); toast('✓ Đã đổi mật khẩu','green'); }
-function acctShow(i){ const el=document.getElementById('acp-'+i); if(!el)return; el.textContent=(el.textContent.indexOf('•')>=0)?(el.getAttribute('data-p')||''):'••••••'; }
-function acctRender(){
+async function acctDelete(id,user){
+  if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xóa','red'); return; }
+  if(!confirm('Xoá tài khoản "'+user+'"? Người này sẽ không đăng nhập được nữa.'))return;
+  try{ await acctApi({action:'delete', id}); await acctRender(); toast('🗑️ Đã xoá tài khoản','dark'); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function acctResetPass(id,user){
+  const np=prompt('Đặt mật khẩu mới cho "'+user+'" (tối thiểu 4 ký tự):','');
+  if(np==null)return;
+  if(np.length<4){toast('⚠️ Mật khẩu quá ngắn','red');return;}
+  try{ await acctApi({action:'reset_pass', id, password:np}); toast('✓ Đã đổi mật khẩu — báo cho nhân viên mật khẩu mới','green'); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function acctToggleActive(id,active){
+  try{ await acctApi({action:'toggle_active', id, active}); await acctRender(); toast(active?'✓ Đã mở lại tài khoản':'⏸️ Đã khoá tài khoản', active?'green':'dark'); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function acctRender(){
   const tb=document.getElementById('ac-rows'); if(!tb)return;
-  const list=acctGet();
+  tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Đang tải…</td></tr>';
+  let list=[];
+  try{ const d=await acctApi({action:'list'}); list=d.rows||[]; }
+  catch(e){ tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--red)">❌ ${pgEscHtml(e.message)}</td></tr>`; return; }
   const sub=document.getElementById('ac-sub'); if(sub) sub.textContent=list.length+' tài khoản';
   if(!list.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Chưa có tài khoản — tạo tài khoản đầu tiên ở ô bên trên</td></tr>'; return; }
-  tb.innerHTML=list.map((a,i)=>`<tr>
-    <td><b>${a.user}</b></td>
-    <td><span id="acp-${i}" data-p="${(a.pass||'').replace(/"/g,'&quot;')}">••••••</span> <button class="btn ghost sm" style="padding:3px 7px" onclick="acctShow(${i})">👁</button></td>
+  tb.innerHTML=list.map(a=>{
+    const created=a.created_at?new Date(a.created_at).toLocaleDateString('vi-VN'):'—';
+    return `<tr>
+    <td><b>${pgEscHtml(a.username)}</b>${a.full_name?`<div class="sub" style="font-size:.74rem">${pgEscHtml(a.full_name)}</div>`:''}</td>
     <td>${acctRoleBadge(a.role)}</td>
-    <td style="font-size:.8rem;color:var(--muted)">${a.at||'—'}</td>
-    <td style="white-space:nowrap"><button class="btn ghost sm" onclick="acctResetPass(${i})">🔑 Đổi MK</button> <button class="btn ghost sm" onclick="acctDelete(${i})">🗑️</button></td>
-  </tr>`).join('');
+    <td>${a.active!==false?'<span style="color:#1B5E20">● Hoạt động</span>':'<span style="color:var(--muted)">⏸️ Đã khoá</span>'}</td>
+    <td style="font-size:.8rem;color:var(--muted)">${created}</td>
+    <td style="white-space:nowrap">
+      <button class="btn ghost sm" onclick="acctResetPass('${a.id}','${pgEscAttr(a.username)}')">🔑 Đổi MK</button>
+      <button class="btn ghost sm" onclick="acctToggleActive('${a.id}',${a.active===false})">${a.active!==false?'⏸️ Khoá':'▶️ Mở lại'}</button>
+      <button class="btn ghost sm" onclick="acctDelete('${a.id}','${pgEscAttr(a.username)}')">🗑️</button>
+    </td>
+  </tr>`;
+  }).join('');
 }
 function acctInit(){ acctRender(); }
-window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass=acctResetPass; window.acctTogglePass=acctTogglePass; window.acctShow=acctShow;
+window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass=acctResetPass; window.acctTogglePass=acctTogglePass; window.acctToggleActive=acctToggleActive;
 
 /* ===== PHÂN QUYỀN THEO VAI TRÒ (giao diện) ===== */
 const ROLE_MENUS={
@@ -4830,27 +4845,12 @@ function applyRole(){
   const active=document.querySelector('.page.active'); const cur=active?active.id.replace('page-',''):'dashboard';
   if(!roleCanSee(cur) && typeof go==='function') go('dashboard');
 }
-function roleMaybePrompt(){
-  const accts=(typeof acctGet==='function')?acctGet():[]; const s=sessGet();
-  if(s || !accts.length){ applyRole(); return; }   // đã có phiên, hoặc chưa tạo tài khoản → chủ toàn quyền
-  const sel=document.getElementById('ro-user'); if(sel) sel.innerHTML=accts.map(a=>`<option value="${(a.user||'').replace(/"/g,'&quot;')}">${a.user} — ${a.role}</option>`).join('');
-  const ov=document.getElementById('roleOverlay'); if(ov) ov.style.display='flex';
-}
-function roleDoLogin(){
-  const u=document.getElementById('ro-user').value, p=document.getElementById('ro-pass').value||'';
-  const a=(acctGet()).find(x=>x.user===u);
-  if(!a){ toast('Không tìm thấy tài khoản','red'); return; }
-  if(a.pass!==p){ toast('⚠️ Sai mật khẩu','red'); return; }
-  sessSet({user:a.user,role:a.role}); const ov=document.getElementById('roleOverlay'); if(ov)ov.style.display='none'; document.getElementById('ro-pass').value='';
-  applyRole(); if(typeof go==='function')go('dashboard'); if(typeof ding==='function')ding(); toast('✓ Xin chào '+a.user+' · '+a.role,'green');
-}
-function roleSkip(){ sessSet({user:'Chủ',role:'Toàn quyền kiểm soát'}); const ov=document.getElementById('roleOverlay'); if(ov)ov.style.display='none'; applyRole(); }
 function roleLogout(){ try{localStorage.removeItem('hana_session');}catch(e){} location.href='/api/logout'; }   // đăng xuất thật + về trang đăng nhập
 async function roleInitFromServer(){
   try{ const r=await fetch('/api/me',{credentials:'same-origin'}); if(r.ok){ const d=await r.json(); if(d&&d.role) sessSet({user:d.user,role:d.role}); } }catch(e){}
   applyRole();
 }
-window.roleDoLogin=roleDoLogin; window.roleSkip=roleSkip; window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromServer=roleInitFromServer;
+window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromServer=roleInitFromServer;
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare();

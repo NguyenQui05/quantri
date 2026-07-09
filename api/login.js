@@ -35,6 +35,32 @@ const STAFF = [
   { u: 'PP02', p: DEFAULT_PASS, role: 'Phụ phẫu' }
 ];
 
+// Xác thực mật khẩu đã hash (scrypt) — dùng cho tài khoản tạo qua mục "Tài khoản" (Supabase)
+function verifyHashed(password, stored) {
+  try {
+    const [salt, hash] = String(stored || '').split(':');
+    if (!salt || !hash) return false;
+    const test = crypto.scryptSync(password, salt, 64).toString('hex');
+    const a = Buffer.from(hash, 'hex'), b = Buffer.from(test, 'hex');
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch { return false; }
+}
+
+// Tìm tài khoản thật trong Supabase (tạo qua mục "Tài khoản"). Lỗi mạng -> coi như không có, không chặn login.
+async function findDbAccount(username) {
+  const base = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_KEY;
+  if (!base || !key) return null;
+  try {
+    const r = await fetch(`${base}/rest/v1/staff_accounts?username=eq.${encodeURIComponent(username)}&active=eq.true&select=username,password_hash,role&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` }
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  } catch { return null; }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
@@ -48,11 +74,17 @@ export default async function handler(req, res) {
 
     let role = null, matchedUser = null;
 
-    // 1) Tài khoản nhân viên
-    const su = STAFF.find(x => x.u.toLowerCase() === String(username).trim().toLowerCase());
-    if (su && eq(password, su.p)) { role = su.role; matchedUser = su.u; }
+    // 1) Tài khoản thật tạo qua mục "Tài khoản" (Supabase, mật khẩu mã hoá)
+    const dbAcc = await findDbAccount(String(username).trim());
+    if (dbAcc && verifyHashed(password, dbAcc.password_hash)) { role = dbAcc.role; matchedUser = dbAcc.username; }
 
-    // 2) Tài khoản chủ (biến môi trường) — luôn Toàn quyền
+    // 2) Tài khoản nhân viên mặc định (cài sẵn ở máy chủ)
+    if (!role) {
+      const su = STAFF.find(x => x.u.toLowerCase() === String(username).trim().toLowerCase());
+      if (su && eq(password, su.p)) { role = su.role; matchedUser = su.u; }
+    }
+
+    // 3) Tài khoản chủ (biến môi trường) — luôn Toàn quyền
     if (!role) {
       const expectedId = process.env.HANA_ADMIN_ID, expectedPass = process.env.HANA_ADMIN_PASS;
       if (expectedId && expectedPass && eq(username, expectedId) && eq(password, expectedPass)) {
