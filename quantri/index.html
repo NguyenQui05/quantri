@@ -679,15 +679,19 @@
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input id="crmSearch" placeholder="🔎 Tìm tên / SĐT / dịch vụ..." style="width:240px">
             <select id="crmTier" style="width:160px"><option value="">Tất cả khách</option><option value="debt">Còn công nợ</option><option value="paid">Đã thanh toán</option></select>
-            <button class="btn ghost sm" onclick="exportExcel('customers')">⬇ Xuất Excel</button>
+            <button class="btn ghost sm" onclick="crmExportAll()">⬇ Xuất Excel</button>
             <button class="btn sm" onclick="openModal('new-customer')">+ Thêm khách</button>
           </div>
         </div>
+        <div class="sub" id="crmNote" style="font-size:.76rem;margin-bottom:8px;color:var(--muted)"></div>
+        <div id="crmPagerTop" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap"></div>
+        <div style="overflow-x:auto">
         <table>
           <thead><tr><th>Khách hàng</th><th>Dịch vụ</th><th>Đã thu</th><th>Công nợ</th><th>Bác sĩ</th><th>Tình trạng / nguồn</th><th></th></tr></thead>
           <tbody id="crmRows"></tbody>
         </table>
-        <div class="sub" id="crmNote" style="font-size:.76rem;margin-top:10px;color:var(--muted)"></div>
+        </div>
+        <div id="crmPager" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
       </div>
     </section>
 
@@ -2816,75 +2820,88 @@ function renderTopStaff(){
   `).join('');
 }
 // ===== Khách hàng thật từ Sheet "Danh sách khách hàng (tổng)" =====
-const CUST_SHEET_ID='1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo';
-function crmMoney(v){ const n=parseFloat(String(v==null?'':v).replace(/[^\d.\-]/g,'')); if(isNaN(n)||!n) return 0; return n>=1000000?n:n*1000; } // sổ ghi theo nghìn → đồng
-function crmRealCustomers(){
-  if(typeof DS_CACHE==='undefined') return null;
-  const srcs=(typeof loadDataSources==='function')?loadDataSources():[];
-  let src=srcs.find(x=>x.sheetId===CUST_SHEET_ID && DS_CACHE[x.id]);
-  if(!src) src=srcs.find(x=>x.cat==='data' && DS_CACHE[x.id] && (DS_CACHE[x.id].cols||[]).some(c=>/h[oọ].*t[êe]n/i.test(String(c))) && (DS_CACHE[x.id].cols||[]).some(c=>/sđt|sdt|đt|điện thoại/i.test(String(c))));
-  if(!src || !DS_CACHE[src.id]) return null;
-  const {cols,rows}=DS_CACHE[src.id]; if(!rows||!rows.length) return null;
-  const ci=re=>cols.findIndex(c=>re.test(String(c||'').trim()));
-  const iName=ci(/h[oọ].*t[êe]n/i), iPhone=ci(/sđt|sdt|số ?đt|điện thoại/i), iSvc=ci(/dịch vụ|dich vu/i),
-    iPage=ci(/page|nguồn|nguon/i), iTM=ci(/tiền mặt|tien mat/i), iCK=ci(/^ck$|chuyển khoản/i),
-    iNo=ci(/công nợ|cong no/i), iBS=ci(/^bs$|bác sĩ|bac si/i), iSt=ci(/tình trạng|tinh trang/i);
-  const out=[];
-  rows.forEach(r=>{
-    const name=String((iName>=0?r[iName]:'')==null?'':(iName>=0?r[iName]:'')).trim();
-    const praw=String((iPhone>=0?r[iPhone]:'')==null?'':(iPhone>=0?r[iPhone]:'')).trim();
-    if(!name && !praw) return;
-    if(/^(h[oọ] v[àa]|tên|ten)\b/i.test(name)) return;
-    let phone=praw.replace(/[^\d]/g,''); if(phone.length===9) phone='0'+phone;
-    out.push({name:name||'(chưa rõ tên)', phone,
-      service:iSvc>=0?String(r[iSvc]||'').replace(/[,\s]+$/,'').trim():'',
-      page:iPage>=0?String(r[iPage]||'').trim():'',
-      revenue:(iTM>=0?crmMoney(r[iTM]):0)+(iCK>=0?crmMoney(r[iCK]):0),
-      debt:iNo>=0?crmMoney(r[iNo]):0, bs:iBS>=0?String(r[iBS]||'').trim():'',
-      status:iSt>=0?String(r[iSt]||'').trim():''});
-  });
-  return out;
+/* ===== CRM KHÁCH HÀNG (Supabase — thật, đồng bộ mọi máy) ===== */
+let crmPage=0, crmDebounceTimer=null;
+function crmFilters(){ return { search:(document.getElementById('crmSearch')?.value||'').trim(), filter:document.getElementById('crmTier')?.value||'' }; }
+function crmSearchDebounced(){ clearTimeout(crmDebounceTimer); crmDebounceTimer=setTimeout(()=>renderCRM(true), 350); }
+async function crmApi(payload){
+  const r=await fetch('/api/customers',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
 }
-function crmUpdateKpis(list){
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  const withDebt=list.filter(c=>c.debt>0), totDebt=withDebt.reduce((s,c)=>s+c.debt,0), totRev=list.reduce((s,c)=>s+c.revenue,0);
-  set('crmK1', list.length.toLocaleString('vi-VN'));
-  set('crmK2', withDebt.length.toLocaleString('vi-VN'));
-  set('crmK2d', totDebt?('Nợ '+trShort(totDebt)):'Sạch nợ');
-  set('crmK3', totRev?trShort(totRev):'—');
-  set('crmK4', list.filter(c=>c.status).length.toLocaleString('vi-VN'));
-}
-let CRM_LIMIT=200;
-function renderCRM(){
+async function renderCRM(resetPage){
   const tb=document.getElementById('crmRows'); if(!tb) return;
-  const real=crmRealCustomers();
-  const search=(document.getElementById('crmSearch')?.value||'').toLowerCase().trim();
-  const filt=document.getElementById('crmTier')?.value||'';
-  const note=document.getElementById('crmNote');
-  if(!real){
-    const rows=DATA.customers.filter(c=>(!search||c.name.toLowerCase().includes(search)||c.phone.includes(search)));
-    tb.innerHTML=rows.map(c=>`<tr class="clickable" onclick='openModal("customer",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
-      <td><div class="with-av"><span class="avatar" style="background:${c.avBg}">${c.name.charAt(c.name.indexOf(' ')+1)}</span><span><b>${c.name}</b><span>${c.phone}</span></span></div></td>
-      <td>${tierPill(c.tier)}</td><td><b>${(c.ltv/1000000).toFixed(1)}tr</b></td><td>—</td><td>${c.aiTag||'—'}</td><td>${c.lastVisit}</td>
-      <td><button class="btn ghost sm" onclick="event.stopPropagation();openModal('customer',${JSON.stringify(c).replace(/'/g,'&#39;')})">Xem</button></td></tr>`).join('');
-    if(note) note.textContent='⏳ Đang hiển thị dữ liệu mẫu — vào Data Hub bấm "Đồng bộ tất cả" để nạp khách thật.';
-    return;
+  if(resetPage) crmPage=0;
+  const f=crmFilters(); const note=document.getElementById('crmNote');
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  let d;
+  try{ d=await crmApi({action:'list', page:crmPage, search:f.search, filter:f.filter}); }
+  catch(e){ tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`; return; }
+  crmUpdateKpis(d.stats||{});
+  crmRenderRows(d.rows||[]);
+  crmRenderPager(d);
+  if(note){
+    const start=(d.page||0)*(d.pageSize||1000)+1, end=(d.page||0)*(d.pageSize||1000)+((d.rows||[]).length);
+    note.textContent = `Khách ${start.toLocaleString('vi-VN')}–${end.toLocaleString('vi-VN')} / tổng ${(d.matched||0).toLocaleString('vi-VN')}`;
   }
-  crmUpdateKpis(real);
-  const list=real.filter(c=> (!search || c.name.toLowerCase().includes(search) || (c.phone&&c.phone.includes(search)) || c.service.toLowerCase().includes(search))
-    && (filt==='debt'? c.debt>0 : filt==='paid'? c.debt<=0 : true));
-  const total=list.length, shown=list.slice(0,CRM_LIMIT);
-  tb.innerHTML=shown.map(c=>{ const init=((c.name.replace(/^[a-zA-Z]\s+/,'').trim()[0])||c.name[0]||'?').toUpperCase();
-    return `<tr class="clickable" onclick='openModal("custreal",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
-    <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${c.name}</b><span>${c.phone||'—'}</span></span></div></td>
-    <td style="font-size:.83rem">${c.service||'—'}</td>
+}
+function crmUpdateKpis(s){
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('crmK1', (s.total||0).toLocaleString('vi-VN'));
+  set('crmK2', (s.with_debt||0).toLocaleString('vi-VN'));
+  set('crmK2d', s.total_debt?('Nợ '+trShort(s.total_debt)):'Sạch nợ');
+  set('crmK3', s.total_revenue?trShort(s.total_revenue):'—');
+  set('crmK4', (s.with_source||0).toLocaleString('vi-VN'));
+}
+function crmRenderRows(rows){
+  const tb=document.getElementById('crmRows'); if(!tb) return;
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Không có khách nào khớp.</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>{
+    const c={id:r.id, name:r.full_name||'(chưa rõ tên)', phone:r.phone, service:r.service||'', revenue:r.revenue||0, debt:r.debt||0, bs:r.doctor||'', status:r.source||'', page:r.source||''};
+    const init=((c.name.replace(/^[a-zA-Z]\s+/,'').trim()[0])||c.name[0]||'?').toUpperCase();
+    const ctxJson=JSON.stringify(c).replace(/'/g,"&#39;");
+    return `<tr class="clickable" onclick='openModal("custreal",${ctxJson})'>
+    <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${pgEscHtml(c.name)}</b><span>${c.phone||'—'}</span></span></div></td>
+    <td style="font-size:.83rem">${pgEscHtml(c.service)||'—'}</td>
     <td><b>${c.revenue?trShort(c.revenue):'—'}</b></td>
     <td>${c.debt?`<b style="color:#C62828">${trShort(c.debt)}</b>`:'<span style="color:var(--muted)">—</span>'}</td>
-    <td style="font-size:.82rem">${c.bs||'—'}</td>
-    <td style="font-size:.79rem;color:var(--muted)">${(c.status||c.page||'—').slice(0,42)}</td>
-    <td><button class="btn ghost sm" onclick="event.stopPropagation();openModal('custreal',${JSON.stringify(c).replace(/'/g,'&#39;')})">Xem</button></td></tr>`;}).join('');
-  if(note) note.textContent = total>CRM_LIMIT? `Hiển thị ${shown.length}/${total.toLocaleString('vi-VN')} khách · gõ tên/SĐT để lọc tiếp` : `${total.toLocaleString('vi-VN')} khách`;
+    <td style="font-size:.82rem">${pgEscHtml(c.bs)||'—'}</td>
+    <td style="font-size:.79rem;color:var(--muted)">${pgEscHtml((c.status||'—').slice(0,42))}</td>
+    <td style="white-space:nowrap"><button class="btn ghost sm" onclick="event.stopPropagation();openModal('custreal',${ctxJson})">Xem</button>${canDelete()?` <button class="btn ghost sm" onclick="event.stopPropagation();crmDeleteCustomer('${r.id}')">🗑</button>`:''}</td></tr>`;
+  }).join('');
 }
+function crmRenderPager(d){
+  const tp=d.totalPages||1, p=d.page||0;
+  const html = tp<=1 ? '' : `
+    <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="crmGoPage(0)">« Đầu</button>
+    <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="crmGoPage(${p-1})">‹ Trước</button>
+    <b style="min-width:120px;text-align:center">Trang ${p+1} / ${tp}</b>
+    <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="crmGoPage(${p+1})">Sau ›</button>
+    <button class="btn ghost sm" ${p>=tp-1?'disabled':''} onclick="crmGoPage(${tp-1})">Cuối »</button>`;
+  ['crmPagerTop','crmPager'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; });
+}
+function crmGoPage(n){ crmPage=Math.max(0,n); renderCRM(false); const t=document.getElementById('page-crm'); if(t) t.scrollIntoView({behavior:'smooth'}); }
+async function crmDeleteCustomer(id){
+  if(!confirm('Xoá khách này khỏi hệ thống?')) return;
+  try{ await crmApi({action:'delete', id}); toast('Đã xoá','dark'); renderCRM(false); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function crmExportAll(){
+  toast('⏳ Đang gom dữ liệu để xuất…','dark');
+  const f=crmFilters(); let all=[], page=0, totalPages=1;
+  try{
+    do{ const d=await crmApi({action:'list', page, search:f.search, filter:f.filter}); all=all.concat(d.rows||[]); totalPages=d.totalPages||1; page++; }while(page<totalPages);
+  }catch(e){ toast('❌ '+e.message,'red'); return; }
+  if(!window.XLSX){ toast('⏳ Đang tải thư viện Excel...'); setTimeout(crmExportAll,1500); return; }
+  const rows=all.map(c=>({'Họ tên':c.full_name,'SĐT':c.phone,'Dịch vụ':c.service,'Đã thu':c.revenue,'Công nợ':c.debt,'Bác sĩ':c.doctor,'Nguồn / Tình trạng':c.source}));
+  const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Khách hàng');
+  const dt=new Date(); const ds=`${dt.getDate()}-${dt.getMonth()+1}-${dt.getFullYear()}`;
+  XLSX.writeFile(wb, `khach-hang-HANA-${ds}.xlsx`);
+  toast(`✓ Đã tải ${rows.length.toLocaleString('vi-VN')} khách`,'green');
+}
+window.crmGoPage=crmGoPage; window.crmDeleteCustomer=crmDeleteCustomer; window.crmExportAll=crmExportAll;
 function renderStaff(){
   document.getElementById('staffRows').innerHTML = DATA.staff.map(s=>`
     <tr class="clickable" onclick='openModal("staff-detail",${JSON.stringify(s).replace(/'/g,"&#39;")})'>
@@ -4847,10 +4864,10 @@ try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
 setTimeout(initSparklines, 200);
 
-document.getElementById('crmSearch')?.addEventListener('input',renderCRM);
+document.getElementById('crmSearch')?.addEventListener('input',crmSearchDebounced);
 document.getElementById('apptSearch')?.addEventListener('input',renderAppointments);
 document.getElementById('apptFilter')?.addEventListener('change',renderAppointments);
-document.getElementById('crmTier')?.addEventListener('change',renderCRM);
+document.getElementById('crmTier')?.addEventListener('change',()=>renderCRM(true));
 
 // Apply hash on load
 const init = (location.hash||'#dashboard').slice(1);
