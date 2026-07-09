@@ -4293,6 +4293,22 @@ async function refreshSource(id){
   src.lastSync=Date.now(); saveDataSources(sources); renderDataSources();
 }
 
+// Đổi tên TAB của 1 nguồn đã kết nối (vd sang tháng mới) rồi đọc lại ngay — không cần xoá/kết nối lại từ đầu
+async function editSourceTab(id){
+  const sources=loadDataSources(); const src=sources.find(s=>s.id===id);
+  if(!src) return;
+  const val=prompt('Đổi tên TAB Google Sheet cho "'+src.name+'"\n(vd: BÁO CÁO MKT T7 — để trống = tab đầu tiên):', src.tab||'');
+  if(val===null) return; // bấm Huỷ
+  src.tab=val.trim(); saveDataSources(sources);
+  toast('⏳ Đang đọc lại theo tab mới…','dark');
+  await refreshSource(id);
+  renderMarketing(); renderRevenue(); syncOverviewRevenue();
+  const cur=loadDataSources().find(s=>s.id===id);
+  if(cur && cur.status==='ok') toast('✓ Đã cập nhật sang tab "'+(cur.tab||'mặc định')+'"','green');
+  else toast('⚠️ Không đọc được tab này — kiểm tra lại tên tab','red');
+}
+window.editSourceTab=editSourceTab;
+
 async function refreshAllSheets(silent){
   const sources=loadDataSources();
   if(!sources.length){ if(!silent) toast('Chưa có nguồn nào để đồng bộ','dark'); return; }
@@ -4325,6 +4341,7 @@ function renderDataSources(){
             <td>${stat}</td>
             <td style="white-space:nowrap;text-align:right">
               <button class="btn ghost sm" title="Xem trước" onclick="previewSource('${s.id}')">👁</button>
+              <button class="btn ghost sm" title="Đổi tab (vd sang tháng mới)" onclick="editSourceTab('${s.id}')">✏️</button>
               <button class="btn ghost sm" title="Làm mới" onclick="refreshSource('${s.id}')">🔄</button>
               <button class="btn ghost sm" title="Xoá" onclick="removeDataSource('${s.id}')">🗑</button>
             </td></tr>`;
