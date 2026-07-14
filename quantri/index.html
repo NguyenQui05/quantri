@@ -2365,9 +2365,9 @@ async function tourCreate(){
     ['tf-name','tf-phone','tf-svc1','tf-svc2','tf-rev1','tf-rev2','tf-debt','tf-doctor','tf-assist'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
     toast('✅ Đã lưu ca','green'); if(typeof ding==='function')ding();
     if(TOUR_PENDING_APPT_ID){
-      apptApi({action:'mark_tour_logged', id:TOUR_PENDING_APPT_ID}).catch(()=>{});
-      TOUR_PENDING_APPT_ID=null;
-      tourLoadPending();
+      const doneId=TOUR_PENDING_APPT_ID; TOUR_PENDING_APPT_ID=null;
+      await apptApi({action:'mark_tour_logged', id:doneId}).catch(()=>{});
+      await tourLoadPending();
     }
     await tourLoad(true);
   }catch(e){ toast('❌ '+e.message,'red'); }
