@@ -638,23 +638,38 @@
 
     <!-- ============ CALENDAR ============ -->
     <section class="page" id="page-calendar">
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">📅</span><div><b>Luồng lịch hẹn:</b> Telesale tạo lịch hẹn mới → Lễ tân xác nhận khách <b>Đã đến / Chưa đến</b> → khi Đã đến, lịch tự chuyển sang <b>Tour phẫu thuật</b> để bác sĩ nhập ca.</div></div>
       <div class="grid kpi-grid">
-        <div class="kpi k1"><div class="ic">📅</div><div class="label">Tổng lịch hẹn</div><div class="val" id="apptK1">—</div><div class="delta">từ Sheet lịch hẹn</div></div>
+        <div class="kpi k1"><div class="ic">📅</div><div class="label">Tổng lịch hẹn</div><div class="val" id="apptK1">—</div><div class="delta">lưu thật, đồng bộ mọi thiết bị</div></div>
         <div class="kpi k2"><div class="ic">✅</div><div class="label">Đã đến</div><div class="val" id="apptK2">—</div><div class="delta" id="apptK2d">—</div></div>
-        <div class="kpi k3"><div class="ic">⬆️</div><div class="label">Có phát sinh DV</div><div class="val" id="apptK3">—</div><div class="delta">upsell tại chỗ</div></div>
-        <div class="kpi k4"><div class="ic">⏳</div><div class="label">Chưa đến / chờ</div><div class="val" id="apptK4">—</div><div class="delta">cần nhắc</div></div>
+        <div class="kpi k3"><div class="ic">⏳</div><div class="label">Chưa đến / chờ</div><div class="val" id="apptK3">—</div><div class="delta">cần nhắc</div></div>
+        <div class="kpi k4"><div class="ic">✕</div><div class="label">Đã huỷ</div><div class="val" id="apptK4">—</div><div class="delta">&nbsp;</div></div>
       </div>
-      <div class="card" style="margin-top:16px">
+
+      <div class="card" style="margin-top:16px;margin-bottom:14px">
+        <div class="card-head"><h2>➕ Đặt lịch hẹn mới</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Tên khách</label><input id="ap-name" class="bi" placeholder="Nguyễn Thị A"></div>
+          <div><label class="bl">SĐT</label><input id="ap-phone" class="bi" placeholder="09xxxxxxxx"></div>
+          <div><label class="bl">Ngày hẹn</label><input id="ap-date" class="bi" type="date"></div>
+          <div><label class="bl">Giờ hẹn</label><input id="ap-time" class="bi" placeholder="09:30"></div>
+          <div><label class="bl">Dịch vụ dự kiến</label><input id="ap-service" class="bi" placeholder="Cắt mí"></div>
+          <div><label class="bl">NV phụ trách</label><input id="ap-staff" class="bi" placeholder="Telesale / tư vấn"></div>
+        </div>
+        <div style="margin-top:10px"><label class="bl">Ghi chú</label><input id="ap-note" class="bi" placeholder="Ghi chú thêm (nếu có)"></div>
+        <button class="btn" style="margin-top:14px" onclick="apptCreate()">➕ Tạo lịch hẹn</button>
+      </div>
+
+      <div class="card">
         <div class="card-head">
-          <div><h2>Lịch hẹn khách</h2><div class="sub" id="apptSub">Từ Google Sheet · tự đồng bộ · bấm dòng xem chi tiết</div></div>
+          <div><h2>Lịch hẹn khách</h2><div class="sub" id="apptSub">Bấm dòng để xem chi tiết · lễ tân xác nhận đến/chưa đến ngay trên dòng</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input id="apptSearch" placeholder="🔎 Tìm khách / SĐT / dịch vụ" style="width:230px">
-            <select id="apptFilter" style="width:160px"><option value="">Tất cả trạng thái</option><option value="den">Đã đến</option><option value="chua">Chưa đến / chờ</option></select>
-            <button class="btn sm" onclick="openModal('new-booking')">+ Tạo lịch</button>
+            <select id="apptFilter" style="width:160px"><option value="">Tất cả trạng thái</option><option value="den">Đã đến</option><option value="cho">Chưa đến / chờ</option><option value="huy">Đã huỷ</option></select>
           </div>
         </div>
         <table>
-          <thead><tr><th>Ngày</th><th>Giờ</th><th>Khách</th><th>Dịch vụ</th><th>NV</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Ngày</th><th>Giờ</th><th>Khách</th><th>Dịch vụ</th><th>NV</th><th>Trạng thái</th><th>Lễ tân xác nhận</th></tr></thead>
           <tbody id="apptRows"></tbody>
         </table>
         <div class="sub" id="apptNote" style="font-size:.76rem;margin-top:10px;color:var(--muted)"></div>
@@ -958,6 +973,11 @@
         <div class="kpi k2"><div class="ic">👥</div><div class="label">Tổng ca khách</div><div class="val" id="tour-kpi-kh">—</div><div class="delta" id="tour-kpi-kh-sub">&nbsp;</div></div>
         <div class="kpi k3"><div class="ic">💰</div><div class="label">Tổng doanh thu</div><div class="val" id="tour-kpi-dt">—</div><div class="delta">đồng</div></div>
         <div class="kpi k4"><div class="ic">⚠️</div><div class="label">Tổng nợ</div><div class="val" id="tour-kpi-no">—</div><div class="delta">cần thu</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px" id="tour-pending-card">
+        <div class="card-head"><h2>🔔 Khách đã đến, chờ nhập ca <span class="badge" id="tour-pending-badge">0</span></h2></div>
+        <div id="tour-pending-list" class="sub">Đang tải…</div>
       </div>
 
       <div class="card" style="margin-bottom:14px">
@@ -1760,28 +1780,32 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='appt'){
+  else if(type==='appt-detail'){
     const a = ctx; modalEl.classList.add('lg');
-    const init=((a.name.replace(/^[a-zA-Z]\s+/,'').trim()[0])||a.name[0]||'?').toUpperCase();
-    t.textContent = `Lịch hẹn: ${a.name}`;
+    t.textContent = `Lịch hẹn: ${a.full_name}`;
     b.innerHTML = `
-      <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">
-        <span class="avatar" style="width:58px;height:58px;background:var(--grad);font-size:1.3rem">${init}</span>
-        <div style="flex:1"><div style="font-family:'Lora';font-size:1.25rem;font-weight:800;color:var(--brown-deep)">${a.name}</div>
-        <div style="color:var(--muted)">${a.phone||'—'}${a.addr?' · '+a.addr:''}</div></div>
-        <div>${apptStatusPill(a.status)}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">${apptStatusPill(a.status)}${a.tour_logged?'<span class="pill green">📝 Đã nhập ca tour</span>':''}</div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label class="bl">Tên khách</label><input id="ap-ed-name" class="bi" value="${pgEscAttr(a.full_name)}"></div>
+        <div><label class="bl">SĐT</label><input id="ap-ed-phone" class="bi" value="${pgEscAttr(a.phone)}"></div>
       </div>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Ngày</div><b>${a.date||'—'}</b></div>
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Giờ hẹn</div><b>${a.time||'—'}</b></div>
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">NV phụ trách</div><b>${a.nv||'—'}</b></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label class="bl">Ngày hẹn</label><input id="ap-ed-date" class="bi" type="date" value="${a.appt_date||''}"></div>
+        <div><label class="bl">Giờ hẹn</label><input id="ap-ed-time" class="bi" value="${pgEscAttr(a.appt_time)}"></div>
       </div>
-      <div style="background:var(--cream);padding:11px;border-radius:9px;margin-bottom:10px"><div style="font-size:.7rem;color:var(--muted)">Dịch vụ</div><b>${a.service||'—'}</b>${a.detail?`<div style="font-size:.84rem;margin-top:3px">${a.detail}</div>`:''}</div>
-      ${a.note?`<div style="background:#FFF8EC;padding:11px;border-radius:9px;margin-bottom:14px"><div style="font-size:.7rem;color:var(--muted)">Lịch sử / ghi chú</div><div style="font-size:.85rem;margin-top:3px;white-space:pre-wrap">${a.note}</div></div>`:''}
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn sm" onclick="toast('📞 Gọi/Zalo ${a.phone}','ok')">📞 Gọi / Zalo</button>
-        <button class="btn ghost sm" onclick="toast('🔄 Đổi giờ ${a.name}','ok')">🔄 Đổi giờ</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label class="bl">Dịch vụ dự kiến</label><input id="ap-ed-service" class="bi" value="${pgEscAttr(a.service)}"></div>
+        <div><label class="bl">NV phụ trách</label><input id="ap-ed-staff" class="bi" value="${pgEscAttr(a.staff)}"></div>
       </div>
+      <div style="margin-bottom:14px"><label class="bl">Ghi chú</label><input id="ap-ed-note" class="bi" value="${pgEscAttr(a.note)}"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn sm" onclick="toast('📞 Gọi/Zalo ${pgEscAttr(a.phone)}','ok')">📞 Gọi / Zalo</button>
+        ${a.status!=='den'?`<button class="btn sm green" onclick="apptMarkStatus('${a.id}','den');closeModal()">✅ Đã đến</button>`:''}
+        ${a.status!=='cho'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','cho');closeModal()">⏳ Chưa đến</button>`:''}
+        ${a.status!=='huy'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','huy');closeModal()">✕ Huỷ lịch</button>`:''}
+      </div>
+      <button class="btn sm" onclick="apptSaveEdit('${a.id}')">💾 Lưu thay đổi</button>
+      ${canDelete()?`<button class="btn ghost sm" onclick="apptDelete('${a.id}')">🗑 Xoá lịch hẹn</button>`:''}
     `;
   }
 
@@ -1808,13 +1832,12 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-campaign'){
+  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-campaign'){
     const titles = {
       'new-customer':'➕ Thêm khách hàng mới',
       'new-staff':'➕ Thêm nhân viên mới',
       'new-service':'➕ Thêm dịch vụ mới',
       'new-task':'➕ Thêm công việc',
-      'new-booking':'➕ Tạo lịch hẹn mới',
       'new-medical':'➕ Tạo hồ sơ y khoa',
       'new-stock':'➕ Nhập kho mới',
       'new-photo':'➕ Thêm case trước/sau',
@@ -1826,7 +1849,6 @@ function openModal(type, ctx){
       'new-staff': `<label>Họ tên</label><input id="f1"><label>Vai trò</label><select id="f2"><option>Bác sĩ phẫu thuật</option><option>Bác sĩ tiêm chỉnh</option><option>KTV cao cấp</option><option>KTV</option><option>Lễ tân</option><option>Marketing</option></select><label>Chuyên môn</label><input id="f3" placeholder="Cắt mí, Filler..."><label>SĐT</label><input id="f4">`,
       'new-service': `<label>Tên dịch vụ</label><input id="f1"><label>Giá (VNĐ)</label><input id="f2" type="number"><label>Thời gian (phút)</label><input id="f3" type="number"><label>Mô tả</label><textarea id="f5" rows="3"></textarea>`,
       'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
-      'new-booking': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}<option>+ Khách mới</option></select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ngày</label><input id="f3" type="date"><label>Giờ</label><select id="f4">${['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(h=>`<option>${h}</option>`).join('')}</select><label>KTV / Bác sĩ</label><select id="f5">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ghi chú</label><textarea id="f6" rows="2"></textarea>`,
       'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
       'new-stock': `<label>SKU</label><input id="f1"><label>Tên sản phẩm</label><input id="f2"><label>Số lượng nhập</label><input id="f3" type="number"><label>Đơn vị</label><select id="f4"><option>ống</option><option>lọ</option><option>tuýp</option><option>chai</option><option>miếng</option><option>cây</option><option>hộp</option></select><label>Mức tối thiểu</label><input id="f5" type="number"><label>Nhà cung cấp</label><input id="f6">`,
       'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
@@ -2015,7 +2037,6 @@ function handleSubmit(type){
     'new-staff':'➕ Đã thêm nhân viên',
     'new-service':'➕ Đã thêm dịch vụ',
     'new-task':'➕ Đã thêm công việc',
-    'new-booking':'📅 Đã tạo lịch hẹn',
     'new-medical':'🩺 Đã tạo hồ sơ y khoa',
     'new-stock':'📦 Đã nhập kho',
     'new-photo':'📸 Đã thêm case trước/sau',
@@ -2343,6 +2364,11 @@ async function tourCreate(){
       doctor:get('tf-doctor'), assistant:get('tf-assist')});
     ['tf-name','tf-phone','tf-svc1','tf-svc2','tf-rev1','tf-rev2','tf-debt','tf-doctor','tf-assist'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
     toast('✅ Đã lưu ca','green'); if(typeof ding==='function')ding();
+    if(TOUR_PENDING_APPT_ID){
+      apptApi({action:'mark_tour_logged', id:TOUR_PENDING_APPT_ID}).catch(()=>{});
+      TOUR_PENDING_APPT_ID=null;
+      tourLoadPending();
+    }
     await tourLoad(true);
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
@@ -2531,7 +2557,7 @@ function telesaleExportCSV(){
 const titles = {
   dashboard:['Tổng quan','Xin chào chị Phương · Thứ Tư · 20/05/2026'],
   datahub:['🗂️ Tổng hợp dữ liệu','Kết nối Google Sheets · quảng cáo · doanh thu · data · lợi nhuận'],
-  calendar:['Lịch hẹn','Quản lý lịch hẹn tuần này'],
+  calendar:['Lịch hẹn','Telesale tạo lịch · Lễ tân xác nhận đến/chưa đến · lưu thật, đồng bộ mọi thiết bị'],
   crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
   leads:['📥 Lead từ web','Khách đăng ký từ phammaiphuong.vn'],
   care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
@@ -2810,12 +2836,12 @@ function go(section){
   if(section==='datahub')renderDataSources();
   if(section==='revenue')renderRevenue();
   if(section==='crm')renderCRM();
-  if(section==='calendar')renderAppointments();
+  if(section==='calendar')apptLoad();
   if(section==='billing')billInit();
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
   if(section==='luong') payrollLoad();
-  if(section==='tour')  tourLoad();
+  if(section==='tour'){ tourLoad(); tourLoadPending(); }
   if(section==='telesale') telesaleLoad();
   if(section==='phangoi') phangoiLoad();
 }
@@ -3272,62 +3298,142 @@ function renderReviews(){
 }
 
 // ===== Lịch hẹn thật từ Google Sheet =====
-const APPT_SHEET_ID='1cfyLQ5vwBIG-IvTVZTzKIiIYnfsQ06_tPH5SmzCehMs';
-function apptTimeMin(t){ const m=String(t||'').match(/(\d{1,2})\s*h\s*(\d{0,2})/i); if(m) return (+m[1])*60+(m[2]?+m[2]:0); const m2=String(t||'').match(/(\d{1,2}):(\d{2})/); return m2?(+m2[1])*60+(+m2[2]):9999; }
-function apptDateOrd(d){ const m=String(d||'').match(/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/); return m?(+m[2])*100+(+m[1]):0; }
-function apptStatusPill(s){ const x=(s||'').toLowerCase();
-  if(/phát sinh|phat sinh/.test(x)) return '<span class="pill green">✅ Đã đến · +DV</span>';
-  if(/đã đến|da den|hoàn tất|xong/.test(x)) return '<span class="pill green">✅ Đã đến</span>';
-  if(/hu[ỷy]|không đến|khong den|no.?show/.test(x)) return '<span class="pill red">✕ '+(s||'Huỷ')+'</span>';
-  if(/hẹn|chờ|cho|chưa|chua/.test(x)) return '<span class="pill">⏳ '+(s||'Chờ')+'</span>';
-  return s?('<span class="pill">'+s+'</span>'):'<span class="pill">—</span>';
+const APPTS = { rows:null, loading:false };
+function apptStatusPill(s){
+  if(s==='den') return '<span class="pill green">✅ Đã đến</span>';
+  if(s==='huy') return '<span class="pill red">✕ Đã huỷ</span>';
+  return '<span class="pill">⏳ Chưa đến</span>';
 }
-function apptData(){
-  if(typeof DS_CACHE==='undefined') return null;
-  const srcs=(typeof loadDataSources==='function')?loadDataSources():[];
-  let src=srcs.find(x=>x.sheetId===APPT_SHEET_ID && DS_CACHE[x.id]);
-  if(!src) src=srcs.find(x=>DS_CACHE[x.id] && (DS_CACHE[x.id].cols||[]).some(c=>/giờ hẹn|gio hen/i.test(String(c))) && (DS_CACHE[x.id].cols||[]).some(c=>/tên khách|ten khach/i.test(String(c))));
-  if(!src || !DS_CACHE[src.id]) return null;
-  const {cols,rows}=DS_CACHE[src.id]; if(!rows||!rows.length) return null;
-  const ci=re=>cols.findIndex(c=>re.test(String(c||'').trim()));
-  const iDate=ci(/^ngày|^ngay/i), iNV=ci(/tên nv|ten nv|nhân viên/i), iPh=ci(/sđt|sdt|điện thoại/i),
-    iName=ci(/tên khách|ten khach|khách hàng/i), iTime=ci(/giờ hẹn|gio hen/i), iAddr=ci(/địa chỉ|dia chi/i),
-    iSvc=ci(/dịch vụ|dich vu/i), iDetail=ci(/chi tiết|chi tiet/i), iNote=ci(/note|ghi chú/i), iSt=ci(/trạng thái|trang thai/i);
-  let lastDate=''; const out=[];
-  rows.forEach(r=>{
-    const g=i=>i>=0?String(r[i]==null?'':r[i]).trim():'';
-    let date=g(iDate); if(date) lastDate=date; else date=lastDate;
-    const name=g(iName), phone=g(iPh).replace(/\s/g,'');
-    if(!name && !phone) return;
-    if(/^tên khách|^ten khach/i.test(name)) return;
-    out.push({date, nv:g(iNV), phone, name, time:g(iTime), addr:g(iAddr), service:g(iSvc), detail:g(iDetail), note:g(iNote), status:g(iSt)});
-  });
-  out.sort((a,b)=> (apptDateOrd(b.date)-apptDateOrd(a.date)) || (apptTimeMin(a.time)-apptTimeMin(b.time))); // ngày mới nhất lên đầu
-  return out;
+async function apptApi(payload){
+  const r=await fetch('/api/appointments',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
+}
+async function apptLoad(force){
+  if (APPTS.loading) return;
+  if (APPTS.rows && !force) { renderAppointments(); return; }
+  APPTS.loading = true;
+  const tb=document.getElementById('apptRows');
+  if(tb) tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  try{
+    const d = await apptApi({action:'list'});
+    APPTS.rows = d.rows||[];
+    renderAppointments();
+  }catch(e){
+    console.error('appt load fail', e);
+    if(tb) tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
+  }finally{ APPTS.loading = false; }
 }
 function renderAppointments(){
   const tb=document.getElementById('apptRows'); if(!tb) return;
-  const all=apptData(); const note=document.getElementById('apptNote');
-  if(!all){ tb.innerHTML=''; if(note) note.textContent='⏳ Đang nạp lịch hẹn… nếu chưa thấy, vào Data Hub bấm "Đồng bộ tất cả".'; return; }
+  const all=APPTS.rows||[]; const note=document.getElementById('apptNote');
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  const isDen=a=>/đã đến|da den|phát sinh|phat sinh|hoàn tất|xong/i.test(a.status);
-  const den=all.filter(isDen), ps=all.filter(a=>/phát sinh|phat sinh/i.test(a.status)), chua=all.filter(a=>!isDen(a)&&!/hu[ỷy]|không đến/i.test(a.status));
-  set('apptK1', all.length); set('apptK2', den.length); set('apptK2d', all.length?Math.round(den.length/all.length*100)+'% lịch':'—'); set('apptK3', ps.length); set('apptK4', chua.length);
+  const den=all.filter(a=>a.status==='den'), cho=all.filter(a=>a.status==='cho'), huy=all.filter(a=>a.status==='huy');
+  set('apptK1', all.length); set('apptK2', den.length); set('apptK2d', all.length?Math.round(den.length/all.length*100)+'% lịch':'—');
+  set('apptK3', cho.length); set('apptK4', huy.length);
   const search=(document.getElementById('apptSearch')?.value||'').toLowerCase().trim();
   const filt=document.getElementById('apptFilter')?.value||'';
-  const list=all.filter(a=> (!search || a.name.toLowerCase().includes(search) || (a.phone&&a.phone.includes(search)) || a.service.toLowerCase().includes(search))
-    && (filt==='den'? isDen(a) : filt==='chua'? !isDen(a) : true));
-  tb.innerHTML=list.map(a=>{ const init=((a.name.replace(/^[a-zA-Z]\s+/,'').trim()[0])||a.name[0]||'?').toUpperCase();
-    return `<tr class="clickable" onclick='openModal("appt",${JSON.stringify(a).replace(/'/g,"&#39;")})'>
-    <td style="white-space:nowrap">${a.date||'—'}</td>
-    <td style="white-space:nowrap"><b>${a.time||'—'}</b></td>
-    <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${a.name}</b><span>${a.phone||'—'}</span></span></div></td>
-    <td style="font-size:.84rem">${a.service||'—'}</td>
-    <td style="font-size:.82rem">${a.nv||'—'}</td>
+  const list=all.filter(a=> (!search || (a.full_name||'').toLowerCase().includes(search) || (a.phone&&a.phone.includes(search)) || (a.service||'').toLowerCase().includes(search))
+    && (!filt || a.status===filt));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Chưa có lịch hẹn nào — thêm ở form phía trên</td></tr>'; if(note) note.textContent=''; return; }
+  tb.innerHTML=list.map(a=>{ const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+    return `<tr class="clickable" onclick='openModal("appt-detail",${ctxJson})'>
+    <td style="white-space:nowrap">${a.appt_date||'—'}</td>
+    <td style="white-space:nowrap"><b>${a.appt_time||'—'}</b></td>
+    <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${pgEscHtml(a.full_name)}</b><span>${a.phone||'—'}</span></span></div></td>
+    <td style="font-size:.84rem">${pgEscHtml(a.service)||'—'}</td>
+    <td style="font-size:.82rem">${pgEscHtml(a.staff)||'—'}</td>
     <td>${apptStatusPill(a.status)}</td>
-    <td><button class="btn ghost sm" onclick="event.stopPropagation();openModal('appt',${JSON.stringify(a).replace(/'/g,'&#39;')})">Xem</button></td></tr>`;}).join('');
+    <td onclick="event.stopPropagation()">
+      ${a.status!=='den'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','den')">✅ Đã đến</button>`:''}
+      ${a.status!=='cho'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','cho')">⏳ Chưa đến</button>`:''}
+      ${a.status!=='huy'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','huy')">✕ Huỷ</button>`:''}
+    </td></tr>`;}).join('');
   if(note) note.textContent = `${list.length}/${all.length} lịch hẹn`;
 }
+async function apptCreate(){
+  const get=id=>document.getElementById(id)?.value||'';
+  const name=get('ap-name').trim();
+  const date=get('ap-date');
+  if(!name){ toast('⚠️ Nhập tên khách','red'); return; }
+  if(!date){ toast('⚠️ Chọn ngày hẹn','red'); return; }
+  try{
+    await apptApi({action:'create', appt_date:date, appt_time:get('ap-time'), full_name:name, phone:get('ap-phone'), service:get('ap-service'), staff:get('ap-staff'), note:get('ap-note')});
+    ['ap-name','ap-phone','ap-date','ap-time','ap-service','ap-staff','ap-note'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+    toast('✅ Đã tạo lịch hẹn','green'); if(typeof ding==='function')ding();
+    await apptLoad(true);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.apptCreate=apptCreate;
+async function apptMarkStatus(id,status){
+  try{
+    await apptApi({action:'mark_status', id, status});
+    const label={den:'✅ Đã xác nhận khách đến',cho:'⏳ Đã chuyển về chưa đến',huy:'✕ Đã huỷ lịch hẹn'}[status]||'Đã cập nhật';
+    toast(label,'green');
+    await apptLoad(true);
+    if(status==='den' && typeof tourLoadPending==='function') tourLoadPending();
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.apptMarkStatus=apptMarkStatus;
+async function apptSaveEdit(id){
+  const get=eid=>document.getElementById(eid)?.value||'';
+  const name=get('ap-ed-name').trim();
+  if(!name){ toast('⚠️ Tên khách không được để trống','red'); return; }
+  try{
+    await apptApi({action:'update', id, full_name:name, phone:get('ap-ed-phone'), service:get('ap-ed-service'), staff:get('ap-ed-staff'), note:get('ap-ed-note'), appt_date:get('ap-ed-date'), appt_time:get('ap-ed-time')});
+    toast('✅ Đã lưu thay đổi','green');
+    await apptLoad(true);
+    const a=(APPTS.rows||[]).find(x=>x.id===id);
+    if(a) openModal('appt-detail', a);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.apptSaveEdit=apptSaveEdit;
+async function apptDelete(id){
+  if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xoá','red'); return; }
+  if(!confirm('Xoá lịch hẹn này?')) return;
+  try{ await apptApi({action:'delete', id}); closeModal(); toast('🗑️ Đã xoá','dark'); await apptLoad(true); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.apptDelete=apptDelete;
+async function syncOverviewAppts(){
+  const valEl=document.getElementById('ovApptVal'); if(!valEl) return;
+  if(!APPTS.rows) await apptLoad();
+  const all=APPTS.rows||[];
+  const now=new Date(); const p=x=>String(x).padStart(2,'0'); const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  const todayIso=iso(now); const yestIso=iso(new Date(now.getTime()-86400000));
+  const today=all.filter(a=>a.appt_date===todayIso).length;
+  const yest=all.filter(a=>a.appt_date===yestIso).length;
+  valEl.textContent=today;
+  const delEl=document.getElementById('ovApptDelta');
+  if(delEl){ if(yest>0){ const g=Math.round((today-yest)/yest*100); delEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'% so với hôm qua'; } else delEl.textContent=all.length+' lịch trong sổ'; }
+  const b=document.getElementById('calBadge'); if(b) b.textContent=today;
+}
+/* ===== TOUR: hàng chờ nhập ca từ lịch hẹn đã đến ===== */
+let TOUR_PENDING_APPT_ID=null;
+async function tourLoadPending(){
+  const el=document.getElementById('tour-pending-list'), badge=document.getElementById('tour-pending-badge');
+  if(!el) return;
+  try{
+    const d=await apptApi({action:'list_pending'});
+    const rows=d.rows||[];
+    if(badge) badge.textContent=rows.length;
+    if(!rows.length){ el.innerHTML='Không có khách nào đang chờ nhập ca.'; return; }
+    el.innerHTML = rows.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--cream)">
+      <div style="flex:1"><b>${pgEscHtml(a.full_name)}</b> <span style="color:var(--muted);font-size:.82rem">${a.phone||'—'} · ${pgEscHtml(a.service)||'dịch vụ chưa rõ'} · ${a.appt_date||''} ${a.appt_time||''}</span></div>
+      <button class="btn sm" onclick='tourPrefillFromAppt(${JSON.stringify(a).replace(/'/g,"&#39;")})'>📝 Nhập ca</button>
+    </div>`).join('');
+  }catch(e){ el.innerHTML='❌ '+pgEscHtml(e.message); }
+}
+function tourPrefillFromAppt(a){
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
+  set('tf-date', a.appt_date); set('tf-name', a.full_name); set('tf-phone', a.phone); set('tf-svc1', a.service); set('tf-doctor', a.staff);
+  TOUR_PENDING_APPT_ID = a.id;
+  document.getElementById('tf-name')?.scrollIntoView({behavior:'smooth', block:'center'});
+  toast('📝 Đã điền sẵn thông tin — nhập thêm doanh thu rồi bấm Lưu ca này','ok');
+}
+window.tourPrefillFromAppt=tourPrefillFromAppt;
 function renderCalendar(){
   if(!document.getElementById('calGrid')) return;   // trang lịch hẹn đã chuyển sang bảng thật
   const today=2; // T4
@@ -3580,19 +3686,6 @@ function setRevTarget(){
   renderRevenue(); toast('🎯 Đã cập nhật mục tiêu doanh thu','green');
 }
 function vnToday(){ const d=new Date(); const wd=['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'][d.getDay()]; const p=x=>String(x).padStart(2,'0'); return wd+' · '+p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
-function syncOverviewAppts(){
-  const valEl=document.getElementById('ovApptVal'); if(!valEl) return;
-  const all=(typeof apptData==='function')?apptData():null; if(!all) return;
-  const now=new Date(); const dm=now.getDate()+'/'+(now.getMonth()+1);
-  const y=new Date(now.getTime()-86400000); const ydm=y.getDate()+'/'+(y.getMonth()+1);
-  const norm=s=>String(s||'').trim().replace(/^0+(\d)/,'$1').replace(/\/0+(\d)/,'/$1');
-  const today=all.filter(a=>norm(a.date)===dm).length;
-  const yest=all.filter(a=>norm(a.date)===ydm).length;
-  valEl.textContent=today;
-  const delEl=document.getElementById('ovApptDelta');
-  if(delEl){ if(yest>0){ const g=Math.round((today-yest)/yest*100); delEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'% so với hôm qua'; } else delEl.textContent=all.length+' lịch trong sổ'; }
-  const b=document.getElementById('calBadge'); if(b) b.textContent=today;
-}
 function syncOverviewRevenue(){
   const M=revenueModel();
   const lab=gel('ovRevLabel'), val=gel('ovRevVal'), del=gel('ovRevDelta');
@@ -3626,9 +3719,7 @@ function initMktChart(force){
 
 /* ===== TOPBAR ACTIONS ===== */
 document.getElementById('notifBtn').onclick=()=>toast('🔔 2 thông báo mới: 1 lịch hẹn mới · 1 đánh giá Google 5★');
-document.getElementById('quickAddBtn').onclick=()=>{
-  if(confirm('Thêm nhanh?\n1=Lịch hẹn\n2=Khách hàng\n3=Task\n(Bấm OK để mở Lịch hẹn)')) openModal('new-booking');
-};
+document.getElementById('quickAddBtn').onclick=()=>{ go('calendar'); document.getElementById('ap-name')?.scrollIntoView({behavior:'smooth',block:'center'}); };
 document.getElementById('profileBtn').onclick=()=>{ if(confirm('Đăng xuất khỏi tài khoản chị Phương?')) location.href='/api/logout' };
 
 document.getElementById('globalSearch').addEventListener('keydown',e=>{
@@ -4977,7 +5068,7 @@ const ROLE_MENUS={
   'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Sale':['dashboard','leads','telesale','phangoi','crm','care'],
+  'Sale':['dashboard','calendar','leads','telesale','phangoi','crm','care'],
   'Sale trực tiếp':['dashboard','crm','billing','leads','services','telesale','phangoi']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
@@ -5004,10 +5095,10 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
 renderTasks(); renderInventory();
-renderCampaigns(); renderCalendar(); renderAppointments(); renderLeads();
+renderCampaigns(); apptLoad(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v5'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v5'); } }catch(e){} // nạp lại với ngày chuẩn theo tháng + sắp xếp mới nhất — 1 lần
-setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ syncLeadsFromSheet(true); renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); renderAppointments(); syncOverviewAppts(); }); else { renderRevenue(); syncOverviewRevenue(); } }, 800);
+setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ syncLeadsFromSheet(true); renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); }); else { renderRevenue(); syncOverviewRevenue(); } }, 800);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
