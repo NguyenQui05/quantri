@@ -947,18 +947,35 @@
 
     <!-- ============ TOUR PHẪU THUẬT ============ -->
     <section class="page" id="page-tour">
-      <div class="alert info" style="margin-bottom:14px"><span class="ic">🩻</span><div><b>Tour phẫu thuật T5/2026:</b> lịch ca theo ngày · dịch vụ ban đầu + UP · doanh thu · phân ca bác sĩ và phụ tá. Bấm dòng khách để xem phân ca chi tiết.</div></div>
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">🩻</span><div><b>Tour phẫu thuật.</b> Bác sĩ / phụ tá tự nhập ca ngay sau khi làm xong — lưu thật, đồng bộ mọi thiết bị. Bấm dòng khách để xem chi tiết.</div></div>
 
       <div class="grid kpi-grid" style="margin-bottom:14px">
-        <div class="kpi k1"><div class="ic">📅</div><div class="label">Ngày có ca</div><div class="val" id="tour-kpi-ngay">—</div><div class="delta">trong tháng 5</div></div>
+        <div class="kpi k1"><div class="ic">📅</div><div class="label">Ngày có ca</div><div class="val" id="tour-kpi-ngay">—</div><div class="delta">đã ghi nhận</div></div>
         <div class="kpi k2"><div class="ic">👥</div><div class="label">Tổng ca khách</div><div class="val" id="tour-kpi-kh">—</div><div class="delta" id="tour-kpi-kh-sub">&nbsp;</div></div>
-        <div class="kpi k3"><div class="ic">💰</div><div class="label">Tổng doanh thu UP</div><div class="val" id="tour-kpi-dt">—</div><div class="delta">nghìn đồng</div></div>
+        <div class="kpi k3"><div class="ic">💰</div><div class="label">Tổng doanh thu</div><div class="val" id="tour-kpi-dt">—</div><div class="delta">đồng</div></div>
         <div class="kpi k4"><div class="ic">⚠️</div><div class="label">Tổng nợ</div><div class="val" id="tour-kpi-no">—</div><div class="delta">cần thu</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2>➕ Ghi nhận ca mới</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Ngày làm ca</label><input id="tf-date" class="bi" type="date"></div>
+          <div><label class="bl">Tên khách</label><input id="tf-name" class="bi" placeholder="Nguyễn Thị A"></div>
+          <div><label class="bl">SĐT</label><input id="tf-phone" class="bi" placeholder="09xxxxxxxx"></div>
+          <div><label class="bl">Dịch vụ ban đầu</label><input id="tf-svc1" class="bi" placeholder="Căng da"></div>
+          <div><label class="bl">Dịch vụ UP</label><input id="tf-svc2" class="bi" placeholder="Nâng cung (nếu có)"></div>
+          <div><label class="bl">Doanh thu ban đầu (đ)</label><input id="tf-rev1" class="bi" type="number" min="0" placeholder="1500000"></div>
+          <div><label class="bl">Doanh thu UP (đ)</label><input id="tf-rev2" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Còn nợ (đ)</label><input id="tf-debt" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Bác sĩ</label><input id="tf-doctor" class="bi" placeholder="Bs Lan"></div>
+          <div><label class="bl">Phụ tá</label><input id="tf-assist" class="bi" placeholder="Nguyên"></div>
+        </div>
+        <button class="btn" style="margin-top:14px" onclick="tourCreate()">➕ Lưu ca này</button>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <div><h2>Lịch tour phẫu — Tháng 5/2026</h2><div class="sub" id="tour-sub">Bấm + để mở rộng từng ngày</div></div>
+          <div><h2>Lịch tour phẫu</h2><div class="sub" id="tour-sub">Bấm + để mở rộng từng ngày</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input id="tourSearch" placeholder="Tìm khách / SĐT / dịch vụ…" style="min-width:200px">
             <button class="btn ghost sm" onclick="tourExpandAll(true)">⬇ Mở tất cả</button>
@@ -1961,7 +1978,7 @@ function handleSubmit(type){
 
 /* ===== LƯƠNG + TOUR PHẪU (Excel-driven) ===== */
 const LUONG = { data:null, loading:false };
-const TOUR  = { data:null, loading:false };
+const TOUR  = { rows:null, stats:null, loading:false };
 const TELESALE = { data:null, loading:false, person:null };
 
 const VND = n => (n == null || n === 0) ? '' : (Math.round(n)).toLocaleString('vi-VN');
@@ -2188,122 +2205,149 @@ function luongExportCSV(){
 }
 
 /* ===== TOUR PHẪU ===== */
-async function tourLoad(){
-  if (TOUR.data || TOUR.loading) return TOUR.data;
+async function tourApi(payload){
+  const r=await fetch('/api/tour',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
+}
+async function tourLoad(force){
+  if (TOUR.loading) return;
+  if (TOUR.rows && !force) { tourRender(); return; }
   TOUR.loading = true;
+  const root=document.getElementById('tour-days');
+  if(root) root.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">Đang tải…</div>';
   try{
-    const res = await fetch('/quantri/tour.json', {credentials:'same-origin'});
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    TOUR.data = await res.json();
+    const d = await tourApi({action:'list'});
+    TOUR.rows = d.rows||[]; TOUR.stats = d.stats||{};
     tourRender();
   }catch(e){
     console.error('tour load fail', e);
     toast('⚠️ Không tải được dữ liệu tour phẫu: '+e.message, 'red');
+    if(root) root.innerHTML='<div style="padding:24px;text-align:center;color:var(--red)">❌ '+pgEscHtml(e.message)+'</div>';
   }finally{ TOUR.loading = false; }
-  return TOUR.data;
 }
 
+function tourGroupByDay(rows){
+  const map={};
+  rows.forEach(r=>{ (map[r.case_date]=map[r.case_date]||[]).push(r); });
+  return Object.keys(map).sort((a,b)=>b.localeCompare(a)).map(date=>({date, kh:map[date]}));
+}
 function tourRender(){
-  const d = TOUR.data; if (!d) return;
-  const root = document.getElementById('tour-days');
+  const root = document.getElementById('tour-days'); if (!root) return;
+  const rows = TOUR.rows||[];
   const q = (document.getElementById('tourSearch')?.value || '').toLowerCase().trim();
-  let totalKH = 0, totalDT = 0, totalNo = 0;
-  const html = d.ngay.map((day, idx) => {
-    const filtered = !q ? day.kh : day.kh.filter(kh =>
-      (kh.ten||'').toLowerCase().includes(q) ||
-      (kh.sdt||'').includes(q) ||
-      (kh.dvBanDau||'').toLowerCase().includes(q) ||
-      (kh.dvUp||'').toLowerCase().includes(q) ||
-      (kh.bacSi||'').toLowerCase().includes(q)
-    );
-    if (q && !filtered.length) return '';
-    totalKH += filtered.length;
-    const dayDT = filtered.reduce((s,k)=>s + (k.tongDt||0) + (k.dtDvUp||0) + (k.dtPhuThu||0), 0);
-    const dayNo = filtered.reduce((s,k)=>s + (k.no||0), 0);
+  const filteredRows = !q ? rows : rows.filter(k =>
+    (k.full_name||'').toLowerCase().includes(q) ||
+    (k.phone||'').includes(q) ||
+    (k.service_initial||'').toLowerCase().includes(q) ||
+    (k.service_up||'').toLowerCase().includes(q) ||
+    (k.doctor||'').toLowerCase().includes(q)
+  );
+  const days = tourGroupByDay(filteredRows);
+  let totalDT=0, totalNo=0;
+  const html = days.map((day, idx) => {
+    const dayDT = day.kh.reduce((s,k)=>s+(k.revenue_initial||0)+(k.revenue_up||0),0);
+    const dayNo = day.kh.reduce((s,k)=>s+(k.debt||0),0);
     totalDT += dayDT; totalNo += dayNo;
-    const d2 = new Date(day.date);
+    const d2 = new Date(day.date+'T00:00:00');
     const dayLabel = `${String(d2.getDate()).padStart(2,'0')}/${String(d2.getMonth()+1).padStart(2,'0')}/${d2.getFullYear()}`;
     const dow = ['CN','T2','T3','T4','T5','T6','T7'][d2.getDay()];
-    const open = !!q || idx < 3;  // mở 3 ngày đầu mặc định, hoặc khi đang search
+    const open = !!q || idx < 3;
     return `
       <details class="tour-day" ${open?'open':''} style="background:#fff;border:1px solid #EEE5D5;border-radius:12px;overflow:hidden">
         <summary style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);font-weight:700;color:var(--brown-deep)">
           <span style="font-size:1.1rem">📅 ${dow} · ${dayLabel}</span>
-          <span class="badge" style="background:var(--orange);color:#fff">${filtered.length} ca</span>
+          <span class="badge" style="background:var(--orange);color:#fff">${day.kh.length} ca</span>
           <span style="margin-left:auto;display:flex;gap:10px;font-size:.82rem;color:var(--muted);font-weight:600">
-            <span>💰 ${VND_FULL(dayDT)}</span>
-            ${dayNo>0?`<span style="color:#c44">⚠️ Nợ ${VND_FULL(dayNo)}</span>`:''}
+            <span>💰 ${VND_FULL(dayDT)}đ</span>
+            ${dayNo>0?`<span style="color:#c44">⚠️ Nợ ${VND_FULL(dayNo)}đ</span>`:''}
           </span>
         </summary>
         <div style="overflow-x:auto">
           <table style="margin:0">
             <thead><tr>
-              <th style="width:30px">#</th>
               <th>Khách</th>
               <th>SĐT</th>
               <th>Dịch vụ ban đầu</th>
               <th>Dịch vụ UP</th>
-              <th style="text-align:right">Tổng DT</th>
+              <th style="text-align:right">DT ban đầu</th>
               <th style="text-align:right">DT UP</th>
               <th style="text-align:right">Nợ</th>
               <th>Bác sĩ</th>
               <th>Phụ tá</th>
+              <th></th>
             </tr></thead>
-            <tbody>${filtered.map(kh => `
+            <tbody>${day.kh.map(kh => `
               <tr>
-                <td>${kh.stt ?? ''}</td>
-                <td><b>${kh.ten||''}</b></td>
-                <td><a href="tel:${kh.sdt||''}" style="color:var(--orange-deep)">${kh.sdt||''}</a></td>
-                <td>${kh.dvBanDau||'·'}</td>
-                <td>${kh.dvUp||'·'}</td>
-                <td style="text-align:right">${VND(kh.tongDt)}</td>
-                <td style="text-align:right">${VND(kh.dtDvUp)}</td>
-                <td style="text-align:right;${kh.no?'color:#c44;font-weight:700':''}">${VND(kh.no)}</td>
-                <td>${kh.bacSi||'·'}</td>
-                <td>${kh.phuTa||'·'}</td>
+                <td><b>${pgEscHtml(kh.full_name)||''}</b></td>
+                <td>${kh.phone?`<a href="tel:${kh.phone}" style="color:var(--orange-deep)">${pgEscHtml(kh.phone)}</a>`:'·'}</td>
+                <td>${pgEscHtml(kh.service_initial)||'·'}</td>
+                <td>${pgEscHtml(kh.service_up)||'·'}</td>
+                <td style="text-align:right">${VND(kh.revenue_initial)}</td>
+                <td style="text-align:right">${VND(kh.revenue_up)}</td>
+                <td style="text-align:right;${kh.debt?'color:#c44;font-weight:700':''}">${VND(kh.debt)}</td>
+                <td>${pgEscHtml(kh.doctor)||'·'}</td>
+                <td>${pgEscHtml(kh.assistant)||'·'}</td>
+                <td>${canDelete()?`<button class="btn ghost sm" onclick="event.stopPropagation();tourDelete('${kh.id}')">🗑</button>`:''}</td>
               </tr>
-              ${kh.byStaff && Object.keys(kh.byStaff).length ? `
-              <tr><td colspan="10" style="background:#FFFAF0;padding:6px 14px;font-size:.78rem;color:var(--muted)">
-                ${Object.entries(kh.byStaff).map(([staff, sv]) =>
-                  `<b style="color:var(--brown-deep)">${staff}:</b> ${Object.entries(sv).map(([k,v])=>`${k}=${v}`).join(', ')}`
-                ).join(' · ')}
-              </td></tr>` : ''}
             `).join('')}</tbody>
           </table>
         </div>
       </details>`;
   }).join('');
-  root.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--muted)">Không có khách khớp tìm kiếm</div>';
+  root.innerHTML = html || (rows.length ? '<div style="padding:24px;text-align:center;color:var(--muted)">Không có ca khớp tìm kiếm</div>' : '<div style="padding:24px;text-align:center;color:var(--muted)">Chưa có ca nào — nhập ca đầu tiên ở form phía trên</div>');
 
   // KPI
-  document.getElementById('tour-kpi-ngay').textContent = d.ngay.length;
-  document.getElementById('tour-kpi-kh').textContent = totalKH;
-  document.getElementById('tour-kpi-kh-sub').textContent = d.ngay.reduce((s,x)=>s+x.kh.length,0) + ' ca tổng cộng';
-  document.getElementById('tour-kpi-dt').textContent = VND_FULL(totalDT);
-  document.getElementById('tour-kpi-no').textContent = VND_FULL(totalNo);
+  const s = TOUR.stats||{};
+  document.getElementById('tour-kpi-ngay').textContent = q ? days.length : (s.total_days||0);
+  document.getElementById('tour-kpi-kh').textContent = filteredRows.length;
+  document.getElementById('tour-kpi-kh-sub').textContent = (s.total_cases||rows.length) + ' ca tổng cộng';
+  document.getElementById('tour-kpi-dt').textContent = VND_FULL(q?totalDT:(s.total_revenue||0));
+  document.getElementById('tour-kpi-no').textContent = VND_FULL(q?totalNo:(s.total_debt||0));
 }
 
 function tourExpandAll(open){
   document.querySelectorAll('#tour-days details.tour-day').forEach(d => d.open = open);
 }
 function tourExportCSV(){
-  const d = TOUR.data; if (!d) return;
-  let csv = 'Ngày,STT,Khách,SĐT,DV ban đầu,DV UP,Tổng DT,DT DV UP,DT Phụ thu,Nợ,Bác sĩ,Phụ tá\n';
-  for (const day of d.ngay){
-    for (const k of day.kh){
-      csv += [day.date, k.stt??'', `"${(k.ten||'').replace(/"/g,'""')}"`, k.sdt||'',
-              `"${(k.dvBanDau||'').replace(/"/g,'""')}"`, `"${(k.dvUp||'').replace(/"/g,'""')}"`,
-              k.tongDt??'', k.dtDvUp??'', k.dtPhuThu??'', k.no??'',
-              k.bacSi||'', k.phuTa||''].join(',') + '\n';
-    }
+  const rows = TOUR.rows||[];
+  if (!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
+  let csv = 'Ngày,Khách,SĐT,DV ban đầu,DV UP,DT ban đầu,DT UP,Nợ,Bác sĩ,Phụ tá\n';
+  for (const k of rows){
+    csv += [k.case_date, `"${(k.full_name||'').replace(/"/g,'""')}"`, k.phone||'',
+            `"${(k.service_initial||'').replace(/"/g,'""')}"`, `"${(k.service_up||'').replace(/"/g,'""')}"`,
+            k.revenue_initial||0, k.revenue_up||0, k.debt||0, k.doctor||'', k.assistant||''].join(',') + '\n';
   }
   const blob = new Blob([new TextEncoder().encode('﻿'+csv)], {type:'text/csv'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'tour-phau-T5-2026.csv';
+  a.download = 'tour-phau-thuat.csv';
   document.body.appendChild(a); a.click(); a.remove();
   toast('⬇ Đã tải CSV', 'ok');
 }
+async function tourCreate(){
+  const get=id=>document.getElementById(id)?.value||'';
+  const date=get('tf-date'), name=get('tf-name').trim();
+  if(!date){ toast('⚠️ Chọn ngày làm ca','red'); return; }
+  if(!name){ toast('⚠️ Nhập tên khách','red'); return; }
+  try{
+    await tourApi({action:'create', case_date:date, full_name:name, phone:get('tf-phone'),
+      service_initial:get('tf-svc1'), service_up:get('tf-svc2'),
+      revenue_initial:get('tf-rev1'), revenue_up:get('tf-rev2'), debt:get('tf-debt'),
+      doctor:get('tf-doctor'), assistant:get('tf-assist')});
+    ['tf-name','tf-phone','tf-svc1','tf-svc2','tf-rev1','tf-rev2','tf-debt','tf-doctor','tf-assist'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+    toast('✅ Đã lưu ca','green'); if(typeof ding==='function')ding();
+    await tourLoad(true);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function tourDelete(id){
+  if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xoá','red'); return; }
+  if(!confirm('Xoá ca này?')) return;
+  try{ await tourApi({action:'delete', id}); toast('🗑️ Đã xoá','dark'); await tourLoad(true); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.tourCreate=tourCreate; window.tourDelete=tourDelete;
 document.addEventListener('input', (e)=>{
   if (e.target && e.target.id === 'tourSearch') tourRender();
 });
