@@ -518,7 +518,6 @@
       <div class="group">Vận hành</div>
       <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
       <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
-      <a data-section="schedule"><span class="ic">🗓️</span>Lịch trực</a>
       <a data-section="luong"><span class="ic">💵</span>Bảng lương bác sĩ</a>
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="telesale"><span class="ic">📞</span>Telesale &amp; Lễ tân</a>
@@ -907,27 +906,7 @@
 
       <div class="row r-3" style="margin-top:14px">
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-assign')"><div style="font-size:1.4rem">📋</div><h3 style="margin-top:6px">Giao việc hàng loạt</h3><div class="sub">AI gợi ý phân task theo skill</div></div>
-        <div class="card" style="cursor:pointer" onclick="go('schedule')"><div style="font-size:1.4rem">🗓️</div><h3 style="margin-top:6px">Phân ca trực tuần</h3><div class="sub">5 nhân viên · 7 ngày</div></div>
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-kpi')"><div style="font-size:1.4rem">🎯</div><h3 style="margin-top:6px">Cài KPI tháng</h3><div class="sub">Tự động theo dõi tiến độ</div></div>
-      </div>
-    </section>
-
-    <!-- ============ SCHEDULE / Lịch trực ============ -->
-    <section class="page" id="page-schedule">
-      <div class="card">
-        <div class="card-head"><div><h2>Lịch trực nhân viên — Tuần 18-24/05</h2><div class="sub">Sáng 9-13h · Chiều 13-17h · Tối 17-21h</div></div><button class="btn sm" onclick="openModal('new-shift')">+ Phân ca</button></div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th>Nhân viên</th><th>T2</th><th>T3</th><th>T4 (Hôm nay)</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th></tr></thead>
-            <tbody id="scheduleRows"></tbody>
-          </table>
-        </div>
-        <div style="display:flex;gap:14px;font-size:.78rem;margin-top:14px;flex-wrap:wrap">
-          <div><span style="background:#FFF6E0;color:var(--gold-deep);padding:3px 9px;border-radius:99px;font-weight:700">Sáng</span></div>
-          <div><span style="background:#E6F0FB;color:var(--blue);padding:3px 9px;border-radius:99px;font-weight:700">Chiều</span></div>
-          <div><span style="background:#F4ECF7;color:var(--purple);padding:3px 9px;border-radius:99px;font-weight:700">Tối</span></div>
-          <div><span style="background:#F0F0F0;color:#555;padding:3px 9px;border-radius:99px;font-weight:700">Nghỉ</span></div>
-        </div>
       </div>
     </section>
 
@@ -1344,7 +1323,7 @@
           <div style="display:flex;flex-direction:column;gap:8px;font-size:.88rem">
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>👑 Toàn quyền kiểm soát</b> — chị: thấy &amp; làm mọi thứ</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🛎️ Lễ tân</b> — lịch hẹn, khách, hóa đơn, chăm sóc</div>
-            <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>💆‍♀️ Kỹ thuật viên</b> — lịch trực, ca làm, hồ sơ KT</div>
+            <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>💆‍♀️ Kỹ thuật viên</b> — lịch hẹn, hồ sơ y khoa, chăm sóc</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🩺 Bác sĩ</b> — hồ sơ y khoa, tour phẫu, lịch</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🧑‍⚕️ Phụ phẫu</b> — như bác sĩ: hồ sơ y khoa, tour phẫu, lịch, khách</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>📈 Sale</b> — lead, telesale, chăm sóc</div>
@@ -1415,13 +1394,6 @@ const DATA = {
     {id:12, title:'Gọi chị Yến win-back (67 ngày)', priority:'Cao', owner:'CEO Phương', due:'Hôm nay', done:false, tag:'Win-back'},
     {id:13, title:'Cập nhật bảng giá dịch vụ Q3', priority:'TB', owner:'CEO Phương', due:'Tuần sau', done:false, tag:'KD'},
     {id:14, title:'Đóng SOS chị Hà Linh hoàn tiền', priority:'Khẩn', owner:'CEO Phương', due:'Trong 45 phút', done:false, tag:'SOS'}
-  ],
-  schedule: [
-    {name:'CEO Phương', av:'P', bg:'var(--grad)', shifts:['off','morning','allday','morning','allday','off','off']},
-    {name:'Bs. Hà', av:'H', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', shifts:['morning','morning','morning','off','afternoon','afternoon','off']},
-    {name:'Bs. Mai', av:'M', bg:'linear-gradient(135deg,#16A085,#27AE60)', shifts:['afternoon','allday','afternoon','allday','off','morning','off']},
-    {name:'KTV Ngọc', av:'N', bg:'linear-gradient(135deg,#3498DB,#2980B9)', shifts:['evening','evening','evening','evening','evening','off','off']},
-    {name:'Lễ tân Yến', av:'Y', bg:'linear-gradient(135deg,#E67E22,#D35400)', shifts:['allday','allday','allday','allday','allday','morning','off']}
   ],
   medical: [
     {code:'HS-2026-001', name:'Chị Linh Nguyễn', age:38, history:'Dị ứng kháng sinh Penicillin', lastVisit:'19/05/2026', protocol:'Combo trẻ hóa 6 buổi (3/6)'},
@@ -1779,14 +1751,13 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-shift' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-campaign'){
+  else if(type==='new-customer' || type==='new-staff' || type==='new-service' || type==='new-task' || type==='new-booking' || type==='new-medical' || type==='new-stock' || type==='new-photo' || type==='new-campaign'){
     const titles = {
       'new-customer':'➕ Thêm khách hàng mới',
       'new-staff':'➕ Thêm nhân viên mới',
       'new-service':'➕ Thêm dịch vụ mới',
       'new-task':'➕ Thêm công việc',
       'new-booking':'➕ Tạo lịch hẹn mới',
-      'new-shift':'➕ Phân ca trực',
       'new-medical':'➕ Tạo hồ sơ y khoa',
       'new-stock':'➕ Nhập kho mới',
       'new-photo':'➕ Thêm case trước/sau',
@@ -1799,7 +1770,6 @@ function openModal(type, ctx){
       'new-service': `<label>Tên dịch vụ</label><input id="f1"><label>Giá (VNĐ)</label><input id="f2" type="number"><label>Thời gian (phút)</label><input id="f3" type="number"><label>Mô tả</label><textarea id="f5" rows="3"></textarea>`,
       'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
       'new-booking': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}<option>+ Khách mới</option></select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ngày</label><input id="f3" type="date"><label>Giờ</label><select id="f4">${['09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(h=>`<option>${h}</option>`).join('')}</select><label>KTV / Bác sĩ</label><select id="f5">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ghi chú</label><textarea id="f6" rows="2"></textarea>`,
-      'new-shift': `<label>Nhân viên</label><select id="f1">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Ngày</label><input id="f2" type="date"><label>Ca</label><select id="f3"><option>Sáng (9-13h)</option><option>Chiều (13-17h)</option><option>Tối (17-21h)</option><option>Cả ngày</option><option>Nghỉ</option></select>`,
       'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
       'new-stock': `<label>SKU</label><input id="f1"><label>Tên sản phẩm</label><input id="f2"><label>Số lượng nhập</label><input id="f3" type="number"><label>Đơn vị</label><select id="f4"><option>ống</option><option>lọ</option><option>tuýp</option><option>chai</option><option>miếng</option><option>cây</option><option>hộp</option></select><label>Mức tối thiểu</label><input id="f5" type="number"><label>Nhà cung cấp</label><input id="f6">`,
       'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
@@ -1881,7 +1851,6 @@ function openModal(type, ctx){
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:18px">
         <button class="btn sm green" onclick='toast("📞 Đang gọi ${s.name}...","ok")'>📞 Gọi</button>
         <button class="btn ghost sm" onclick='toast("💬 Mở chat nội bộ với ${s.name}")'>💬 Chat</button>
-        <button class="btn ghost sm" onclick='closeModal();go("schedule")'>🗓️ Lịch trực</button>
         <button class="btn ghost sm" onclick='exportToWord("Hồ-sơ-${s.name}","<h1>${s.name}</h1><p>Vai trò: ${s.role}</p><p>Tags: ${(s.tags||[]).join(", ")}</p><p>Kỹ năng: ${(s.skills||[]).join(", ")}</p><p>Doanh thu: ${s.revenue?trShort(s.revenue):"—"}</p>")'>📄 Xuất hồ sơ Word</button>
       </div>
     `;
@@ -1990,7 +1959,6 @@ function handleSubmit(type){
     'new-service':'➕ Đã thêm dịch vụ',
     'new-task':'➕ Đã thêm công việc',
     'new-booking':'📅 Đã tạo lịch hẹn',
-    'new-shift':'🗓️ Đã phân ca',
     'new-medical':'🩺 Đã tạo hồ sơ y khoa',
     'new-stock':'📦 Đã nhập kho',
     'new-photo':'📸 Đã thêm case trước/sau',
@@ -2556,7 +2524,6 @@ const titles = {
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
-  schedule:['Lịch trực','Tuần 18-24/05/2026'],
   luong:['💵 Bảng lương bác sĩ — Phụ phẫu','Bảng công theo từng bác sĩ × tháng · từ file Excel nội bộ'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   telesale:['📞 Telesale & Lễ tân','KPI cuộc gọi · khách mời đến · hoa hồng telesale tháng 5/2026'],
@@ -3165,16 +3132,6 @@ function updateStorageInfo(){
   el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task · ${cnt.kho} SKU kho`;
 }
 
-function renderSchedule(){
-  const shiftClass = {morning:'background:#FFF6E0;color:var(--gold-deep)', afternoon:'background:#E6F0FB;color:var(--blue)', evening:'background:#F4ECF7;color:var(--purple)', allday:'background:linear-gradient(135deg,var(--gold),var(--orange));color:#fff', off:'background:#F0F0F0;color:#555'};
-  const shiftLabel = {morning:'Sáng', afternoon:'Chiều', evening:'Tối', allday:'Cả ngày', off:'Nghỉ'};
-  document.getElementById('scheduleRows').innerHTML = DATA.schedule.map(s=>`
-    <tr>
-      <td><div class="with-av"><span class="avatar" style="background:${s.bg}">${s.av}</span><b>${s.name}</b></div></td>
-      ${s.shifts.map(sh=>`<td><span style="${shiftClass[sh]};padding:4px 9px;border-radius:99px;font-size:.74rem;font-weight:700;display:inline-block">${shiftLabel[sh]}</span></td>`).join('')}
-    </tr>
-  `).join('');
-}
 function renderMedical(){
   document.getElementById('medicalRows').innerHTML = DATA.medical.map(m=>`
     <tr class="clickable" onclick='toast("🩺 Mở hồ sơ ${m.code}")'>
@@ -4197,7 +4154,6 @@ const QS_INDEX = [
   {sec:'care',title:'Hậu chăm sóc',hint:'Follow-up sau điều trị · SOP 7 mốc',ic:'🛎️'},
   {sec:'tasks',title:'Công việc',hint:'Task hôm nay · giao việc · ưu tiên',ic:'📋'},
   {sec:'staff',title:'Nhân viên',hint:'Hiệu suất · tag · giao việc · KPI',ic:'👩‍⚕️'},
-  {sec:'schedule',title:'Lịch trực',hint:'Ca trực · phân công · đổi ca',ic:'🗓️'},
   {sec:'revenue',title:'Doanh thu',hint:'Báo cáo doanh thu · trend · breakdown',ic:'💰'},
   {sec:'billing',title:'Hóa đơn',hint:'Tạo & in bill 80mm · lịch sử hóa đơn',ic:'🧾'},
   {sec:'accounts',title:'Tài khoản',hint:'Tạo tài khoản · chức vụ · phân quyền nhân viên',ic:'👤'},
@@ -5004,7 +4960,7 @@ window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass
 const ROLE_MENUS={
   'Toàn quyền kiểm soát':'*',
   'Lễ tân':'*',
-  'Kỹ thuật viên':['dashboard','calendar','schedule','medical','gallery','care'],
+  'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
   'Sale':['dashboard','leads','telesale','phangoi','crm','care'],
@@ -5033,7 +4989,7 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
-renderTasks(); renderSchedule(); renderInventory();
+renderTasks(); renderInventory();
 renderCampaigns(); renderCalendar(); renderAppointments(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v5'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v5'); } }catch(e){} // nạp lại với ngày chuẩn theo tháng + sắp xếp mới nhất — 1 lần
