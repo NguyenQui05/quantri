@@ -518,7 +518,7 @@
       <div class="group">Vận hành</div>
       <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
       <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
-      <a data-section="luong"><span class="ic">💵</span>Bảng lương bác sĩ</a>
+      <a data-section="luong"><span class="ic">💵</span>Bảng lương nhân viên</a>
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="telesale"><span class="ic">📞</span>Telesale &amp; Lễ tân</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
@@ -912,28 +912,40 @@
 
     <!-- ============ LƯƠNG BÁC SĨ — PHỤ PHẪU ============ -->
     <section class="page" id="page-luong">
-      <div class="alert info" style="margin-bottom:14px"><span class="ic">💵</span><div><b>Bảng lương nhân viên theo tháng</b> — đọc trực tiếp từ Google Sheet bảng lương, tự cập nhật. Gồm: lương cứng · ngày công · thực lương · phụ cấp · tiền phụ phẫu · up sale/hoa hồng · <b>tổng lương</b>.</div></div>
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">💵</span><div><b>Bảng lương toàn bộ nhân viên</b> — lưu thật trên hệ thống, đồng bộ mọi thiết bị. Bấm dòng để xem/sửa chi tiết từng khoản; các cột tiền tự tính theo đơn giá.</div></div>
       <div class="grid kpi-grid">
         <div class="kpi k2"><div class="ic">💰</div><div class="label">Tổng lương tháng</div><div class="val" id="lg-kTotal">—</div><div class="delta" id="lg-kTotalSub">&nbsp;</div></div>
         <div class="kpi k1"><div class="ic">👥</div><div class="label">Số nhân viên</div><div class="val" id="lg-kCount">—</div><div class="delta">có lương tháng này</div></div>
         <div class="kpi k3"><div class="ic">⬆️</div><div class="label">Lương cao nhất</div><div class="val" id="lg-kMax">—</div><div class="delta" id="lg-kMaxName">&nbsp;</div></div>
         <div class="kpi k4"><div class="ic">📊</div><div class="label">TB / người</div><div class="val" id="lg-kAvg">—</div><div class="delta">&nbsp;</div></div>
       </div>
-      <div class="card" style="margin-top:16px">
+
+      <div class="card" style="margin-top:16px;margin-bottom:14px">
+        <div class="card-head"><h2>➕ Thêm nhân viên vào bảng lương tháng</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Họ tên</label><input id="lg-add-name" class="bi" placeholder="Nguyễn Thị A"></div>
+          <div><label class="bl">Lương cứng (đ/ngày)</label><input id="lg-add-luongcung" class="bi" type="number" min="0" placeholder="0"></div>
+        </div>
+        <button class="btn" style="margin-top:14px" onclick="payrollCreate()">➕ Thêm vào tháng đang chọn</button>
+      </div>
+
+      <div class="card">
         <div class="card-head">
           <div><h2>Bảng lương</h2><div class="sub" id="lg-sub">Chọn tháng để xem</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <select id="lg-month" style="min-width:170px" onchange="luongRenderMonth()"></select>
-            <button class="btn ghost sm" onclick="luongExportCSV()">⬇ Xuất CSV</button>
+            <select id="lg-month" style="min-width:80px" onchange="payrollLoad(true)"></select>
+            <select id="lg-year" style="min-width:90px" onchange="payrollLoad(true)"></select>
+            <button class="btn ghost sm" onclick="payrollOpenRates()">⚙️ Đơn giá</button>
+            <button class="btn ghost sm" onclick="payrollExportCSV()">⬇ Xuất CSV</button>
           </div>
         </div>
         <div style="overflow-x:auto;margin-top:12px">
           <table style="font-size:.85rem">
-            <thead><tr><th>Nhân viên</th><th style="text-align:right">Lương cứng</th><th style="text-align:right">Ngày công</th><th style="text-align:right">Thực lương</th><th style="text-align:right">Phụ cấp</th><th style="text-align:right">Tiền phụ phẫu</th><th style="text-align:right">Up sale / HH</th><th style="text-align:right">Tổng lương</th></tr></thead>
+            <thead><tr><th>Nhân viên</th><th style="text-align:right">Lương cứng</th><th style="text-align:right">Ngày công</th><th style="text-align:right">Thực lương</th><th style="text-align:right">Tổng hoa hồng</th><th style="text-align:right">Ứng lương</th><th style="text-align:right">Tổng lương</th><th></th></tr></thead>
             <tbody id="lg-rows"></tbody>
           </table>
         </div>
-        <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">💡 Phụ cấp = ăn + gửi xe · Phụ phẫu = tiền phụ thường + phụ căng da · HH = up sale + tổng hoa hồng. Số liệu lấy nguyên từ cột "Tổng lương" trong sheet.</div>
+        <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">💡 Bấm vào một dòng để xem đầy đủ phụ cấp · tiền ca · up sale/hoa hồng và sửa chi tiết.</div>
       </div>
     </section>
 
@@ -1703,6 +1715,51 @@ function openModal(type, ctx){
     `;
   }
 
+  else if(type==='payroll-detail'){
+    const e = ctx; modalEl.classList.add('lg');
+    t.textContent = `Lương: ${e.full_name}`;
+    const num=(id,v)=>`<div><label class="bl">${id.label}</label><input id="${id.id}" class="bi" type="number" min="0" value="${v||0}"></div>`;
+    b.innerHTML = `
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label class="bl">Họ tên</label><input id="pr-ed-name" class="bi" value="${pgEscAttr(e.full_name)}"></div>
+        ${num({id:'pr-ed-luongcung',label:'Lương cứng (đ/ngày)'}, e.luong_cung)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+        ${num({id:'pr-ed-ngaycong',label:'Ngày công'}, e.ngay_cong)}
+        <div>${num({id:'pr-ed-thucluong',label:'Thực lương (đ)'}, e.thuc_luong)}
+          <label style="font-size:.72rem;color:var(--muted);display:flex;gap:5px;align-items:center;margin-top:4px"><input id="pr-ed-thucluong-ov" type="checkbox" ${e.thuc_luong_override?'checked':''}> nhập tay (bỏ qua lương cứng × ngày công)</label></div>
+        <div>${num({id:'pr-ed-phucapan',label:'Phụ cấp ăn (đ)'}, e.phu_cap_an)}
+          <label style="font-size:.72rem;color:var(--muted);display:flex;gap:5px;align-items:center;margin-top:4px"><input id="pr-ed-phucapan-ov" type="checkbox" ${e.phu_cap_an_override?'checked':''}> nhập tay (bỏ qua đơn giá)</label></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+        ${num({id:'pr-ed-guixe',label:'Gửi xe (đ)'}, e.gui_xe)}
+        ${num({id:'pr-ed-phuthuong',label:'Phụ thường (ca)'}, e.phu_thuong_ca)}
+        ${num({id:'pr-ed-phucangda',label:'Phụ căng da (ca)'}, e.phu_cang_da_ca)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+        ${num({id:'pr-ed-lamthuong',label:'Làm thường (ca)'}, e.lam_thuong_ca)}
+        ${num({id:'pr-ed-lamcangda',label:'Làm căng da (ca)'}, e.lam_cang_da_ca)}
+        ${num({id:'pr-ed-tiem',label:'Tiêm (ca)'}, e.tiem_ca)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+        ${num({id:'pr-ed-csd',label:'CSD (ca)'}, e.csd_ca)}
+        ${num({id:'pr-ed-upsale',label:'Up sale / doanh số (đ)'}, e.up_sale)}
+        ${num({id:'pr-ed-pct',label:'% hoa hồng'}, e.pct_hoa_hong)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
+        ${num({id:'pr-ed-goiphau',label:'Gọi khách phẫu (đ)'}, e.goi_phau)}
+        ${num({id:'pr-ed-goida',label:'Gọi khách da (đ)'}, e.goi_da)}
+        ${num({id:'pr-ed-khac',label:'Phụ cấp khác (đ)'}, e.phu_cap_khac)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+        ${num({id:'pr-ed-ung',label:'Ứng lương (đ)'}, e.ung_luong)}
+      </div>
+      <div class="alert info" style="margin-bottom:10px"><span class="ic">💵</span><div><b>Tổng lương tạm tính:</b> ${VND_FULL(payrollCalc(e).tongLuong)}đ — cập nhật sau khi bấm Lưu.</div></div>
+      <button class="btn sm" onclick="payrollSaveEdit('${e.id}')">💾 Lưu thay đổi</button>
+      ${canDelete()?`<button class="btn ghost sm" onclick="payrollDelete('${e.id}')">🗑 Xoá khỏi bảng lương</button>`:''}
+    `;
+  }
+
   else if(type==='appt'){
     const a = ctx; modalEl.classList.add('lg');
     const init=((a.name.replace(/^[a-zA-Z]\s+/,'').trim()[0])||a.name[0]||'?').toUpperCase();
@@ -1967,234 +2024,191 @@ function handleSubmit(type){
   toast(successMsg[type] || '✅ Đã lưu', 'green');
 }
 
-/* ===== LƯƠNG + TOUR PHẪU (Excel-driven) ===== */
-const LUONG = { data:null, loading:false };
+/* ===== LƯƠNG + TOUR PHẪU ===== */
 const TOUR  = { rows:null, stats:null, loading:false };
 const TELESALE = { data:null, loading:false, person:null };
 
 const VND = n => (n == null || n === 0) ? '' : (Math.round(n)).toLocaleString('vi-VN');
 const VND_FULL = n => (n == null) ? '—' : (Math.round(n)).toLocaleString('vi-VN');
 
-const LUONG_SHEET_ID='1YJ1UsOL7jllgFvk4OIZv4JbDTuETYWUKSPst9I6EoSk';
-let LUONG_MONTHS=null;
-function lgMoney(v){ if(v==null)return 0; if(typeof v==='number')return v; const n=parseInt(String(v).replace(/[^\d]/g,''),10); return isNaN(n)?0:n; }
-function lgParse(rows){
-  const months=[]; let cur=null; const seen={};
-  rows.forEach(r=>{
-    const c0=String(r[0]==null?'':r[0]).trim();
-    const mm=c0.match(/THÁNG\s*(\d+)/i);
-    if(mm){ const n=mm[1]; seen[n]=(seen[n]||0)+1; const label='Tháng '+n+'/2026'+(seen[n]>1?(' (bản '+seen[n]+')'):''); cur={label,emps:[],total:0}; months.push(cur); return; }
-    if(!cur) return;
-    if(/^tên nv/i.test(c0)) return;
-    if(!c0) return;
-    const tong=lgMoney(r[22]);
-    cur.emps.push({ name:c0, luongCung:lgMoney(r[1]), ngayCong:(r[2]==null?'':String(r[2]).trim()),
-      thucLuong:lgMoney(r[3]), phuCap:lgMoney(r[4])+lgMoney(r[5]),
-      phuPhau:lgMoney(r[10])+lgMoney(r[11]), hoaHong:lgMoney(r[16])+lgMoney(r[20]), tong:tong });
-    cur.total+=tong;
-  });
-  return months;
+const PAYROLL = { rows:null, rates:null, loading:false, month:null, year:null };
+const PR_RATE_FIELDS = ['meal','phu_thuong','phu_cang_da','lam_thuong','lam_cang_da','tiem','csd'];
+
+async function payrollApi(payload){
+  const r=await fetch('/api/payroll',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
 }
-async function luongLoad(){
-  const sel=document.getElementById('lg-month');
-  if(LUONG_MONTHS){ luongRenderMonth(); return; }
-  if(sel) sel.innerHTML='<option>Đang tải…</option>';
+function payrollFillSelectors(){
+  const now=new Date();
+  const selM=document.getElementById('lg-month'), selY=document.getElementById('lg-year');
+  if(!selM||!selY) return;
+  if(!selM.options.length){
+    selM.innerHTML=Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}">Tháng ${m}</option>`).join('');
+    selM.value=String(now.getMonth()+1);
+  }
+  if(!selY.options.length){
+    const y=now.getFullYear();
+    selY.innerHTML=[y-1,y,y+1].map(v=>`<option value="${v}">${v}</option>`).join('');
+    selY.value=String(y);
+  }
+}
+async function payrollLoad(force){
+  payrollFillSelectors();
+  if (PAYROLL.loading) return;
+  const selM=document.getElementById('lg-month'), selY=document.getElementById('lg-year');
+  const month=parseInt(selM?.value,10)||(new Date().getMonth()+1);
+  const year=parseInt(selY?.value,10)||new Date().getFullYear();
+  if (PAYROLL.rows && !force && PAYROLL.month===month && PAYROLL.year===year) { payrollRender(); return; }
+  PAYROLL.loading = true;
+  const tb=document.getElementById('lg-rows');
+  if(tb) tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
   try{
-    const r=await fetch('https://docs.google.com/spreadsheets/d/'+LUONG_SHEET_ID+'/gviz/tq?tqx=out:json&gid=0&headers=0');
-    const t=await r.text(); const j=JSON.parse(t.replace(/^[^\{]*/,'').replace(/\)\;?\s*$/,''));
-    const rows=(j.table.rows||[]).map(rw=>(rw.c||[]).map(c=>c?(c.f!=null?c.f:c.v):null));
-    LUONG_MONTHS=lgParse(rows);
-  }catch(e){ if(sel) sel.innerHTML='<option>Lỗi tải</option>'; toast('⚠️ Không đọc được sheet lương: '+(e?.message||e),'red'); return; }
-  if(sel){ sel.innerHTML=LUONG_MONTHS.map((m,i)=>`<option value="${i}">${m.label}</option>`).join(''); sel.value=String(Math.max(0,LUONG_MONTHS.length-1)); }
-  luongRenderMonth();
+    const d = await payrollApi({action:'list', month, year});
+    PAYROLL.rows = d.rows||[]; PAYROLL.rates = d.rates||null; PAYROLL.month=month; PAYROLL.year=year;
+    payrollRender();
+  }catch(e){
+    console.error('payroll load fail', e);
+    if(tb) tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
+  }finally{ PAYROLL.loading = false; }
 }
-function luongRenderMonth(){
-  if(!LUONG_MONTHS||!LUONG_MONTHS.length) return;
-  const sel=document.getElementById('lg-month'); const idx=sel?(parseInt(sel.value,10)||0):LUONG_MONTHS.length-1;
-  const m=LUONG_MONTHS[idx]; if(!m) return;
-  const trv=x=>x>=1e6?(x/1e6).toFixed(1)+'tr':(x>=1e3?Math.round(x/1e3)+'k':String(x||0));
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  const emps=m.emps.filter(e=>e.tong>0||e.thucLuong>0);
-  const top=emps.slice().sort((a,b)=>b.tong-a.tong)[0];
-  set('lg-kTotal',trv(m.total)); set('lg-kTotalSub',VND_FULL(m.total)+'đ');
-  set('lg-kCount',emps.length);
-  set('lg-kMax',top?trv(top.tong):'—'); set('lg-kMaxName',top?top.name:'');
-  set('lg-kAvg',emps.length?trv(Math.round(m.total/emps.length)):'—');
-  set('lg-sub',m.label+' · '+emps.length+' nhân viên');
+function payrollCalc(e, rates){
+  rates = rates || PAYROLL.rates || {};
+  const thucLuong = e.thuc_luong_override ? (e.thuc_luong||0) : (e.luong_cung||0) * (e.ngay_cong||0);
+  const phuCapAn = e.phu_cap_an_override ? (e.phu_cap_an||0) : (e.ngay_cong||0) * (rates.meal||0);
+  const tienPhuThuong = (e.phu_thuong_ca||0) * (rates.phu_thuong||0);
+  const tienPhuCangDa = (e.phu_cang_da_ca||0) * (rates.phu_cang_da||0);
+  const tienLamThuong = (e.lam_thuong_ca||0) * (rates.lam_thuong||0);
+  const tienLamCangDa = (e.lam_cang_da_ca||0) * (rates.lam_cang_da||0);
+  const tienTiem = (e.tiem_ca||0) * (rates.tiem||0);
+  const tienCsd = (e.csd_ca||0) * (rates.csd||0);
+  const tongUp = (e.up_sale||0) * (e.pct_hoa_hong||0) / 100;
+  const tongHoaHong = tongUp + (e.goi_phau||0) + (e.goi_da||0) + (e.phu_cap_khac||0);
+  const tongLuong = thucLuong + phuCapAn + (e.gui_xe||0) + tienPhuThuong + tienPhuCangDa + tienLamThuong + tienLamCangDa + tienTiem + tienCsd + tongHoaHong - (e.ung_luong||0);
+  return { thucLuong, phuCapAn, tienPhuThuong, tienPhuCangDa, tienLamThuong, tienLamCangDa, tienTiem, tienCsd, tongUp, tongHoaHong, tongLuong };
+}
+function payrollRender(){
   const tb=document.getElementById('lg-rows'); if(!tb) return;
-  tb.innerHTML=emps.map(e=>`<tr>
-    <td><b>${e.name}</b></td>
-    <td style="text-align:right">${e.luongCung?VND_FULL(e.luongCung)+'đ':'—'}</td>
-    <td style="text-align:right">${e.ngayCong||'—'}</td>
-    <td style="text-align:right">${e.thucLuong?VND_FULL(e.thucLuong)+'đ':'—'}</td>
-    <td style="text-align:right">${e.phuCap?VND_FULL(e.phuCap)+'đ':'—'}</td>
-    <td style="text-align:right">${e.phuPhau?VND_FULL(e.phuPhau)+'đ':'—'}</td>
-    <td style="text-align:right">${e.hoaHong?VND_FULL(e.hoaHong)+'đ':'—'}</td>
-    <td style="text-align:right"><b style="color:var(--orange-deep)">${VND_FULL(e.tong)}đ</b></td></tr>`).join('')
-    +`<tr style="font-weight:800;background:#FBF6F1"><td>TỔNG</td><td colspan="6"></td><td style="text-align:right;color:var(--orange-deep)">${VND_FULL(m.total)}đ</td></tr>`;
-}
-window.luongRenderMonth=luongRenderMonth;
-
-const LUONG_BAC_SI = ['Liên','Lan']; // 2 bác sĩ phẫu thuật; còn lại là phụ phẫu
-function luongBuildSelectors(){
-  const d = LUONG.data; if (!d) return;
-  const sel = document.getElementById('luongPerson');
-  const cur = sel.value;
-  const keys = Object.keys(d);
-  const bs = keys.filter(p => LUONG_BAC_SI.includes(p));
-  const pp = keys.filter(p => !LUONG_BAC_SI.includes(p));
-  const opt = arr => arr.map(p => `<option value="${p}">${p}</option>`).join('');
-  let html = '';
-  if (bs.length) html += `<optgroup label="🩺 Bác sĩ">${opt(bs)}</optgroup>`;
-  if (pp.length) html += `<optgroup label="🤝 Phụ phẫu">${opt(pp)}</optgroup>`;
-  sel.innerHTML = html;
-  if (cur && d[cur]) sel.value = cur;
-  sel.onchange = ()=>luongRender();
-  document.getElementById('luongMonth').onchange = ()=>luongRender();
-  luongFillMonths();
-  luongRender();
-}
-function luongFillMonths(){
-  const d = LUONG.data; if (!d) return;
-  const person = document.getElementById('luongPerson').value;
-  const months = Object.keys(d[person] || {}).map(Number).sort((a,b)=>a-b);
-  const sel = document.getElementById('luongMonth');
-  const cur = Number(sel.value);
-  sel.innerHTML = months.map(m => `<option value="${m}">Tháng ${m}/2026</option>`).join('');
-  if (months.includes(cur)) sel.value = cur;
-  else if (months.length) sel.value = months[months.length-1]; // mặc định tháng mới nhất
-}
-document.addEventListener('change', (e)=>{
-  if (e.target && e.target.id === 'luongPerson'){ luongFillMonths(); luongRender(); }
-});
-
-function luongRender(){
-  const d = LUONG.data; if (!d) return;
-  const person = document.getElementById('luongPerson').value;
-  const month  = Number(document.getElementById('luongMonth').value);
-  const sheet  = d[person]?.[month];
-  const thead = document.getElementById('luong-thead');
-  const tbody = document.getElementById('luong-tbody');
-  const tfoot = document.getElementById('luong-tfoot');
-  const bg    = document.getElementById('luong-bang-gia');
-  const sub   = document.getElementById('luong-sub');
-  if (!sheet){
-    thead.innerHTML=''; tbody.innerHTML='<tr><td>Không có dữ liệu cho tháng này</td></tr>'; tfoot.innerHTML=''; bg.innerHTML='';
+  const rows = PAYROLL.rows||[];
+  const sub=document.getElementById('lg-sub');
+  const trv=x=>x>=1e6?(x/1e6).toFixed(1)+'tr':(x>=1e3?Math.round(x/1e3)+'k':String(Math.round(x||0)));
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Chưa có nhân viên nào trong tháng này — thêm ở form phía trên</td></tr>';
+    if(sub) sub.textContent='Chưa có dữ liệu';
+    set('lg-kTotal','—'); set('lg-kTotalSub',' '); set('lg-kCount','0'); set('lg-kMax','—'); set('lg-kMaxName',' '); set('lg-kAvg','—');
     return;
   }
-  const isBs = LUONG_BAC_SI.includes(person);
-  const roleLabel = isBs ? '🩺 Bác sĩ' : '🤝 Phụ phẫu';
-  const roleStyle = isBs ? 'background:#FBE7DA;color:#B05E1D' : 'background:#E8F0E4;color:#4E7A3E';
-  sub.innerHTML = `<span style="display:inline-block;padding:1px 9px;border-radius:10px;font-size:11px;font-weight:700;${roleStyle}">${roleLabel}</span> &nbsp;${person} · ${sheet.title || 'Tháng '+month+'/2026'} · layout ${sheet.layout}`;
-
-  if (sheet.layout === 'B') luongRenderB(sheet);
-  else luongRenderA(sheet);
+  const calc = rows.map(e=>({e, c:payrollCalc(e)}));
+  const total = calc.reduce((s,x)=>s+x.c.tongLuong,0);
+  const top = calc.slice().sort((a,b)=>b.c.tongLuong-a.c.tongLuong)[0];
+  if(sub) sub.textContent = `Tháng ${PAYROLL.month}/${PAYROLL.year} · ${rows.length} nhân viên`;
+  set('lg-kTotal',trv(total)); set('lg-kTotalSub',VND_FULL(total)+'đ');
+  set('lg-kCount',rows.length);
+  set('lg-kMax',top?trv(top.c.tongLuong):'—'); set('lg-kMaxName',top?top.e.full_name:'');
+  set('lg-kAvg',rows.length?trv(Math.round(total/rows.length)):'—');
+  tb.innerHTML = calc.map(({e,c})=>{
+    const ctxJson=JSON.stringify(e).replace(/'/g,"&#39;");
+    return `<tr class="clickable" onclick='openModal("payroll-detail",${ctxJson})'>
+      <td><b>${pgEscHtml(e.full_name)}</b></td>
+      <td style="text-align:right">${e.luong_cung?VND_FULL(e.luong_cung)+'đ':'—'}</td>
+      <td style="text-align:right">${e.ngay_cong||'—'}</td>
+      <td style="text-align:right">${c.thucLuong?VND_FULL(c.thucLuong)+'đ':'—'}</td>
+      <td style="text-align:right">${c.tongHoaHong?VND_FULL(c.tongHoaHong)+'đ':'—'}</td>
+      <td style="text-align:right">${e.ung_luong?VND_FULL(e.ung_luong)+'đ':'—'}</td>
+      <td style="text-align:right"><b style="color:var(--orange-deep)">${VND_FULL(c.tongLuong)}đ</b></td>
+      <td>${canDelete()?`<button class="btn ghost sm" onclick="event.stopPropagation();payrollDelete('${e.id}')">🗑</button>`:''}</td>
+    </tr>`;
+  }).join('')
+  +`<tr style="font-weight:800;background:#FBF6F1"><td>TỔNG</td><td colspan="5"></td><td style="text-align:right;color:var(--orange-deep)">${VND_FULL(total)}đ</td><td></td></tr>`;
 }
-
-function luongRenderA(sheet){
-  // Dịch vụ × Ngày (1-31) + Tổng
-  const thead = document.getElementById('luong-thead');
-  const tbody = document.getElementById('luong-tbody');
-  const tfoot = document.getElementById('luong-tfoot');
-  const bg    = document.getElementById('luong-bang-gia');
-  const days = Array.from({length:31}, (_,i)=>i+1);
-  // hàng nào là tiền: UP / NỢ / DT* / DOANH SỐ / TƯ VẤN (alone)
-  const isMoneyRow = (ten) => /^UP$|^N[Ợ]$|^DT|DOANH SỐ|^TƯ VẤN$/i.test(ten.trim());
-
-  thead.innerHTML = `<tr><th style="position:sticky;left:0;background:#fff;z-index:2;min-width:170px">Dịch vụ</th>${days.map(d=>`<th style="text-align:center;min-width:34px">${d}</th>`).join('')}<th style="background:#FFF6E0;color:var(--brown-deep);min-width:60px">Tổng</th></tr>`;
-  const dayTotalsCa    = new Array(32).fill(0);
-  const dayTotalsMoney = new Array(32).fill(0);
-  let totalCa = 0, totalDS = 0;
-
-  tbody.innerHTML = sheet.services.map(s => {
-    const money = isMoneyRow(s.ten);
-    let row = `<tr style="${money?'background:#FFFAF0':''}"><td style="position:sticky;left:0;background:${money?'#FFFAF0':'#fff'};z-index:1;font-weight:600;${money?'color:var(--orange-deep)':''}">${s.ten}${money?' <span style="font-size:.65rem;color:var(--muted);font-weight:400">(₫)</span>':''}</td>`;
-    for (const d of days){
-      const v = s.byDay[d];
-      if (v != null){
-        if (money) dayTotalsMoney[d] += v; else dayTotalsCa[d] += v;
-      }
-      const display = v != null ? (money ? VND(v) : v) : '·';
-      row += `<td style="text-align:${money?'right':'center'};${v?(money?'color:var(--orange-deep);font-weight:600':'background:#FFF6E0;font-weight:600;color:var(--brown-deep)'):'color:#bbb'}">${display}</td>`;
-    }
-    if (money) totalDS += (s.tong||0); else totalCa += (s.tong||0);
-    const tongDisp = s.tong != null ? (money ? VND(s.tong) : s.tong) : '·';
-    row += `<td style="text-align:${money?'right':'center'};background:#FFEFCF;color:${money?'var(--orange-deep)':'var(--brown-deep)'};font-weight:700">${tongDisp}</td></tr>`;
-    return row;
-  }).join('');
-  tfoot.innerHTML = `<tr style="background:#FBEFD8"><th style="position:sticky;left:0;background:#FBEFD8;text-align:left">Tổng ca/ngày</th>${days.map(d=>`<th style="text-align:center;color:var(--brown-deep)">${dayTotalsCa[d]||''}</th>`).join('')}<th style="text-align:center;color:var(--orange-deep);font-size:1rem">${totalCa}</th></tr>`;
-  bg.innerHTML = `<div class="sub" style="font-size:.82rem;color:var(--muted);margin-top:6px">📌 Layout cũ T2–T4: số ca + tiền (UP/Nợ/DT/DOANH SỐ) đều ghi cùng bảng. Hàng tô vàng nhạt và (₫) = đơn vị tiền (nghìn đồng).</div>`;
-
-  // KPI
-  const nCaServices = sheet.services.filter(s => !isMoneyRow(s.ten));
-  const nDayHasCa = dayTotalsCa.filter(x=>x>0).length;
-  document.getElementById('luong-kpi-ca').textContent = totalCa.toLocaleString('vi-VN');
-  document.getElementById('luong-kpi-ca-sub').textContent = `${nCaServices.length} dịch vụ`;
-  document.getElementById('luong-kpi-ds').textContent = totalDS ? VND_FULL(totalDS) : '—';
-  document.getElementById('luong-kpi-ds-sub').textContent = totalDS ? 'nghìn đồng · gộp UP+DT+DOANH SỐ' : 'không tách rõ ở layout cũ';
-  document.getElementById('luong-kpi-ngay').textContent = nDayHasCa;
-  document.getElementById('luong-kpi-dv').textContent = nCaServices.filter(s=>(s.tong||0)>0).length;
+async function payrollCreate(){
+  const get=id=>document.getElementById(id)?.value||'';
+  const name=get('lg-add-name').trim();
+  if(!name){ toast('⚠️ Nhập họ tên','red'); return; }
+  payrollFillSelectors();
+  const month=parseInt(document.getElementById('lg-month')?.value,10)||(new Date().getMonth()+1);
+  const year=parseInt(document.getElementById('lg-year')?.value,10)||new Date().getFullYear();
+  try{
+    await payrollApi({action:'create', month, year, full_name:name, luong_cung:get('lg-add-luongcung')});
+    document.getElementById('lg-add-name').value=''; document.getElementById('lg-add-luongcung').value='';
+    toast('✅ Đã thêm vào bảng lương','green'); if(typeof ding==='function')ding();
+    await payrollLoad(true);
+  }catch(e){ toast('❌ '+e.message,'red'); }
 }
-
-function luongRenderB(sheet){
-  // Ngày × Dịch vụ + Doanh số + bảng giá
-  const thead = document.getElementById('luong-thead');
-  const tbody = document.getElementById('luong-tbody');
-  const tfoot = document.getElementById('luong-tfoot');
-  const bg    = document.getElementById('luong-bang-gia');
-  const cols = sheet.serviceCols;
-  // Whitelist cột số ca (giá trị nhỏ 1-5); các cột còn lại (TƯ VẤN, UP, NỢ, DT, DOANH) đều là tiền (đơn vị nghìn đồng)
-  const CA_COLS_RE = /^(THƯỜNG|CĂNG DA|MAY|TIÊM|PHỤ PHẪU THƯỜNG|PHỤ PHẪU CĂNG DA|CHĂM SÓC DA)$/i;
-  const isMoney = (h) => !CA_COLS_RE.test(h.trim());
-  thead.innerHTML = `<tr><th style="text-align:center;min-width:50px">Ngày</th>${cols.map(c=>`<th style="text-align:center;min-width:70px;font-size:.78rem;${isMoney(c)?'color:var(--orange-deep)':''}">${c}${isMoney(c)?' <span style="font-size:.6rem;color:var(--muted);font-weight:400">(₫)</span>':''}</th>`).join('')}<th style="background:#FFF6E0;min-width:90px;color:var(--brown-deep)">Doanh số</th></tr>`;
-  const sums = {}; cols.forEach(c => sums[c]=0);
-  let totalDS = 0, totalCa = 0;
-  tbody.innerHTML = sheet.rows.map(row => {
-    let line = `<tr><td style="text-align:center;font-weight:700;color:var(--brown-deep)">${row.ngay}</td>`;
-    for (const c of cols){
-      const v = row.services[c];
-      const money = isMoney(c);
-      if (v != null){
-        sums[c] += v;
-        if (!money) totalCa += v;
-      }
-      const display = v != null ? (money ? VND(v) : v) : '·';
-      line += `<td style="text-align:${money?'right':'center'};${v?(money?'color:var(--orange-deep);font-weight:600':'background:#FFF6E0;font-weight:600;color:var(--brown-deep)'):'color:#bbb'}">${display}</td>`;
-    }
-    if (row.doanhSo) totalDS += row.doanhSo;
-    line += `<td style="text-align:right;background:#FFEFCF;color:var(--orange-deep);font-weight:700">${row.doanhSo ? VND(row.doanhSo) : ''}</td></tr>`;
-    return line;
-  }).join('');
-  tfoot.innerHTML = `<tr style="background:#FBEFD8"><th>Tổng</th>${cols.map(c=>`<th style="text-align:${isMoney(c)?'right':'center'};color:var(--brown-deep)">${sums[c] ? (isMoney(c)?VND(sums[c]):sums[c]) : ''}</th>`).join('')}<th style="text-align:right;color:var(--orange-deep);font-size:1rem">${VND_FULL(totalDS)}</th></tr>`;
-
-  // bảng giá
-  const bgEntries = Object.entries(sheet.bangGia||{});
-  if (bgEntries.length){
-    bg.innerHTML = `<div class="card" style="background:linear-gradient(135deg,#FFF8EC,#FBEFD8);box-shadow:none;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:var(--brown-deep)">💰 Bảng giá nội bộ (nghìn đồng/ca)</b><span class="sub" style="font-size:.78rem">— dùng để tính doanh số tự động</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${bgEntries.map(([k,v])=>`<span style="background:#fff;padding:6px 12px;border-radius:99px;font-size:.82rem;border:1px solid #FBEFD8"><b>${k}:</b> <span style="color:var(--orange-deep);font-weight:700">${v}</span></span>`).join('')}</div></div>`;
-  } else {
-    bg.innerHTML = '';
-  }
-
-  // KPI (chỉ tính cột số ca thật, bỏ cột tiền)
-  const caCols = cols.filter(c => !isMoney(c));
-  document.getElementById('luong-kpi-ca').textContent = totalCa.toLocaleString('vi-VN');
-  document.getElementById('luong-kpi-ca-sub').textContent = `${caCols.length} loại dịch vụ`;
-  document.getElementById('luong-kpi-ds').textContent = VND_FULL(totalDS);
-  document.getElementById('luong-kpi-ds-sub').textContent = 'nghìn đồng';
-  document.getElementById('luong-kpi-ngay').textContent = sheet.rows.length;
-  document.getElementById('luong-kpi-dv').textContent = caCols.filter(c => sums[c] > 0).length;
+async function payrollDelete(id){
+  if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xoá','red'); return; }
+  if(!confirm('Xoá nhân viên này khỏi bảng lương tháng?')) return;
+  try{ await payrollApi({action:'delete', id}); closeModal(); toast('🗑️ Đã xoá','dark'); await payrollLoad(true); }
+  catch(e){ toast('❌ '+e.message,'red'); }
 }
-
-function luongExportCSV(){
-  if(!LUONG_MONTHS) return; const sel=document.getElementById('lg-month'); const m=LUONG_MONTHS[sel?parseInt(sel.value,10)||0:0]; if(!m) return;
-  const rows=[['Nhân viên','Lương cứng','Ngày công','Thực lương','Phụ cấp','Tiền phụ phẫu','Up sale/Hoa hồng','Tổng lương']];
-  m.emps.forEach(e=>rows.push([e.name,e.luongCung,e.ngayCong,e.thucLuong,e.phuCap,e.phuPhau,e.hoaHong,e.tong]));
-  rows.push(['TỔNG','','','','','','',m.total]);
-  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='bang-luong-'+m.label.replace(/[^\dT]/gi,'')+'.csv'; a.click();
-  toast('⬇ Đã tải CSV lương '+m.label,'green');
+async function payrollSaveEdit(id){
+  const get=eid=>document.getElementById(eid)?.value||'';
+  const chk=eid=>!!document.getElementById(eid)?.checked;
+  const name=get('pr-ed-name').trim();
+  if(!name){ toast('⚠️ Họ tên không được để trống','red'); return; }
+  try{
+    await payrollApi({action:'update', id, full_name:name,
+      luong_cung:get('pr-ed-luongcung'), ngay_cong:get('pr-ed-ngaycong'),
+      thuc_luong:get('pr-ed-thucluong'), thuc_luong_override:chk('pr-ed-thucluong-ov'),
+      phu_cap_an:get('pr-ed-phucapan'), phu_cap_an_override:chk('pr-ed-phucapan-ov'),
+      gui_xe:get('pr-ed-guixe'),
+      phu_thuong_ca:get('pr-ed-phuthuong'), phu_cang_da_ca:get('pr-ed-phucangda'),
+      lam_thuong_ca:get('pr-ed-lamthuong'), lam_cang_da_ca:get('pr-ed-lamcangda'),
+      tiem_ca:get('pr-ed-tiem'), csd_ca:get('pr-ed-csd'),
+      up_sale:get('pr-ed-upsale'), pct_hoa_hong:get('pr-ed-pct'),
+      goi_phau:get('pr-ed-goiphau'), goi_da:get('pr-ed-goida'),
+      phu_cap_khac:get('pr-ed-khac'), ung_luong:get('pr-ed-ung')});
+    toast('✅ Đã lưu thay đổi','green');
+    await payrollLoad(true);
+    const e=(PAYROLL.rows||[]).find(x=>x.id===id);
+    if(e) openModal('payroll-detail', e);
+  }catch(e){ toast('❌ '+e.message,'red'); }
 }
-
+window.payrollSaveEdit=payrollSaveEdit;
+function payrollOpenRates(){
+  const r=PAYROLL.rates||{};
+  modalEl.classList.remove('lg'); modalEl.classList.add('sm');
+  document.getElementById('modalTitle').textContent='⚙️ Đơn giá tính lương';
+  document.getElementById('modalBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label class="bl">Phụ cấp ăn / ngày công</label><input id="pr-rate-meal" class="bi" type="number" min="0" value="${r.meal||0}"></div>
+      <div><label class="bl">Phụ thường / ca</label><input id="pr-rate-phu_thuong" class="bi" type="number" min="0" value="${r.phu_thuong||0}"></div>
+      <div><label class="bl">Phụ căng da / ca</label><input id="pr-rate-phu_cang_da" class="bi" type="number" min="0" value="${r.phu_cang_da||0}"></div>
+      <div><label class="bl">Làm thường / ca</label><input id="pr-rate-lam_thuong" class="bi" type="number" min="0" value="${r.lam_thuong||0}"></div>
+      <div><label class="bl">Làm căng da / ca</label><input id="pr-rate-lam_cang_da" class="bi" type="number" min="0" value="${r.lam_cang_da||0}"></div>
+      <div><label class="bl">Tiêm / ca</label><input id="pr-rate-tiem" class="bi" type="number" min="0" value="${r.tiem||0}"></div>
+      <div><label class="bl">CSD / ca</label><input id="pr-rate-csd" class="bi" type="number" min="0" value="${r.csd||0}"></div>
+    </div>
+    <button class="btn" style="margin-top:14px" onclick="payrollSaveRates()">💾 Lưu đơn giá</button>`;
+  modalEl.classList.add('open');
+}
+async function payrollSaveRates(){
+  const get=id=>document.getElementById('pr-rate-'+id)?.value||0;
+  const patch={}; PR_RATE_FIELDS.forEach(f=>patch[f]=get(f));
+  try{
+    await payrollApi({action:'save_rates', ...patch});
+    toast('✅ Đã lưu đơn giá','green'); closeModal();
+    await payrollLoad(true);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.payrollSaveRates=payrollSaveRates;
+function payrollExportCSV(){
+  const rows=PAYROLL.rows||[]; if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
+  const header=['Nhân viên','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
+  const lines=[header];
+  let total=0;
+  rows.forEach(e=>{
+    const c=payrollCalc(e); total+=c.tongLuong;
+    lines.push([e.full_name,e.luong_cung,e.ngay_cong,c.thucLuong,c.phuCapAn,e.gui_xe,c.tienPhuThuong,c.tienPhuCangDa,c.tienLamThuong,c.tienLamCangDa,c.tienTiem,c.tienCsd,e.up_sale,e.pct_hoa_hong,c.tongUp,e.goi_phau,e.goi_da,e.phu_cap_khac,c.tongHoaHong,e.ung_luong,c.tongLuong]);
+  });
+  lines.push(['TỔNG','','','','','','','','','','','','','','','','','','','',total]);
+  const csv='﻿'+lines.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`bang-luong-${PAYROLL.month}-${PAYROLL.year}.csv`; a.click();
+  toast('⬇ Đã tải CSV lương','green');
+}
+window.payrollExportCSV=payrollExportCSV;
 /* ===== TOUR PHẪU ===== */
 async function tourApi(payload){
   const r=await fetch('/api/tour',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
@@ -2524,7 +2538,7 @@ const titles = {
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
-  luong:['💵 Bảng lương bác sĩ — Phụ phẫu','Bảng công theo từng bác sĩ × tháng · từ file Excel nội bộ'],
+  luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   telesale:['📞 Telesale & Lễ tân','KPI cuộc gọi · khách mời đến · hoa hồng telesale tháng 5/2026'],
   revenue:['Doanh thu','Tháng 5/2026 · Q2'],
@@ -2800,7 +2814,7 @@ function go(section){
   if(section==='billing')billInit();
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
-  if(section==='luong') luongLoad();
+  if(section==='luong') payrollLoad();
   if(section==='tour')  tourLoad();
   if(section==='telesale') telesaleLoad();
   if(section==='phangoi') phangoiLoad();
