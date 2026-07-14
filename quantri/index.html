@@ -1822,15 +1822,31 @@ function openModal(type, ctx){
           <div style="color:var(--muted);font-size:.9rem">${s.role} · <span class="status green">${s.status||'active'}</span></div>
           <div style="display:flex;gap:14px;margin-top:6px;font-size:.82rem;color:var(--muted)"><span>📞 ${s.phone||'—'}</span><span>✉️ ${s.email||'—'}</span><span>🆔 ${s.id||'—'}</span></div>
         </div>
-        <div style="text-align:right"><div style="font-size:.74rem;color:var(--muted)">KPI tháng</div><div style="font-family:'Lora';font-size:1.9rem;font-weight:800;color:var(--green)">${s.kpi}</div></div>
+        <div style="text-align:right"><div style="font-size:.74rem;color:var(--muted)">KPI tháng</div><div style="font-family:'Lora';font-size:1.9rem;font-weight:800;color:var(--green)">${s.kpi?s.kpi+'%':'—'}</div></div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Ca tháng</div><b>${s.sessions}</b></div>
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Đánh giá</div><b>${s.rating}</b></div>
-        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Doanh thu</div><b>${s.revenue}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Ca tháng</div><b>${s.sessions||0}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Đánh giá</div><b>${s.rating?Number(s.rating).toFixed(2):'—'}</b></div>
+        <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Doanh thu</div><b>${s.revenue?trShort(s.revenue):'—'}</b></div>
         <div style="background:var(--cream);padding:11px;border-radius:9px"><div style="font-size:.7rem;color:var(--muted)">Task</div><b>${doneTasks}/${myTasks.length}</b></div>
       </div>
+
+      <details style="margin-bottom:14px">
+        <summary style="cursor:pointer;font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);padding:8px 0">✏️ Sửa thông tin nhân viên</summary>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;background:var(--cream);padding:12px;border-radius:10px;margin-top:8px">
+          <div><label class="bl">Họ tên</label><input id="ed-name" class="bi" value="${pgEscAttr(s.name)}"></div>
+          <div><label class="bl">Vai trò</label><input id="ed-role" class="bi" value="${pgEscAttr(s.role)}"></div>
+          <div><label class="bl">Chuyên môn</label><input id="ed-spec" class="bi" value="${pgEscAttr(s.spec)}"></div>
+          <div><label class="bl">SĐT</label><input id="ed-phone" class="bi" value="${pgEscAttr(s.phone)}"></div>
+          <div><label class="bl">Email</label><input id="ed-email" class="bi" value="${pgEscAttr(s.email)}"></div>
+          <div><label class="bl">Ca tháng</label><input id="ed-sessions" class="bi" type="number" min="0" value="${s.sessions||0}"></div>
+          <div><label class="bl">Đánh giá (0-5)</label><input id="ed-rating" class="bi" type="number" min="0" max="5" step="0.01" value="${s.rating||0}"></div>
+          <div><label class="bl">Doanh thu (đ)</label><input id="ed-revenue" class="bi" type="number" min="0" value="${s.revenue||0}"></div>
+          <div><label class="bl">KPI (%)</label><input id="ed-kpi" class="bi" type="number" min="0" value="${s.kpi||0}"></div>
+        </div>
+        <button class="btn sm" style="margin-top:10px" onclick="staffSaveEdit('${s.id}')">💾 Lưu thay đổi</button>
+      </details>
 
       <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:12px 0 8px">🏷️ Tags / Vai trò</h3>
       <div id="staffTags" style="margin-bottom:6px">${(s.tags||[]).map(tg=>`<span class="pill" style="margin:2px;display:inline-flex;align-items:center;gap:6px">${tg} <span style="cursor:pointer;color:var(--red)" onclick='removeTag("${s.id}","tags","${tg}")'>×</span></span>`).join('')}</div>
@@ -1866,7 +1882,7 @@ function openModal(type, ctx){
         <button class="btn sm green" onclick='toast("📞 Đang gọi ${s.name}...","ok")'>📞 Gọi</button>
         <button class="btn ghost sm" onclick='toast("💬 Mở chat nội bộ với ${s.name}")'>💬 Chat</button>
         <button class="btn ghost sm" onclick='closeModal();go("schedule")'>🗓️ Lịch trực</button>
-        <button class="btn ghost sm" onclick='exportToWord("Hồ-sơ-${s.name}","<h1>${s.name}</h1><p>Vai trò: ${s.role}</p><p>Tags: ${(s.tags||[]).join(", ")}</p><p>Kỹ năng: ${(s.skills||[]).join(", ")}</p><p>Doanh thu: ${s.revenue}</p>")'>📄 Xuất hồ sơ Word</button>
+        <button class="btn ghost sm" onclick='exportToWord("Hồ-sơ-${s.name}","<h1>${s.name}</h1><p>Vai trò: ${s.role}</p><p>Tags: ${(s.tags||[]).join(", ")}</p><p>Kỹ năng: ${(s.skills||[]).join(", ")}</p><p>Doanh thu: ${s.revenue?trShort(s.revenue):"—"}</p>")'>📄 Xuất hồ sơ Word</button>
       </div>
     `;
   }
@@ -2967,12 +2983,13 @@ async function staffLoad(force){
   }finally{ STAFF_LOADING = false; }
 }
 function staffToCtx(s){
-  return {id:s.id, name:s.full_name, role:s.role, spec:s.specialty, phone:s.phone, email:s.email,
+  // Giữ giá trị THÔ (không format) — để ô sửa điền đúng số; modal tự format lúc hiển thị.
+  return {id:s.id, name:s.full_name, role:s.role||'', spec:s.specialty||'', phone:s.phone||'', email:s.email||'',
     av:(s.full_name||'?').trim().charAt(0).toUpperCase(), bg:'var(--grad)',
     tags:(s.tags||'').split(',').map(t=>t.trim()).filter(Boolean),
     skills:(s.skills||'').split(',').map(t=>t.trim()).filter(Boolean),
-    sessions:s.sessions||0, rating:s.rating?Number(s.rating).toFixed(2):'—',
-    revenue:s.revenue?trShort(s.revenue):'—', kpi:s.kpi?s.kpi+'%':'—', status:s.status||'active'};
+    tagsRaw:s.tags||'', skillsRaw:s.skills||'',
+    sessions:s.sessions||0, rating:s.rating||0, revenue:s.revenue||0, kpi:s.kpi||0, status:s.status||'active'};
 }
 function renderStaff(){
   const tb=document.getElementById('staffRows'); if(!tb) return;
@@ -3026,6 +3043,21 @@ async function staffDelete(id){
   try{ await staffApi({action:'delete', id}); closeModal(); toast('🗑️ Đã xoá','dark'); await staffLoad(true); }
   catch(e){ toast('❌ '+e.message,'red'); }
 }
+async function staffSaveEdit(id){
+  const get=eid=>document.getElementById(eid)?.value||'';
+  const name=get('ed-name').trim();
+  if(!name){ toast('⚠️ Họ tên không được để trống','red'); return; }
+  try{
+    await staffApi({action:'update', id, full_name:name, role:get('ed-role'), specialty:get('ed-spec'),
+      phone:get('ed-phone'), email:get('ed-email'), sessions:get('ed-sessions'),
+      rating:get('ed-rating'), revenue:get('ed-revenue'), kpi:get('ed-kpi')});
+    toast('✅ Đã lưu thay đổi','green');
+    await staffLoad(true);
+    const s=(STAFF_ROWS||[]).find(x=>x.id===id);
+    if(s) openModal('staff-detail', staffToCtx(s));
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.staffSaveEdit=staffSaveEdit;
 function staffExportAll(){
   const rows=STAFF_ROWS||[];
   if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
