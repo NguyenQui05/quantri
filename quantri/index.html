@@ -866,29 +866,42 @@
 
     <!-- ============ STAFF ============ -->
     <section class="page" id="page-staff">
-      <div class="alert info" style="margin-bottom:14px"><span class="ic">💡</span><div><b>Hướng dẫn nhanh:</b> Bấm vào dòng nhân viên để mở hồ sơ chi tiết. Trong hồ sơ có thể: ① giao việc mới · ② gắn tag (kỹ năng, vai trò) · ③ xem KPI · ④ phân ca · ⑤ chat nội bộ</div></div>
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">💡</span><div><b>Hướng dẫn nhanh:</b> Điền form bên dưới để thêm nhân viên — lưu thật, đồng bộ mọi thiết bị. Bấm dòng nhân viên để mở hồ sơ chi tiết.</div></div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2>➕ Thêm nhân viên mới</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Họ tên</label><input id="sf-name" class="bi" placeholder="Nguyễn Thị A"></div>
+          <div><label class="bl">Vai trò</label><input id="sf-role" class="bi" placeholder="Bác sĩ phẫu thuật"></div>
+          <div><label class="bl">Chuyên môn</label><input id="sf-spec" class="bi" placeholder="Cắt mí, nâng mũi"></div>
+          <div><label class="bl">SĐT</label><input id="sf-phone" class="bi" placeholder="09xxxxxxxx"></div>
+          <div><label class="bl">Email</label><input id="sf-email" class="bi" placeholder="ten@hana.vn"></div>
+          <div><label class="bl">Tags (cách nhau dấu phẩy)</label><input id="sf-tags" class="bi" placeholder="Bác sĩ, Senior"></div>
+          <div><label class="bl">Ca tháng</label><input id="sf-sessions" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Đánh giá (0-5)</label><input id="sf-rating" class="bi" type="number" min="0" max="5" step="0.01" placeholder="0"></div>
+          <div><label class="bl">Doanh thu (đ)</label><input id="sf-revenue" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">KPI (%)</label><input id="sf-kpi" class="bi" type="number" min="0" placeholder="0"></div>
+        </div>
+        <button class="btn" style="margin-top:14px" onclick="staffCreate()">➕ Lưu nhân viên</button>
+      </div>
 
       <div class="row r-2-1">
         <div class="card">
           <div class="card-head">
-            <div><h2>Quản trị nhân viên</h2><div class="sub">12 nhân sự · 4 bác sĩ · 6 KTV · 2 lễ tân · Bấm dòng để mở hồ sơ + giao việc</div></div>
+            <div><h2>Quản trị nhân viên</h2><div class="sub" id="staff-sub">Bấm dòng để mở hồ sơ + giao việc</div></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn ghost sm" onclick="exportExcel('staff')">⬇ Xuất Excel</button>
-              <button class="btn ghost sm" onclick="openModal('import-data',{target:'staff'})">⬆ Nhập Excel</button>
-              <button class="btn sm" onclick="openModal('new-staff')">+ Thêm nhân viên</button>
+              <button class="btn ghost sm" onclick="staffExportAll()">⬇ Xuất Excel</button>
             </div>
           </div>
           <table>
-            <thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Tags / Kỹ năng</th><th>Ca tháng</th><th>Đánh giá</th><th>Doanh thu</th><th>KPI</th></tr></thead>
+            <thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Tags / Kỹ năng</th><th>Ca tháng</th><th>Đánh giá</th><th>Doanh thu</th><th>KPI</th><th></th></tr></thead>
             <tbody id="staffRows"></tbody>
           </table>
         </div>
         <div class="card ai-card" style="color:#fff">
           <div class="ai-icon">📊</div>
           <h3>Hiệu suất đội ngũ</h3>
-          <div class="ai-insight"><b>🏆 Best:</b> CEO Phương đứng đầu doanh thu + đánh giá 3 tháng liền.</div>
-          <div class="ai-insight"><b>💡 Đào tạo:</b> KTV Ngọc cần khóa Hifu nâng cao để tăng ticket size.</div>
-          <div class="ai-insight"><b>📈 Tuyển:</b> Booking quá tải 10-12h, cần thêm 1 bác sĩ tiêm chỉnh.</div>
+          <div id="staff-insights"><div class="ai-insight">Chưa có nhân viên nào — thêm ở form phía trên.</div></div>
         </div>
       </div>
 
@@ -1376,13 +1389,7 @@ const DATA = {
     {av:'N', name:'Chị Nga Lê', subtitle:'VIP · 15 lần', service:'Tiêm filler môi', time:'14:30', staff:'CEO Phương', status:'gold', statusText:'Chờ', bg:'linear-gradient(135deg,#E67E22,#D35400)'},
     {av:'M', name:'Chị Mai Phạm', subtitle:'Diamond · 25 lần', service:'Combo trẻ hóa', time:'15:00', staff:'BS. Hà', status:'red', statusText:'Cần gọi', bg:'linear-gradient(135deg,#3498DB,#2C3E50)'}
   ],
-  staff: [
-    {id:'NV-001', av:'P', name:'Phạm Mai Phương', role:'CEO · Founder', spec:'Tư vấn cao cấp', sessions:168, rating:'4.98 ⭐', revenue:'340tr', kpi:'112%', kpiClass:'green', bg:'var(--grad)', phone:'0855 698 899', email:'phuong@hanapremium.vn', status:'active', tags:['CEO','Tư vấn 1-1','Quản lý','VIP-care'], skills:['Tư vấn lộ trình','Brand voice','Coaching team']},
-    {id:'NV-002', av:'H', name:'Bs. Hà Anh', role:'Bác sĩ phẫu thuật', spec:'Cắt mí, nâng mũi', sessions:142, rating:'4.92 ⭐', revenue:'248tr', kpi:'98%', kpiClass:'green', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', phone:'0912 345 002', email:'ha.anh@hana.vn', status:'active', tags:['Bác sĩ','Phẫu thuật','Senior'], skills:['Cắt mí Hàn','Nâng mũi cấu trúc','Tạo hình']},
-    {id:'NV-003', av:'M', name:'Bs. Mai Linh', role:'Bác sĩ tiêm chỉnh', spec:'Filler, Botox', sessions:118, rating:'4.89 ⭐', revenue:'186tr', kpi:'92%', kpiClass:'', bg:'linear-gradient(135deg,#16A085,#27AE60)', phone:'0912 345 003', email:'mai.linh@hana.vn', status:'active', tags:['Bác sĩ','Tiêm chỉnh','Mid'], skills:['Filler','Botox','Mesotherapy']},
-    {id:'NV-004', av:'N', name:'KTV Ngọc', role:'KTV cao cấp', spec:'Hifu, Trẻ hóa', sessions:96, rating:'4.85 ⭐', revenue:'124tr', kpi:'88%', kpiClass:'', bg:'linear-gradient(135deg,#3498DB,#2980B9)', phone:'0912 345 004', email:'ngoc.kt@hana.vn', status:'active', tags:['KTV','Hifu','Mid'], skills:['Hifu Ultraformer','Trẻ hoá da','Chăm sóc da']},
-    {id:'NV-005', av:'Y', name:'Lễ tân Yến', role:'Front office', spec:'Đặt lịch, đón khách', sessions:'—', rating:'4.96 ⭐', revenue:'—', kpi:'95%', kpiClass:'green', bg:'linear-gradient(135deg,#E67E22,#D35400)', phone:'0912 345 005', email:'yen.lt@hana.vn', status:'active', tags:['Lễ tân','CSKH','Hậu chăm sóc'], skills:['Đặt lịch','Gọi Zalo','Quản lý SOS','Soạn tin']}
-  ],
+  staff: [],
   care: [
     {av:'L', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Linh Trang', service:'Cắt mí (3 tuần trước)', daysSince:21, stage:'Ngày 14 — Tái khám 2', action:'📞 Gọi xác nhận', urgent:false},
     {av:'M', bg:'linear-gradient(135deg,#16A085,#27AE60)', name:'Chị Mai Anh', service:'Filler môi (hôm qua)', daysSince:1, stage:'Ngày 1 — Gọi hỏi thăm', action:'📞 Gọi ngay', urgent:true},
@@ -2847,9 +2854,12 @@ function renderTodayApps(){
   `).join('');
 }
 function renderTopStaff(){
-  document.getElementById('topStaff').innerHTML = DATA.staff.slice(0,4).map(s=>`
-    <div style="display:flex;align-items:center;gap:11px"><span class="avatar" style="background:${s.bg}">${s.av}</span><div style="flex:1"><b>${s.name}</b><div style="font-size:.76rem;color:var(--muted)">${s.sessions} ca · ${s.rating}</div></div><b style="color:var(--orange-deep)">${s.revenue}</b></div>
-  `).join('');
+  const el=document.getElementById('topStaff'); if(!el) return;
+  const rows=[...(STAFF_ROWS||[])].sort((a,b)=>(b.revenue||0)-(a.revenue||0)).slice(0,4);
+  el.innerHTML = rows.length ? rows.map(s=>{
+    const init=(s.full_name||'?').trim().charAt(0).toUpperCase();
+    return `<div style="display:flex;align-items:center;gap:11px"><span class="avatar" style="background:var(--grad)">${init}</span><div style="flex:1"><b>${pgEscHtml(s.full_name)}</b><div style="font-size:.76rem;color:var(--muted)">${s.sessions||0} ca · ${s.rating?Number(s.rating).toFixed(2):'—'}</div></div><b style="color:var(--orange-deep)">${s.revenue?trShort(s.revenue):'—'}</b></div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:.85rem">Chưa có nhân viên nào</div>';
 }
 // ===== Khách hàng thật từ Sheet "Danh sách khách hàng (tổng)" =====
 /* ===== CRM KHÁCH HÀNG (Supabase — thật, đồng bộ mọi máy) ===== */
@@ -2934,17 +2944,100 @@ async function crmExportAll(){
   toast(`✓ Đã tải ${rows.length.toLocaleString('vi-VN')} khách`,'green');
 }
 window.crmGoPage=crmGoPage; window.crmDeleteCustomer=crmDeleteCustomer; window.crmExportAll=crmExportAll;
-function renderStaff(){
-  document.getElementById('staffRows').innerHTML = DATA.staff.map(s=>`
-    <tr class="clickable" onclick='openModal("staff-detail",${JSON.stringify(s).replace(/'/g,"&#39;")})'>
-      <td><div class="with-av"><span class="avatar" style="background:${s.bg}">${s.av}</span><span><b>${s.name}</b><span>${s.role}</span></span></div></td>
-      <td>${s.spec}</td>
-      <td style="max-width:260px">${(s.tags||[]).slice(0,3).map(t=>`<span class="pill" style="margin:1px 2px;display:inline-block">${t}</span>`).join('')}${s.tags && s.tags.length>3?`<span class="pill gray" style="margin:1px 2px">+${s.tags.length-3}</span>`:''}</td>
-      <td>${s.sessions}</td><td>${s.rating}</td><td><b>${s.revenue}</b></td>
-      <td><span class="pill ${s.kpiClass}">${s.kpi}</span></td>
-    </tr>
-  `).join('');
+let STAFF_ROWS = null, STAFF_LOADING = false;
+async function staffApi(payload){
+  const r=await fetch('/api/staff',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
+  return d;
 }
+async function staffLoad(force){
+  if (STAFF_LOADING) return;
+  if (STAFF_ROWS && !force) { renderStaff(); return; }
+  STAFF_LOADING = true;
+  const tb=document.getElementById('staffRows');
+  if(tb) tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  try{
+    const d = await staffApi({action:'list'});
+    STAFF_ROWS = d.rows||[];
+    renderStaff();
+  }catch(e){
+    console.error('staff load fail', e);
+    if(tb) tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
+  }finally{ STAFF_LOADING = false; }
+}
+function staffToCtx(s){
+  return {id:s.id, name:s.full_name, role:s.role, spec:s.specialty, phone:s.phone, email:s.email,
+    av:(s.full_name||'?').trim().charAt(0).toUpperCase(), bg:'var(--grad)',
+    tags:(s.tags||'').split(',').map(t=>t.trim()).filter(Boolean),
+    skills:(s.skills||'').split(',').map(t=>t.trim()).filter(Boolean),
+    sessions:s.sessions||0, rating:s.rating?Number(s.rating).toFixed(2):'—',
+    revenue:s.revenue?trShort(s.revenue):'—', kpi:s.kpi?s.kpi+'%':'—', status:s.status||'active'};
+}
+function renderStaff(){
+  const tb=document.getElementById('staffRows'); if(!tb) return;
+  const rows = STAFF_ROWS||[];
+  const sub=document.getElementById('staff-sub');
+  if(sub) sub.textContent = rows.length ? `${rows.length} nhân sự · Bấm dòng để mở hồ sơ + giao việc` : 'Chưa có nhân viên nào';
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Chưa có nhân viên — thêm ở form phía trên</td></tr>'; staffRenderInsights([]); if(typeof renderTopStaff==='function')renderTopStaff(); return; }
+  tb.innerHTML = rows.map(s=>{
+    const tags=(s.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+    const init=(s.full_name||'?').trim().charAt(0).toUpperCase();
+    const ctxJson=JSON.stringify(staffToCtx(s)).replace(/'/g,"&#39;");
+    return `<tr class="clickable" onclick='openModal("staff-detail",${ctxJson})'>
+      <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${pgEscHtml(s.full_name)}</b><span>${pgEscHtml(s.role)||'—'}</span></span></div></td>
+      <td>${pgEscHtml(s.specialty)||'—'}</td>
+      <td style="max-width:260px">${tags.slice(0,3).map(t=>`<span class="pill" style="margin:1px 2px;display:inline-block">${pgEscHtml(t)}</span>`).join('')}${tags.length>3?`<span class="pill gray" style="margin:1px 2px">+${tags.length-3}</span>`:''}</td>
+      <td>${s.sessions||0}</td><td>${s.rating?Number(s.rating).toFixed(2):'—'}</td><td><b>${s.revenue?trShort(s.revenue):'—'}</b></td>
+      <td><span class="pill ${(s.kpi||0)>=100?'green':''}">${s.kpi?s.kpi+'%':'—'}</span></td>
+      <td>${canDelete()?`<button class="btn ghost sm" onclick="event.stopPropagation();staffDelete('${s.id}')">🗑</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  staffRenderInsights(rows);
+  if(typeof renderTopStaff==='function')renderTopStaff();
+}
+function staffRenderInsights(rows){
+  const el=document.getElementById('staff-insights'); if(!el) return;
+  if(!rows.length){ el.innerHTML='<div class="ai-insight">Chưa có nhân viên nào — thêm ở form phía trên.</div>'; return; }
+  const best=[...rows].sort((a,b)=>(b.revenue||0)-(a.revenue||0))[0];
+  const totalRevenue=rows.reduce((s,r)=>s+(r.revenue||0),0);
+  const avgKpi=rows.length?(rows.reduce((s,r)=>s+(r.kpi||0),0)/rows.length):0;
+  el.innerHTML = `
+    <div class="ai-insight"><b>🏆 Best doanh thu:</b> ${pgEscHtml(best.full_name)} — ${best.revenue?trShort(best.revenue):'—'}</div>
+    <div class="ai-insight"><b>👥 Tổng đội ngũ:</b> ${rows.length} người · doanh thu ${trShort(totalRevenue)}</div>
+    <div class="ai-insight"><b>📊 KPI trung bình:</b> ${avgKpi.toFixed(0)}%</div>`;
+}
+async function staffCreate(){
+  const get=id=>document.getElementById(id)?.value||'';
+  const name=get('sf-name').trim();
+  if(!name){ toast('⚠️ Nhập họ tên','red'); return; }
+  try{
+    await staffApi({action:'create', full_name:name, role:get('sf-role'), specialty:get('sf-spec'),
+      phone:get('sf-phone'), email:get('sf-email'), tags:get('sf-tags'),
+      sessions:get('sf-sessions'), rating:get('sf-rating'), revenue:get('sf-revenue'), kpi:get('sf-kpi')});
+    ['sf-name','sf-role','sf-spec','sf-phone','sf-email','sf-tags','sf-sessions','sf-rating','sf-revenue','sf-kpi'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+    toast('✅ Đã thêm nhân viên','green'); if(typeof ding==='function')ding();
+    await staffLoad(true);
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function staffDelete(id){
+  if(!canDelete()){ toast('🔒 Vai trò của bạn không có quyền xoá','red'); return; }
+  if(!confirm('Xoá nhân viên này?')) return;
+  try{ await staffApi({action:'delete', id}); closeModal(); toast('🗑️ Đã xoá','dark'); await staffLoad(true); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+function staffExportAll(){
+  const rows=STAFF_ROWS||[];
+  if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
+  if(!window.XLSX){ toast('⏳ Đang tải thư viện Excel...'); setTimeout(staffExportAll,1500); return; }
+  const data=rows.map(s=>({'Họ tên':s.full_name,'Vai trò':s.role,'Chuyên môn':s.specialty,'SĐT':s.phone,'Email':s.email,'Tags':s.tags,'Kỹ năng':s.skills,'Ca tháng':s.sessions,'Đánh giá':s.rating,'Doanh thu':s.revenue,'KPI (%)':s.kpi}));
+  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Nhân viên');
+  const dt=new Date(); const ds=`${dt.getDate()}-${dt.getMonth()+1}-${dt.getFullYear()}`;
+  XLSX.writeFile(wb, `nhan-vien-HANA-${ds}.xlsx`);
+  toast(`✓ Đã tải ${rows.length} nhân viên`,'green');
+}
+window.staffCreate=staffCreate; window.staffDelete=staffDelete; window.staffExportAll=staffExportAll;
 function renderCare(){
   document.getElementById('careRows').innerHTML = DATA.care.map(c=>`
     <tr class="clickable" onclick='openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
@@ -2983,21 +3076,31 @@ function toggleTask(id){
 }
 window.toggleTask = toggleTask;
 
-function addTag(staffId, field){
+async function staffPatchListField(staffId, field, newList){
+  try{
+    await staffApi({action:'update', id:staffId, [field]:newList.join(', ')});
+    await staffLoad(true);
+    const s=(STAFF_ROWS||[]).find(x=>x.id===staffId);
+    if(s) openModal('staff-detail', staffToCtx(s));
+  }catch(e){ toast('❌ '+e.message,'red'); }
+}
+async function addTag(staffId, field){
   const inputId = field==='tags' ? 'newTagInput' : 'newSkillInput';
   const val = (document.getElementById(inputId)?.value||'').trim();
   if(!val) return;
-  const s = DATA.staff.find(x=>x.id===staffId);
+  const s = (STAFF_ROWS||[]).find(x=>x.id===staffId);
   if(!s) return;
-  s[field] = s[field] || [];
-  if(!s[field].includes(val)){ s[field].push(val); saveData('staff',DATA.staff); openModal('staff-detail', s); toast(`✓ Đã thêm: ${val}`,'green'); renderStaff(); }
+  const list = (s[field]||'').split(',').map(t=>t.trim()).filter(Boolean);
+  if(list.includes(val)) return;
+  list.push(val);
+  await staffPatchListField(staffId, field, list);
+  toast(`✓ Đã thêm: ${val}`,'green');
 }
-function removeTag(staffId, field, val){
-  const s = DATA.staff.find(x=>x.id===staffId);
+async function removeTag(staffId, field, val){
+  const s = (STAFF_ROWS||[]).find(x=>x.id===staffId);
   if(!s) return;
-  s[field] = (s[field]||[]).filter(t=>t!==val);
-  saveData('staff',DATA.staff);
-  openModal('staff-detail', s); renderStaff();
+  const list = (s[field]||'').split(',').map(t=>t.trim()).filter(Boolean).filter(t=>t!==val);
+  await staffPatchListField(staffId, field, list);
   toast(`✓ Đã xoá: ${val}`,'ok');
 }
 function assignTaskTo(name){
@@ -4897,7 +5000,7 @@ async function roleInitFromServer(){
 window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromServer=roleInitFromServer;
 
 /* ===== INIT ===== */
-renderTodayApps(); renderTopStaff(); renderCRM(); renderStaff(); renderCare();
+renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
 renderTasks(); renderSchedule(); renderInventory();
 renderCampaigns(); renderCalendar(); renderAppointments(); renderLeads();
 seedDataSources(); renderDataSources();
