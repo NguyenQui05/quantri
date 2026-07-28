@@ -1061,7 +1061,7 @@
       <div id="mktFunnel" style="margin-top:16px"></div>
 
       <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div></div></div>
+        <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div><div class="sub" id="mktSyncStatus" style="font-size:.74rem;margin-top:2px"></div></div></div>
         <div id="mktDaily"><div class="sub" style="text-align:center;padding:24px">Đang nạp số liệu quảng cáo…</div></div>
       </div>
 
@@ -4422,12 +4422,54 @@ async function renderMarketing(){
   }
   if(sub) sub.textContent='Báo cáo '+monthKey+' · '+days.length+' ngày'+(hasRev?(' · ROAS '+roas.toFixed(2)+'×'):' · (định dạng cũ: chỉ Mess & Chi phí)');
   MKT_DAYS=days; initMktChart(true);
+  syncMarketingToSupabase(monthKey, days);   // sao lưu nền, không chặn giao diện
+}
+
+/* ===== Sao lưu số liệu Marketing sang Supabase =====
+   Google Sheet vẫn là nơi nhập; mỗi lần đọc xong sẽ upsert bản sao vào bảng marketing_daily
+   để số liệu không mất khi Sheet bị xoá / đổi quyền. Bỏ qua nếu dữ liệu không đổi. */
+const _mktSynced = {};   // monthKey -> chữ ký dữ liệu đã lưu, tránh ghi lại khi không đổi
+function mktSyncNote(txt, color){
+  const el=gel('mktSyncStatus'); if(!el) return;
+  el.textContent = txt; el.style.color = color || 'var(--muted)';
+}
+async function syncMarketingToSupabase(monthKey, days, silent){
+  if(!days || !days.length) return;
+  const my = String(monthKey).match(/(\d+)\s*\/\s*(\d{4})/);   // "Tháng 7/2026"
+  if(!my) return;
+  const year = +my[2];
+  const pad = n => String(n).padStart(2,'0');
+  const rows = days.map(d=>{
+    const mm = Math.floor((d._o||0)/100), dd = (d._o||0)%100;
+    if(!mm || !dd || mm>12 || dd>31) return null;
+    return { report_date:`${year}-${pad(mm)}-${pad(dd)}`,
+      spend:Math.round(d.spend||0), mess:d.mess||0, sdt:d.sdt||0,
+      khach:d.khach||0, lead:d.lead||0, rev:Math.round(d.rev||0) };
+  }).filter(Boolean);
+  if(!rows.length) return;
+
+  const sig = JSON.stringify(rows);
+  if(_mktSynced[monthKey] === sig) return;      // dữ liệu chưa đổi → khỏi ghi lại
+  if(!silent) mktSyncNote('⏳ Đang lưu Supabase…');
+  try{
+    const r = await fetch('/api/marketing',{method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync',rows})});
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d?.error||'Lỗi lưu Supabase');
+    _mktSynced[monthKey] = sig;
+    if(!silent) mktSyncNote('☁️ Đã lưu Supabase '+d.saved+' ngày · '+new Date().toLocaleTimeString('vi-VN'), 'var(--green)');
+  }catch(e){
+    console.error('sync marketing', monthKey, e);
+    if(!silent) mktSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
+  }
 }
 async function loadPrevMonths(){
   const box=document.getElementById('mktPrevMonths'), btn=document.getElementById('mktMoreBtn'); if(!box) return;
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang tải...'; }
   const prev=MKT_MONTHS.slice(1); // T5 trở về trước
   const data=await Promise.all(prev.map(m=>marketingMonth(m.tab).then(d=>({m,d})).catch(()=>({m,d:null}))));
+  // Sao lưu luôn các tháng cũ vào Supabase (chạy nền, không báo trạng thái để khỏi rối)
+  data.forEach(({m,d})=>{ if(d&&d.ok) syncMarketingToSupabase(m.k, d.days, true); });
   const chip=(label,val,color)=>`<div style="border:1px dashed var(--line);border-radius:10px;padding:8px 12px;min-width:92px"><div class="sub" style="font-size:.68rem">${label}</div><div style="font-weight:800;font-size:.96rem;color:${color||'#3B2113'}">${val}</div></div>`;
   box.innerHTML=data.map(({m,d})=>{
     if(!d||!d.ok){ return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:#FBF6F1"><b style="color:var(--brown-deep)">${m.k}</b> <span class="sub" style="font-size:.74rem">— chưa có dữ liệu</span></div>`; }
