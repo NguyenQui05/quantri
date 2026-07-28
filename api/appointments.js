@@ -45,9 +45,12 @@ export default async function handler(req, res) {
   try {
     if (action === 'list')             return await listAppts(res, body);
     if (action === 'list_pending')     return await listPending(res);
+    if (action === 'list_new')         return await listNew(res);
+    if (action === 'stats_qc')         return await statsQC(res, body);
     if (action === 'create')           return await createAppt(res, body, sess);
     if (action === 'update')           return await updateAppt(res, body);
     if (action === 'mark_status')      return await markStatus(res, body, sess);
+    if (action === 'mark_consulted')   return await markConsulted(res, body, sess);
     if (action === 'mark_tour_logged') return await markTourLogged(res, body);
     if (action === 'delete')           return await deleteAppt(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
@@ -76,6 +79,7 @@ async function listPending(res) {
   const params = new URLSearchParams();
   params.set('select', '*');
   params.set('status', 'eq.den');
+  params.set('consulted', 'eq.true');
   params.set('tour_logged', 'eq.false');
   params.set('order', 'appt_date.asc,appt_time.asc');
   params.set('limit', '500');
@@ -83,6 +87,55 @@ async function listPending(res) {
   const rows = await r.json();
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
   return res.status(200).json({ rows });
+}
+
+// "Khách Mới" — khách đã đến nhưng tư vấn chưa chốt dịch vụ/giá.
+async function listNew(res) {
+  const params = new URLSearchParams();
+  params.set('select', '*');
+  params.set('status', 'eq.den');
+  params.set('consulted', 'eq.false');
+  params.set('order', 'appt_date.asc,appt_time.asc');
+  params.set('limit', '500');
+  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  return res.status(200).json({ rows });
+}
+
+// Doanh thu từ QC = tổng consult_amount của khách đã tư vấn chốt trong khoảng ngày.
+async function statsQC(res, body) {
+  const from = String(body.from || ''), to = String(body.to || '');
+  const params = new URLSearchParams();
+  params.set('select', 'consult_amount');
+  params.set('consulted', 'eq.true');
+  if (from) params.append('appt_date', `gte.${from}`);
+  if (to) params.append('appt_date', `lt.${to}`);
+  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  const total = rows.reduce((s, r) => s + (Number(r.consult_amount) || 0), 0);
+  return res.status(200).json({ total, count: rows.length });
+}
+
+// Tư vấn chốt dịch vụ + giá tiền cho khách đã đến -> chuyển sang hàng chờ nhập ca Tour phẫu thuật.
+async function markConsulted(res, body, sess) {
+  const id = String(body.id || '');
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  const service = String(body.consult_service || '').trim();
+  if (!service) return res.status(400).json({ error: 'Thiếu dịch vụ tư vấn' });
+  const amount = Math.max(0, parseInt(body.consult_amount, 10) || 0);
+  const patch = {
+    consulted: true,
+    consult_service: service.slice(0, 200),
+    consult_amount: amount,
+    consulted_by: sess.u || '',
+    consulted_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu tư vấn' }); }
+  return res.status(200).json({ ok: true });
 }
 
 async function createAppt(res, body, sess) {

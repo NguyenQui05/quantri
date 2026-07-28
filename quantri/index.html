@@ -512,6 +512,7 @@
       <a data-section="calendar"><span class="ic">📅</span>Lịch hẹn<span class="badge" id="calBadge">0</span></a>
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
       <a data-section="leads"><span class="ic">📥</span>Lead Mới<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
+      <a data-section="newcust"><span class="ic">🆕</span>Khách Mới<span class="badge" id="ncBadge" style="background:var(--gold)">0</span></a>
       <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
       <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
 
@@ -750,6 +751,25 @@
           <div class="lead-col-head" style="border-top:4px solid var(--green)"><span>✅ Khách đã tới</span><span class="badge" id="leadColBadge-arrived">0</span></div>
           <div class="lead-col-body" id="leadCol-arrived"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ KHÁCH MỚI (tư vấn chốt dịch vụ, trước khi vào Tour phẫu thuật) ============ -->
+    <section class="page" id="page-newcust">
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">🆕</span><div><b>Khách Mới</b> · Khách đã đến — tư vấn chốt dịch vụ &amp; giá tiền, sau đó tự chuyển sang <b>Tour phẫu thuật</b> để bác sĩ/KTV nhập ca (có thể tư vấn thêm/upsell).</div></div>
+      <div class="grid kpi-grid">
+        <div class="kpi k1"><div class="ic">🆕</div><div class="label">Chờ tư vấn</div><div class="val" id="ncK1">—</div><div class="delta">khách đã đến, chưa chốt dịch vụ</div></div>
+        <div class="kpi k2"><div class="ic">💰</div><div class="label">Doanh thu từ QC <span id="ncMonthLbl" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ncK2">—</div><div class="delta" id="ncK2d">—</div></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <div><h2>Danh sách chờ tư vấn</h2><div class="sub">Bấm "Tư vấn chốt" để nhập dịch vụ + giá tiền, ca sẽ tự chuyển sang Tour phẫu thuật</div></div>
+          <button class="btn ghost sm" onclick="renderNewCustomers()">🔄 Làm mới</button>
+        </div>
+        <table>
+          <thead><tr><th>Khách</th><th>Dịch vụ dự kiến</th><th>Ngày đến</th><th>NV phụ trách</th><th>Hành động</th></tr></thead>
+          <tbody id="ncRows"></tbody>
+        </table>
       </div>
     </section>
 
@@ -2203,6 +2223,7 @@ const titles = {
   calendar:['Lịch hẹn','Telesale tạo lịch · Lễ tân xác nhận đến/chưa đến · lưu thật, đồng bộ mọi thiết bị'],
   crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
   leads:['📥 Lead Mới','Khách đăng ký từ phammaiphuong.vn'],
+  newcust:['🆕 Khách Mới','Tư vấn chốt dịch vụ & giá — trước khi vào Tour phẫu thuật'],
   care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
@@ -2482,6 +2503,7 @@ function go(section){
   if(section==='luong') payrollLoad();
   if(section==='tour'){ tourLoad(); tourLoadPending(); }
   if(section==='phangoi') phangoiLoad();
+  if(section==='newcust') renderNewCustomers();
 }
 document.querySelectorAll('.nav a[data-section]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.section)}));
 addEventListener('hashchange',()=>go((location.hash||'#dashboard').slice(1)));
@@ -3009,6 +3031,7 @@ async function apptMarkStatus(id,status){
     toast(label,'green');
     await apptLoad(true);
     syncOverviewAppts(); syncOverviewMonth(); renderTodayApps(); syncOverviewTopServices();
+    if(typeof renderNewCustomers==='function') renderNewCustomers();
     if(status==='den' && typeof tourLoadPending==='function') tourLoadPending();
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
@@ -3150,19 +3173,90 @@ async function tourLoadPending(){
     if(badge) badge.textContent=rows.length;
     if(!rows.length){ el.innerHTML='Không có khách nào đang chờ nhập ca.'; return; }
     el.innerHTML = rows.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--cream)">
-      <div style="flex:1"><b>${pgEscHtml(a.full_name)}</b> <span style="color:var(--muted);font-size:.82rem">${a.phone||'—'} · ${pgEscHtml(a.service)||'dịch vụ chưa rõ'} · ${a.appt_date||''} ${a.appt_time||''}</span></div>
+      <div style="flex:1"><b>${pgEscHtml(a.full_name)}</b> <span style="color:var(--muted);font-size:.82rem">${a.phone||'—'} · ${pgEscHtml(a.consult_service||a.service)||'dịch vụ chưa rõ'}${a.consult_amount?(' · '+VND_FULL(a.consult_amount)+'₫'):''} · ${a.appt_date||''} ${a.appt_time||''}</span></div>
       <button class="btn sm" onclick='tourPrefillFromAppt(${JSON.stringify(a).replace(/'/g,"&#39;")})'>📝 Nhập ca</button>
     </div>`).join('');
   }catch(e){ el.innerHTML='❌ '+pgEscHtml(e.message); }
 }
 function tourPrefillFromAppt(a){
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
-  set('tf-date', a.appt_date); set('tf-name', a.full_name); set('tf-phone', a.phone); set('tf-svc1', a.service); set('tf-doctor', a.staff);
+  set('tf-date', a.appt_date); set('tf-name', a.full_name); set('tf-phone', a.phone);
+  set('tf-svc1', a.consult_service||a.service); set('tf-rev1', a.consult_amount||''); set('tf-doctor', a.staff);
   TOUR_PENDING_APPT_ID = a.id;
   document.getElementById('tf-name')?.scrollIntoView({behavior:'smooth', block:'center'});
   toast('📝 Đã điền sẵn thông tin — nhập thêm doanh thu rồi bấm Lưu ca này','ok');
 }
 window.tourPrefillFromAppt=tourPrefillFromAppt;
+
+/* ===== KHÁCH MỚI — tư vấn chốt dịch vụ + giá tiền cho khách đã đến ===== */
+async function renderNewCustomers(){
+  const tb=document.getElementById('ncRows'); if(!tb) return;
+  tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  try{
+    const d=await apptApi({action:'list_new'});
+    const rows=d.rows||[];
+    const badge=document.getElementById('ncBadge'); if(badge) badge.textContent=rows.length;
+    const k1=document.getElementById('ncK1'); if(k1) k1.textContent=rows.length.toLocaleString('vi-VN');
+    if(!rows.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Không có khách nào đang chờ tư vấn.</td></tr>'; }
+    else tb.innerHTML=rows.map(a=>{
+      const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+      const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+      return `<tr>
+        <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(a.full_name||'?')}</b><span>${esc(a.phone||'')}</span></span></div></td>
+        <td>${esc(a.service)||'—'}</td>
+        <td>${esc(a.appt_date)||'—'} ${esc(a.appt_time)||''}</td>
+        <td>${esc(a.staff)||'—'}</td>
+        <td><button class="btn sm" onclick='openConsultModal(${ctxJson})'>📝 Tư vấn chốt</button></td>
+      </tr>`;
+    }).join('');
+  }catch(e){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
+  syncQcRevenue();
+}
+function openConsultModal(a){
+  const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
+  modalEl.classList.remove('lg');
+  t.textContent='📝 Tư vấn chốt — '+(a.full_name||'');
+  b.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Dịch vụ chốt *</label><input id="csSvc" style="width:100%" value="${esc(a.service||'')}" placeholder="VD: Cắt mí mắt Hàn Quốc"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Số tiền (đ) *</label><input id="csAmt" type="number" min="0" style="width:100%" placeholder="8500000"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
+      <button class="btn sm" onclick="submitConsult('${a.id}')">💾 Chốt &amp; chuyển Tour</button>
+    </div>`;
+  modalBg.classList.add('show');
+  setTimeout(()=>gel('csSvc')?.focus(),50);
+}
+async function submitConsult(id){
+  const svc=(gel('csSvc')?.value||'').trim();
+  const amt=gel('csAmt')?.value||'';
+  if(!svc){ toast('❌ Cần nhập dịch vụ','red'); return; }
+  try{
+    await apptApi({action:'mark_consulted', id, consult_service:svc, consult_amount:amt});
+    closeModal();
+    toast('✓ Đã chốt tư vấn — chuyển sang Tour phẫu thuật','green');
+    renderNewCustomers();
+    if(typeof tourLoadPending==='function') tourLoadPending();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
+}
+async function syncQcRevenue(){
+  const el=document.getElementById('ncK2'); if(!el) return;
+  const now=new Date(), p=n=>String(n).padStart(2,'0');
+  const from=now.getFullYear()+'-'+p(now.getMonth()+1)+'-01';
+  const nextM=new Date(now.getFullYear(), now.getMonth()+1, 1);
+  const to=nextM.getFullYear()+'-'+p(nextM.getMonth()+1)+'-'+p(nextM.getDate());
+  const lbl=document.getElementById('ncMonthLbl'); if(lbl) lbl.textContent='· Tháng '+(now.getMonth()+1)+'/'+now.getFullYear();
+  try{
+    const d=await apptApi({action:'stats_qc', from, to});
+    el.textContent=VND_FULL(d.total||0)+'₫';
+    const dd=document.getElementById('ncK2d'); if(dd) dd.textContent=(d.count||0)+' ca đã chốt tháng này';
+  }catch(e){ console.error('qc revenue', e); }
+}
+window.renderNewCustomers=renderNewCustomers;
+window.openConsultModal=openConsultModal;
+window.submitConsult=submitConsult;
+window.syncQcRevenue=syncQcRevenue;
 function renderCalendar(){
   if(!document.getElementById('calGrid')) return;   // trang lịch hẹn đã chuyển sang bảng thật
   const today=2; // T4
@@ -3930,6 +4024,7 @@ async function initSparklines(){
 const QS_INDEX = [
   {sec:'dashboard',title:'Tổng quan',hint:'Dashboard KPI · AI insights · lịch hẹn hôm nay',ic:'📊'},
   {sec:'leads',title:'Lead Mới',hint:'Khách đăng ký từ landing · liên hệ · convert',ic:'📥'},
+  {sec:'newcust',title:'Khách Mới',hint:'Tư vấn chốt dịch vụ & giá · trước khi vào Tour phẫu thuật',ic:'🆕'},
   {sec:'calendar',title:'Lịch hẹn',hint:'Quản lý lịch hẹn tuần · tạo booking mới',ic:'📅'},
   {sec:'crm',title:'Khách hàng',hint:'2.847 khách · VIP · Diamond · lịch sử',ic:'👥'},
   {sec:'care',title:'Hậu chăm sóc',hint:'Follow-up sau điều trị · SOP 7 mốc',ic:'🛎️'},
@@ -4785,7 +4880,7 @@ const ROLE_MENUS={
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
   'Sale':['dashboard','calendar','leads','phangoi','crm','care'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','services','phangoi']
+  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
@@ -4811,7 +4906,7 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
 renderTasks();
-renderCampaigns(); apptLoad(); renderLeads(); syncOverviewTopServices();
+renderCampaigns(); apptLoad(); renderLeads(); syncOverviewTopServices(); renderNewCustomers();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
 setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); } }, 800);
