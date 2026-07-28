@@ -966,7 +966,7 @@
           <div><label class="bl">Lương cứng (đ/ngày)</label><input id="lg-add-luongcung" class="bi" type="number" min="0" placeholder="0"></div>
         </div>
         <button class="btn" style="margin-top:14px" onclick="payrollCreate()">➕ Thêm vào tháng đang chọn</button>
-        <div class="sub" style="font-size:.75rem;margin-top:8px;color:var(--muted)">💡 Chọn nhân viên từ hồ sơ để tự điền chức vụ. <b>Bác sĩ</b> và <b>Phụ phẫu</b> sẽ tự lấy tiền up-sale từ <b>Tour phẫu thuật</b> trong tháng để tính hoa hồng.</div>
+        <div class="sub" style="font-size:.75rem;margin-top:8px;color:var(--muted)">💡 Chọn nhân viên từ hồ sơ để tự điền chức vụ. <b>Bác sĩ</b> và <b>Phụ phẫu</b> tự lấy tiền tư vấn thêm từ <b>Tour phẫu thuật</b> trong tháng — ca có <b>2 người thì chia đôi</b>, chỉ 1 người thì hưởng trọn.</div>
       </div>
 
       <div class="card">
@@ -1599,8 +1599,8 @@ function openModal(type, ctx){
         ${(()=>{ const u=payrollUpsale(e);
           if(!u.auto) return num({id:'pr-ed-upsale',label:'Up sale / doanh số (đ)'}, e.up_sale);
           return `<div><label class="bl">Up sale (tự tính từ Tour)</label>
-            <input id="pr-ed-upsale" class="bi" type="number" value="${u.upSale}" disabled style="background:var(--cream);color:var(--muted)">
-            <div style="font-size:.7rem;color:var(--green);margin-top:4px">🩻 ${u.cases} ca tour tháng này · theo chức vụ ${pgEscHtml(e.role||'')}</div></div>`;
+            <input id="pr-ed-upsale" class="bi" type="number" value="${Math.round(u.upSale)}" disabled style="background:var(--cream);color:var(--muted)">
+            <div style="font-size:.7rem;color:var(--green);margin-top:4px">🩻 ${u.cases} ca tour tháng này${u.shared?` · ${u.shared} ca chia đôi với người còn lại`:''}</div></div>`;
         })()}
         ${num({id:'pr-ed-pct',label:'% hoa hồng'}, e.pct_hoa_hong)}
       </div>
@@ -1933,12 +1933,15 @@ const isAssistantRole = r => /ph[ụu]\s*ph[ẫâa]u|ph[ụu]\s*t[áa]/i.test(St
 function payrollUpsale(e){
   const t=PAYROLL.tourUpsell||{};
   const name=String(e.full_name||'').trim();
-  let bucket=null;
-  if(isDoctorRole(e.role)) bucket=(t.doctor||{})[name];
-  else if(isAssistantRole(e.role)) bucket=(t.assistant||{})[name];
-  if(bucket) return { upSale:bucket.up||0, cases:bucket.cases||0, auto:true };
-  if(isDoctorRole(e.role)||isAssistantRole(e.role)) return { upSale:0, cases:0, auto:true };
-  return { upSale:e.up_sale||0, cases:0, auto:false };
+  // Một người có thể vừa đứng vai bác sĩ ở ca này, vừa phụ phẫu ở ca khác -> cộng cả hai
+  const d=(t.doctor||{})[name], a=(t.assistant||{})[name];
+  if(d||a){
+    return { upSale:((d&&d.up)||0)+((a&&a.up)||0),
+             cases:((d&&d.cases)||0)+((a&&a.cases)||0),
+             shared:((d&&d.shared)||0)+((a&&a.shared)||0), auto:true };
+  }
+  if(isDoctorRole(e.role)||isAssistantRole(e.role)) return { upSale:0, cases:0, shared:0, auto:true };
+  return { upSale:e.up_sale||0, cases:0, shared:0, auto:false };
 }
 function payrollCalc(e, rates){
   rates = rates || PAYROLL.rates || {};
@@ -1954,7 +1957,7 @@ function payrollCalc(e, rates){
   const tongUp = up.upSale * (e.pct_hoa_hong||0) / 100;
   const tongHoaHong = tongUp + (e.goi_phau||0) + (e.goi_da||0) + (e.phu_cap_khac||0);
   const tongLuong = thucLuong + phuCapAn + (e.gui_xe||0) + tienPhuThuong + tienPhuCangDa + tienLamThuong + tienLamCangDa + tienTiem + tienCsd + tongHoaHong - (e.ung_luong||0);
-  return { thucLuong, phuCapAn, tienPhuThuong, tienPhuCangDa, tienLamThuong, tienLamCangDa, tienTiem, tienCsd, upSale:up.upSale, upAuto:up.auto, upCases:up.cases, tongUp, tongHoaHong, tongLuong };
+  return { thucLuong, phuCapAn, tienPhuThuong, tienPhuCangDa, tienLamThuong, tienLamCangDa, tienTiem, tienCsd, upSale:up.upSale, upAuto:up.auto, upCases:up.cases, upShared:up.shared, tongUp, tongHoaHong, tongLuong };
 }
 function payrollRender(){
   const tb=document.getElementById('lg-rows'); if(!tb) return;
@@ -1984,7 +1987,7 @@ function payrollRender(){
       <td style="text-align:right">${e.luong_cung?VND_FULL(e.luong_cung)+'đ':'—'}</td>
       <td style="text-align:right">${e.ngay_cong||'—'}</td>
       <td style="text-align:right">${c.thucLuong?VND_FULL(c.thucLuong)+'đ':'—'}</td>
-      <td style="text-align:right">${c.upSale?VND_FULL(c.upSale)+'đ':'—'}${c.upAuto?`<div style="font-size:.68rem;color:var(--green)">🩻 tự tính · ${c.upCases} ca</div>`:''}</td>
+      <td style="text-align:right">${c.upSale?VND_FULL(c.upSale)+'đ':'—'}${c.upAuto?`<div style="font-size:.68rem;color:var(--green)">🩻 tự tính · ${c.upCases} ca${c.upShared?` · ${c.upShared} ca chia đôi`:''}</div>`:''}</td>
       <td style="text-align:right">${c.tongHoaHong?VND_FULL(c.tongHoaHong)+'đ':'—'}</td>
       <td style="text-align:right">${e.ung_luong?VND_FULL(e.ung_luong)+'đ':'—'}</td>
       <td style="text-align:right"><b style="color:var(--orange-deep)">${VND_FULL(c.tongLuong)}đ</b></td>
@@ -2069,12 +2072,12 @@ async function payrollSaveRates(){
 window.payrollSaveRates=payrollSaveRates;
 function payrollExportCSV(){
   const rows=PAYROLL.rows||[]; if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
-  const header=['Nhân viên','Chức vụ','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','Nguồn up sale','Ca tour','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
+  const header=['Nhân viên','Chức vụ','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','Nguồn up sale','Ca tour','Ca chia đôi','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
   const lines=[header];
   let total=0;
   rows.forEach(e=>{
     const c=payrollCalc(e); total+=c.tongLuong;
-    lines.push([e.full_name,e.role||'',e.luong_cung,e.ngay_cong,c.thucLuong,c.phuCapAn,e.gui_xe,c.tienPhuThuong,c.tienPhuCangDa,c.tienLamThuong,c.tienLamCangDa,c.tienTiem,c.tienCsd,c.upSale,c.upAuto?'Tour phẫu thuật':'Nhập tay',c.upAuto?c.upCases:'',e.pct_hoa_hong,c.tongUp,e.goi_phau,e.goi_da,e.phu_cap_khac,c.tongHoaHong,e.ung_luong,c.tongLuong]);
+    lines.push([e.full_name,e.role||'',e.luong_cung,e.ngay_cong,c.thucLuong,c.phuCapAn,e.gui_xe,c.tienPhuThuong,c.tienPhuCangDa,c.tienLamThuong,c.tienLamCangDa,c.tienTiem,c.tienCsd,Math.round(c.upSale),c.upAuto?'Tour phẫu thuật':'Nhập tay',c.upAuto?c.upCases:'',c.upAuto?c.upShared:'',e.pct_hoa_hong,Math.round(c.tongUp),e.goi_phau,e.goi_da,e.phu_cap_khac,Math.round(c.tongHoaHong),e.ung_luong,Math.round(c.tongLuong)]);
   });
   lines.push(['TỔNG',...Array(header.length-2).fill(''),total]);
   const csv='﻿'+lines.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
@@ -2689,17 +2692,16 @@ function staffToCtx(s){
 // Chỉ được chọn chứ không gõ tay -> tên luôn khớp hồ sơ, Bảng lương tính đúng hoa hồng up-sale.
 function fillTourStaffSelects(){
   const all=STAFF_ROWS||[];
-  const opts=list=>list.map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
-  const fill=(id, filtered, placeholder)=>{
+  // Cả 2 ô đều liệt kê bác sĩ LẪN phụ phẫu — ai đứng vai nào trong ca cũng chọn được
+  const medical=all.filter(s=>isDoctorRole(s.role)||isAssistantRole(s.role));
+  const list=medical.length?medical:all;   // chưa ai có chức vụ y khoa thì cho chọn tất, tránh form bị kẹt
+  const opts=list.map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
+  [['tf-doctor','— Chọn bác sĩ —'],['tf-assist','— Chọn phụ phẫu —']].forEach(([id,placeholder])=>{
     const el=document.getElementById(id); if(!el) return;
     const cur=el.value;
-    // Không có ai đúng chức vụ thì cho chọn toàn bộ nhân viên, tránh form bị kẹt
-    const list=filtered.length?filtered:all;
-    el.innerHTML=`<option value="">${placeholder}</option>`+opts(list);
+    el.innerHTML=`<option value="">${placeholder}</option>`+opts;
     if(cur){ el.value=cur; if(el.value!==cur) el.value=''; }   // tên cũ không còn trong hồ sơ -> để trống
-  };
-  fill('tf-doctor', all.filter(s=>isDoctorRole(s.role)), '— Chọn bác sĩ —');
-  fill('tf-assist', all.filter(s=>isAssistantRole(s.role)), '— Chọn phụ phẫu —');
+  });
 }
 function renderStaff(){
   fillTourStaffSelects();

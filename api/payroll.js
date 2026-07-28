@@ -80,17 +80,25 @@ async function tourUpsellByMonth(month, year) {
   if (!r.ok) return { doctor: {}, assistant: {} };
   const rows = await r.json().catch(() => []);
   const out = { doctor: {}, assistant: {} };
-  const add = (bucket, name, up, rev) => {
+  const add = (bucket, name, up, rev, shared) => {
     const k = String(name || '').trim();
-    if (!k) return;
-    if (!bucket[k]) bucket[k] = { up: 0, revenue: 0, cases: 0 };
-    bucket[k].up += Number(up) || 0;
-    bucket[k].revenue += Number(rev) || 0;
+    if (!bucket[k]) bucket[k] = { up: 0, revenue: 0, cases: 0, shared: 0 };
+    bucket[k].up += up;
+    bucket[k].revenue += rev;
     bucket[k].cases++;
+    if (shared) bucket[k].shared++;
   };
+  // Tiền tư vấn thêm (up-sale) của một ca chia đều cho những người có mặt:
+  // đủ bác sĩ + phụ phẫu -> mỗi người một nửa; chỉ một người -> người đó hưởng trọn.
   (Array.isArray(rows) ? rows : []).forEach(c => {
-    add(out.doctor, c.doctor, c.revenue_up, c.revenue_initial);
-    add(out.assistant, c.assistant, c.revenue_up, c.revenue_initial);
+    const doc = String(c.doctor || '').trim();
+    const asst = String(c.assistant || '').trim();
+    const n = (doc ? 1 : 0) + (asst ? 1 : 0);
+    if (!n) return;
+    const up = (Number(c.revenue_up) || 0) / n;
+    const rev = (Number(c.revenue_initial) || 0) / n;
+    if (doc) add(out.doctor, doc, up, rev, n > 1);
+    if (asst) add(out.assistant, asst, up, rev, n > 1);
   });
   return out;
 }
