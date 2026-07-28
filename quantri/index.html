@@ -580,29 +580,29 @@
       <div class="row r-2-1">
         <div class="card">
           <div class="card-head">
-            <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">So sánh cùng kỳ tháng trước</div></div>
-            <span class="pill">Tăng trưởng +18%</span>
+            <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">Từ Data Hub (Sổ thu/chi hoặc sheet doanh thu)</div></div>
+            <span class="pill" id="ovRevGrowthPill" style="display:none"></span>
           </div>
           <canvas id="chartRevenue" height="110"></canvas>
+          <div id="ovRevChartEmpty" style="display:none;text-align:center;color:var(--muted);padding:30px 0">Chưa có dữ liệu doanh thu — kết nối Google Sheet ở Data Hub.</div>
         </div>
 
         <div class="card ai-card" style="color:#fff">
           <div class="ai-icon">✨</div>
           <h3>AI Insights hôm nay</h3>
-          <div class="ai-insight"><b>🎯 Cơ hội:</b> 8 khách VIP chưa quay lại 60+ ngày. <a href="#" onclick="go('care');return false" style="color:var(--gold);text-decoration:underline">Xem & gửi voucher →</a></div>
-          <div class="ai-insight"><b>⚠️ Cảnh báo:</b> Thứ Năm tuần sau khung 14-16h trống 6 slot. <a href="#" onclick="go('marketing');return false" style="color:var(--gold);text-decoration:underline">Chạy flash-sale →</a></div>
-          <div class="ai-insight"><b>📈 Dự đoán:</b> Tuần tới doanh thu ~210tr (±8%).</div>
+          <div id="ovAiInsights"><div class="ai-insight" style="opacity:.75">Chưa có đủ dữ liệu để phân tích AI.</div></div>
         </div>
       </div>
 
       <div class="row r-1-2" style="margin-top:16px">
         <div class="card">
           <div class="card-head"><h3>Phân loại khách</h3></div>
-          <canvas id="chartGender" height="200"></canvas>
+          <canvas id="chartGender" height="200" style="display:none"></canvas>
+          <div id="ovGenderEmpty" style="text-align:center;color:var(--muted);padding:40px 0">Chưa có dữ liệu phân loại khách (cần thêm trường giới tính/hạng ở Sổ khách hàng).</div>
         </div>
         <div class="card">
           <div class="card-head">
-            <div><h3>Lịch hẹn sắp tới hôm nay</h3><div class="sub">12 lịch · CEO trực tiếp tư vấn 3 ca</div></div>
+            <div><h3>Lịch hẹn sắp tới hôm nay</h3><div class="sub" id="ovTodaySub">đang tải…</div></div>
             <button class="btn sm" onclick="go('calendar')">Xem tất cả</button>
           </div>
           <table>
@@ -615,12 +615,8 @@
       <div class="row r-3" style="margin-top:16px">
         <div class="card">
           <h3>🏆 Top dịch vụ tuần</h3>
-          <div style="display:flex;flex-direction:column;gap:11px;margin-top:14px">
-            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Cắt mí mắt</b><span style="color:var(--orange-deep);font-weight:700">34 ca</span></div><div class="progress"><div style="width:90%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Trẻ hóa da Hifu</b><span style="color:var(--orange-deep);font-weight:700">28 ca</span></div><div class="progress"><div style="width:74%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Tiêm filler</b><span style="color:var(--orange-deep);font-weight:700">21 ca</span></div><div class="progress"><div style="width:55%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Nâng cung mày</b><span style="color:var(--orange-deep);font-weight:700">18 ca</span></div><div class="progress"><div style="width:48%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>Hút mỡ bụng</b><span style="color:var(--orange-deep);font-weight:700">12 ca</span></div><div class="progress"><div style="width:32%"></div></div></div>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-top:14px" id="ovTopServices">
+            <div style="color:var(--muted);font-size:.85rem">Đang tải…</div>
           </div>
         </div>
         <div class="card">
@@ -629,11 +625,8 @@
         </div>
         <div class="card">
           <h3>🎂 Sự kiện hôm nay</h3>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:.86rem;margin-top:14px">
-            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>🎉 Sinh nhật chị Linh Nguyễn</b><div style="color:var(--muted);font-size:.76rem">22/05 · Đã gửi voucher 30%</div></div>
-            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>💎 Khách Diamond Mai Phạm</b><div style="color:var(--muted);font-size:.76rem">Kỷ niệm 2 năm · Tự động gửi quà</div></div>
-            <div style="padding:11px;background:linear-gradient(135deg,#FDEAEA,#FFF8EC);border-radius:9px"><b>⚠️ 3 khách quên tái khám</b><div style="color:var(--muted);font-size:.76rem">AI nhắc gọi trong 24h</div></div>
-            <div style="padding:11px;background:linear-gradient(135deg,#FFF8EC,#FBEFD8);border-radius:9px"><b>📅 Ngày Phụ Nữ VN 20/10</b><div style="color:var(--muted);font-size:.76rem">Chuẩn bị campaign -20%</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:.86rem;margin-top:14px" id="ovEvents">
+            <div style="color:var(--muted)">Chưa có dữ liệu sự kiện (sinh nhật, tái khám...) để hiển thị.</div>
           </div>
         </div>
       </div>
@@ -1225,13 +1218,6 @@ const DATA = {
     {id:5, name:'Chị Mai Phạm', phone:'0918 456 789', age:39, tier:'diamond', ltv:238400000, lastVisit:'2 ngày trước', visits:32, points:5890, aiScore:99, aiTag:'VIP', avBg:'linear-gradient(135deg,#3498DB,#2C3E50)'},
     {id:6, name:'Chị Yến Nguyễn', phone:'0962 345 678', age:32, tier:'gold', ltv:54800000, lastVisit:'67 ngày trước', visits:9, points:1420, aiScore:42, aiTag:'Rủi ro rời', avBg:'linear-gradient(135deg,#E74C3C,#C0392B)', risk:true},
     {id:7, name:'Chị Phương Đào', phone:'0945 678 901', age:36, tier:'silver', ltv:18200000, lastVisit:'22 ngày trước', visits:4, points:620, aiScore:76, aiTag:'Mới', avBg:'linear-gradient(135deg,#F39C12,#E67E22)'}
-  ],
-  todayApps: [
-    {av:'L', name:'Chị Linh Nguyễn', subtitle:'VIP · 12 lần', service:'Cắt mí mắt', time:'09:30', staff:'BS. Hà', status:'green', statusText:'Đã xác nhận'},
-    {av:'H', name:'Chị Hương Trần', subtitle:'Mới · Lần 1', service:'Tư vấn 1-1 CEO', time:'10:15', staff:'CEO Phương', status:'blue', statusText:'Đang đến', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)'},
-    {av:'T', name:'Chị Thu Vũ', subtitle:'Gold · 8 lần', service:'Trẻ hóa da Hifu', time:'11:00', staff:'BS. Mai', status:'gold', statusText:'Chờ', bg:'linear-gradient(135deg,#16A085,#27AE60)'},
-    {av:'N', name:'Chị Nga Lê', subtitle:'VIP · 15 lần', service:'Tiêm filler môi', time:'14:30', staff:'CEO Phương', status:'gold', statusText:'Chờ', bg:'linear-gradient(135deg,#E67E22,#D35400)'},
-    {av:'M', name:'Chị Mai Phạm', subtitle:'Diamond · 25 lần', service:'Combo trẻ hóa', time:'15:00', staff:'BS. Hà', status:'red', statusText:'Cần gọi', bg:'linear-gradient(135deg,#3498DB,#2C3E50)'}
   ],
   staff: [],
   care: [
@@ -2517,16 +2503,23 @@ addEventListener('keydown',e=>{ if(e.key==='Escape') closeSidebar(); });
 })();
 
 /* ===== HYDRATION ===== */
-function pillForStatus(s){ return `<span class="status ${s.status}">${s.statusText}</span>` }
-function tierPill(t){ return `<span class="tier ${t}">${t}</span>` }
-
-function renderTodayApps(){
-  document.getElementById('todayApps').innerHTML = DATA.todayApps.map(a=>`
-    <tr class="clickable" onclick='openModal("appointment",${JSON.stringify(a).replace(/'/g,"&#39;")})'>
-      <td><div class="with-av"><span class="avatar" style="background:${a.bg||'var(--grad)'}">${a.av}</span><span><b>${a.name}</b><span>${a.subtitle}</span></span></div></td>
-      <td>${a.service}</td><td>${a.time}</td><td>${a.staff}</td><td>${pillForStatus(a)}</td>
-    </tr>
-  `).join('');
+async function renderTodayApps(){
+  const tb=document.getElementById('todayApps'), sub=document.getElementById('ovTodaySub');
+  if(!tb) return;
+  if(!APPTS.rows) await apptLoad();
+  const p=n=>String(n).padStart(2,'0');
+  const todayIso=(d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()))(new Date());
+  const today=(APPTS.rows||[]).filter(a=>a.appt_date===todayIso).sort((a,b)=>(a.appt_time||'').localeCompare(b.appt_time||''));
+  if(sub) sub.textContent = today.length ? (today.length+' lịch hôm nay') : 'Chưa có lịch hẹn hôm nay';
+  if(!today.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:22px">Chưa có lịch hẹn hôm nay</td></tr>'; return; }
+  tb.innerHTML = today.map(a=>{
+    const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+    return `<tr class="clickable" onclick='openModal("appt-detail",${ctxJson})'>
+      <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(a.full_name||'?')}</b><span>${esc(a.phone||'')}</span></span></div></td>
+      <td>${esc(a.service)||'—'}</td><td>${esc(a.appt_time)||'—'}</td><td>${esc(a.staff)||'—'}</td><td>${apptStatusPill(a.status)}</td>
+    </tr>`;
+  }).join('');
 }
 function renderTopStaff(){
   const el=document.getElementById('topStaff'); if(!el) return;
@@ -3005,6 +2998,7 @@ async function apptCreate(){
     ['ap-name','ap-phone','ap-date','ap-time','ap-service','ap-staff','ap-note'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
     toast('✅ Đã tạo lịch hẹn','green'); if(typeof ding==='function')ding();
     await apptLoad(true);
+    renderTodayApps(); syncOverviewTopServices();
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.apptCreate=apptCreate;
@@ -3014,7 +3008,7 @@ async function apptMarkStatus(id,status){
     const label={den:'✅ Đã xác nhận khách đến',cho:'⏳ Đã chuyển về chưa đến',huy:'✕ Đã huỷ lịch hẹn'}[status]||'Đã cập nhật';
     toast(label,'green');
     await apptLoad(true);
-    syncOverviewAppts(); syncOverviewMonth();
+    syncOverviewAppts(); syncOverviewMonth(); renderTodayApps(); syncOverviewTopServices();
     if(status==='den' && typeof tourLoadPending==='function') tourLoadPending();
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
@@ -3123,6 +3117,28 @@ async function syncOverviewNewCustomers(){
 }
 window.syncOverviewNewCustomers=syncOverviewNewCustomers;
 
+/* ===== Top dịch vụ tuần (Tổng quan) — đếm theo trường "service" của lịch hẹn tuần này ===== */
+async function syncOverviewTopServices(){
+  const el=document.getElementById('ovTopServices');
+  if(!el) return;
+  if(!APPTS.rows) await apptLoad();
+  const p=n=>String(n).padStart(2,'0');
+  const now=new Date(), dow=(now.getDay()+6)%7;
+  const mon=new Date(now); mon.setHours(0,0,0,0); mon.setDate(mon.getDate()-dow);
+  const monIso=mon.getFullYear()+'-'+p(mon.getMonth()+1)+'-'+p(mon.getDate());
+  const counts={};
+  (APPTS.rows||[]).forEach(a=>{
+    if(!a.appt_date || a.appt_date<monIso) return;
+    const s=(a.service||'').trim(); if(!s) return;
+    counts[s]=(counts[s]||0)+1;
+  });
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!top.length){ el.innerHTML='<div style="color:var(--muted);font-size:.85rem">Chưa có lịch hẹn nào tuần này</div>'; return; }
+  const max=top[0][1];
+  el.innerHTML=top.map(([name,n])=>`<div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.88rem"><b>${esc(name)}</b><span style="color:var(--orange-deep);font-weight:700">${n} ca</span></div><div class="progress"><div style="width:${Math.max(6,Math.round(n/max*100))}%"></div></div></div>`).join('');
+}
+window.syncOverviewTopServices=syncOverviewTopServices;
+
 /* ===== TOUR: hàng chờ nhập ca từ lịch hẹn đã đến ===== */
 let TOUR_PENDING_APPT_ID=null;
 async function tourLoadPending(){
@@ -3211,14 +3227,40 @@ if(window.Chart){
   }
 }
 let dashCharts={};
-function initDashboardCharts(){
-  if(dashCharts.revenue)return;
-  const ctx=document.getElementById('chartRevenue');
-  if(!ctx)return;
-  dashCharts.revenue=new Chart(ctx,{type:'line',data:{labels:['7/5','8/5','9/5','10/5','11/5','12/5','13/5','14/5','15/5','16/5','17/5','18/5','19/5','20/5'],datasets:[{label:'Tuần này',data:[22,28,25,32,38,42,36,40,45,48,42,52,55,58],borderColor:'#A8231C',backgroundColor:'rgba(168,35,28,.1)',fill:true,tension:.4,borderWidth:3,pointBackgroundColor:'#A8231C',pointRadius:4},{label:'Tuần trước',data:[20,22,24,28,30,33,28,32,35,38,34,42,44,46],borderColor:'#E0762C',backgroundColor:'transparent',borderDash:[5,5],tension:.4,borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{position:'top',align:'end'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
-  const gctx=document.getElementById('chartGender');
-  if(gctx)dashCharts.gender=new Chart(gctx,{type:'doughnut',data:{labels:['Nữ 28-45t','Nữ 45+','Nữ U28','Nam'],datasets:[{data:[58,22,15,5],backgroundColor:['#A8231C','#E0762C','#E8C25A','#5A3620'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}},cutout:'62%'}});
+function initDashboardCharts(){ syncOverviewRevenueChart(); }
+// Vẽ lại "Doanh thu 14 ngày qua" bằng dữ liệu thật từ revenueModel() (Data Hub).
+// Không có dữ liệu → ẩn chart, hiện thông báo thay vì bịa số.
+function syncOverviewRevenueChart(){
+  const canvas=document.getElementById('chartRevenue');
+  if(!canvas) return;
+  const emptyEl=document.getElementById('ovRevChartEmpty'), pillEl=document.getElementById('ovRevGrowthPill');
+  const M=revenueModel();
+  const days=(M.days||[]).filter(d=>d && d.date).slice(-14);
+  if(!days.length){
+    if(dashCharts.revenue){ dashCharts.revenue.destroy(); dashCharts.revenue=null; }
+    canvas.style.display='none';
+    if(emptyEl) emptyEl.style.display='';
+    if(pillEl) pillEl.style.display='none';
+    return;
+  }
+  canvas.style.display='';
+  if(emptyEl) emptyEl.style.display='none';
+  if(dashCharts.revenue){ dashCharts.revenue.destroy(); }
+  dashCharts.revenue=new Chart(canvas,{type:'line',data:{
+    labels:days.map(d=>d.date),
+    datasets:[{label:'Doanh thu',data:days.map(d=>Math.round((d.rev||0)/1e6)),borderColor:'#A8231C',backgroundColor:'rgba(168,35,28,.1)',fill:true,tension:.4,borderWidth:3,pointBackgroundColor:'#A8231C',pointRadius:4}]
+  },options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
+  if(pillEl){
+    if(days.length>=4){
+      const half=Math.floor(days.length/2);
+      const sum=arr=>arr.reduce((s,d)=>s+(d.rev||0),0);
+      const prevSum=sum(days.slice(0,half)), curSum=sum(days.slice(half));
+      if(prevSum>0){ const g=Math.round((curSum-prevSum)/prevSum*100); pillEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'%'; pillEl.style.display=''; }
+      else pillEl.style.display='none';
+    } else pillEl.style.display='none';
+  }
 }
+window.syncOverviewRevenueChart=syncOverviewRevenueChart;
 let revCharts={};
 function trShort(n){ n=Math.round(n||0); const a=Math.abs(n); if(a>=1e9) return (n/1e9).toFixed(a%1e9?2:0).replace(/\.?0+$/,'')+' tỷ'; if(a>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'tr'; if(a>=1e3) return Math.round(n/1e3)+'k'; return String(n); }
 function fmtVND(n){ return VND_FULL(Math.round(n||0))+'₫'; }
@@ -3854,14 +3896,34 @@ function drawSparkline(canvasId, data, color){
   ctx.beginPath(); ctx.arc(lx,ly,3,0,7);
   ctx.fillStyle = color; ctx.fill();
 }
-function initSparklines(){
-  // Generate fake trend data for each KPI
-  const d1 = [18,19,20,21,19,22,24], c1='#C99A2E';
-  const d2 = [38,35,40,42,40,45,47], c2='#E0762C';
-  const d3 = [140,155,160,170,165,180,186], c3='#A8231C';
-  drawSparkline('sparkK1',d1,c1);
-  drawSparkline('sparkK2',d2,c2);
-  drawSparkline('sparkK3',d3,c3);
+function hideSparkline(id){ const c=document.getElementById(id); if(c) c.style.display='none'; }
+function showSparkline(id,data,color){ const c=document.getElementById(id); if(!c) return; c.style.display='block'; drawSparkline(id,data,color); }
+// Sparkline 7 ngày qua cho từng KPI — dữ liệu thật, không vẽ nếu chưa có gì để so sánh.
+async function initSparklines(){
+  const p=n=>String(n).padStart(2,'0');
+  const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  const today=new Date();
+  const last7=Array.from({length:7},(_,i)=>{ const d=new Date(today); d.setDate(d.getDate()-(6-i)); return d; });
+
+  try{
+    if(!APPTS.rows) await apptLoad();
+    const byDay=last7.map(d=>(APPTS.rows||[]).filter(a=>a.appt_date===iso(d)).length);
+    if(byDay.some(v=>v>0)) showSparkline('sparkK1',byDay,'#C99A2E'); else hideSparkline('sparkK1');
+  }catch(e){ hideSparkline('sparkK1'); }
+
+  try{
+    const counts=await Promise.all(last7.map(d=>{
+      const from=iso(d), to=iso(new Date(d.getTime()+86400000));
+      return crmApi({action:'count_new',from,to}).then(r=>r.count||0).catch(()=>0);
+    }));
+    if(counts.some(v=>v>0)) showSparkline('sparkK2',counts,'#E0762C'); else hideSparkline('sparkK2');
+  }catch(e){ hideSparkline('sparkK2'); }
+
+  try{
+    const M=revenueModel();
+    const days=(M.days||[]).slice(-7).map(d=>Math.round((d.rev||0)/1e6));
+    if(days.length>=2 && days.some(v=>v>0)) showSparkline('sparkK3',days,'#A8231C'); else hideSparkline('sparkK3');
+  }catch(e){ hideSparkline('sparkK3'); }
 }
 
 /* ===== QUICK SEARCH — Cmd+K / Ctrl+K ===== */
@@ -4749,10 +4811,10 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
 renderTasks();
-renderCampaigns(); apptLoad(); renderLeads();
+renderCampaigns(); apptLoad(); renderLeads(); syncOverviewTopServices();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
-setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); syncOverviewNewCustomers(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); syncOverviewNewCustomers(); } }, 800);
+setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); } }, 800);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
