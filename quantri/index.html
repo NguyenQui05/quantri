@@ -511,7 +511,7 @@
       <a data-section="datahub"><span class="ic">🗂️</span>Tổng hợp dữ liệu<span class="badge" id="datahubBadge" style="background:var(--gold-deep)">LIVE</span></a>
       <a data-section="calendar"><span class="ic">📅</span>Lịch hẹn<span class="badge" id="calBadge">0</span></a>
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
-      <a data-section="leads"><span class="ic">📥</span>Lead từ web<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
+      <a data-section="leads"><span class="ic">📥</span>Lead Mới<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
       <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
       <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
 
@@ -713,8 +713,7 @@
     <section class="page" id="page-leads">
       <div class="alert success" style="margin-bottom:14px;display:flex;align-items:center">
         <span class="ic">📥</span>
-        <div style="flex:1"><b>Lead telesale</b> · Tự đồng bộ từ Google Sheet <b>data lead chuẩn</b> — kèm dịch vụ, nguồn, trạng thái thật (Tham khảo · Tiềm năng · Đã đặt lịch · Đã mua…). Phễu chuyển đổi tính theo trạng thái trong sheet.</div>
-        <button class="btn sm" onclick="syncLeadsFromSheet()" style="margin-right:8px">⬇ Nạp từ Sheet</button>
+        <div style="flex:1"><b>Lead Mới</b> · Danh sách trống, sẵn sàng nhận dữ liệu từ form mới.</div>
         <button class="btn ghost sm" onclick="exportExcel('leads')">⬇ Xuất Excel</button>
       </div>
       <div class="grid kpi-grid" id="leadsKpis">
@@ -2559,7 +2558,7 @@ const titles = {
   datahub:['🗂️ Tổng hợp dữ liệu','Kết nối Google Sheets · quảng cáo · doanh thu · data · lợi nhuận'],
   calendar:['Lịch hẹn','Telesale tạo lịch · Lễ tân xác nhận đến/chưa đến · lưu thật, đồng bộ mọi thiết bị'],
   crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
-  leads:['📥 Lead từ web','Khách đăng ký từ phammaiphuong.vn'],
+  leads:['📥 Lead Mới','Khách đăng ký từ phammaiphuong.vn'],
   care:['Hậu chăm sóc','SOP 7 mốc thời gian — giữ chân khách 96%'],
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
@@ -4253,7 +4252,7 @@ function initSparklines(){
 /* ===== QUICK SEARCH — Cmd+K / Ctrl+K ===== */
 const QS_INDEX = [
   {sec:'dashboard',title:'Tổng quan',hint:'Dashboard KPI · AI insights · lịch hẹn hôm nay',ic:'📊'},
-  {sec:'leads',title:'Lead từ web',hint:'Khách đăng ký từ landing · liên hệ · convert',ic:'📥'},
+  {sec:'leads',title:'Lead Mới',hint:'Khách đăng ký từ landing · liên hệ · convert',ic:'📥'},
   {sec:'calendar',title:'Lịch hẹn',hint:'Quản lý lịch hẹn tuần · tạo booking mới',ic:'📅'},
   {sec:'crm',title:'Khách hàng',hint:'2.847 khách · VIP · Diamond · lịch sử',ic:'👥'},
   {sec:'care',title:'Hậu chăm sóc',hint:'Follow-up sau điều trị · SOP 7 mốc',ic:'🛎️'},
@@ -5097,8 +5096,8 @@ renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
 renderTasks(); renderInventory();
 renderCampaigns(); apptLoad(); renderLeads();
 seedDataSources(); renderDataSources();
-try{ if(localStorage.getItem('hana_leads_ver')!=='v5'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v5'); } }catch(e){} // nạp lại với ngày chuẩn theo tháng + sắp xếp mới nhất — 1 lần
-setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ syncLeadsFromSheet(true); renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); }); else { renderRevenue(); syncOverviewRevenue(); } }, 800);
+try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
+setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); }); else { renderRevenue(); syncOverviewRevenue(); } }, 800);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
