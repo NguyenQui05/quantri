@@ -566,7 +566,7 @@
 
       <div class="grid kpi-grid kpi-grid-3">
         <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val" id="ovApptVal">—</div><div class="delta" id="ovApptDelta">đang tải…</div><canvas id="sparkK1" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
-        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val">47</div><div class="delta">▲ 12 khách</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label" id="ovRevLabel">Doanh thu</div><div class="val" id="ovRevVal">—</div><div class="delta" id="ovRevDelta">Kết nối Data Hub</div><canvas id="sparkK3" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
       </div>
 
@@ -3096,6 +3096,33 @@ async function syncOverviewMonth(){
 }
 window.syncOverviewMonth=syncOverviewMonth;
 
+/* ===== Khách mới tuần này (Tổng quan) — đếm qua Supabase, không cần tải cả danh sách ===== */
+async function syncOverviewNewCustomers(){
+  const g=id=>document.getElementById(id);
+  if(!g('ovNewCustVal')) return;
+  const p=n=>String(n).padStart(2,'0');
+  const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  const now=new Date();
+  const dow=(now.getDay()+6)%7;                 // 0 = Thứ Hai
+  const thisMon=new Date(now); thisMon.setHours(0,0,0,0); thisMon.setDate(thisMon.getDate()-dow);
+  const nextMon=new Date(thisMon); nextMon.setDate(thisMon.getDate()+7);
+  const lastMon=new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
+  try{
+    const [cur, prev]=await Promise.all([
+      crmApi({action:'count_new', from:iso(thisMon), to:iso(nextMon)}),
+      crmApi({action:'count_new', from:iso(lastMon), to:iso(thisMon)})
+    ]);
+    const n=cur.count||0, prevN=prev.count||0;
+    g('ovNewCustVal').textContent=n.toLocaleString('vi-VN');
+    const d=g('ovNewCustDelta');
+    if(d){
+      if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tuần trước'; }
+      else d.textContent=n?('so với 0 tuần trước'):'Chưa có khách mới tuần này';
+    }
+  }catch(e){ console.error('ov new customers', e); }
+}
+window.syncOverviewNewCustomers=syncOverviewNewCustomers;
+
 /* ===== TOUR: hàng chờ nhập ca từ lịch hẹn đã đến ===== */
 let TOUR_PENDING_APPT_ID=null;
 async function tourLoadPending(){
@@ -4725,7 +4752,7 @@ renderTasks();
 renderCampaigns(); apptLoad(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
-setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); } }, 800);
+setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); syncOverviewNewCustomers(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); syncOverviewNewCustomers(); } }, 800);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();

@@ -42,9 +42,10 @@ export default async function handler(req, res) {
   const action = String(body.action || '');
 
   try {
-    if (action === 'list')   return await listCustomers(res, body);
-    if (action === 'update') return await updateCustomer(res, body);
-    if (action === 'delete') return await deleteCustomer(res, body);
+    if (action === 'list')      return await listCustomers(res, body);
+    if (action === 'update')    return await updateCustomer(res, body);
+    if (action === 'delete')    return await deleteCustomer(res, body);
+    if (action === 'count_new') return await countNew(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('customers api error:', e?.message || e);
@@ -107,6 +108,22 @@ async function deleteCustomer(res, body) {
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
   return res.status(200).json({ ok: true });
+}
+
+// Đếm khách hàng mới tạo trong khoảng [from, to) — dùng cho KPI "Khách mới tuần này" ở Tổng quan.
+async function countNew(res, body) {
+  const from = String(body.from || '');
+  const to = String(body.to || '');
+  if (!/^\d{4}-\d{2}-\d{2}/.test(from)) return res.status(400).json({ error: 'Thiếu from' });
+  const params = new URLSearchParams();
+  params.set('select', 'id');
+  params.append('created_at', `gte.${from}`);
+  if (to) params.append('created_at', `lt.${to}`);
+  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders({ Prefer: 'count=exact', Range: '0-0' }) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi đọc dữ liệu' }); }
+  const cr = r.headers.get('content-range') || '';
+  const count = parseInt(cr.split('/')[1] || '0', 10) || 0;
+  return res.status(200).json({ count });
 }
 
 export const config = { runtime: 'nodejs' };
