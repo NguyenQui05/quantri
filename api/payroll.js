@@ -62,27 +62,66 @@ export default async function handler(req, res) {
   }
 }
 
+const pad2 = n => String(n).padStart(2, '0');
+
+// Gom tiền up-sale từ Tour phẫu thuật trong tháng, tách theo bác sĩ và phụ phẫu.
+// Dùng để tự tính hoa hồng cho 2 chức vụ này thay vì nhập tay.
+async function tourUpsellByMonth(month, year) {
+  const from = `${year}-${pad2(month)}-01`;
+  const nextY = month === 12 ? year + 1 : year;
+  const nextM = month === 12 ? 1 : month + 1;
+  const to = `${nextY}-${pad2(nextM)}-01`;
+  const params = new URLSearchParams();
+  params.set('select', 'doctor,assistant,revenue_up,revenue_initial');
+  params.append('case_date', `gte.${from}`);
+  params.append('case_date', `lt.${to}`);
+  params.set('limit', '5000');
+  const r = await fetch(sb(`tour_cases?${params.toString()}`), { headers: sbHeaders() });
+  if (!r.ok) return { doctor: {}, assistant: {} };
+  const rows = await r.json().catch(() => []);
+  const out = { doctor: {}, assistant: {} };
+  const add = (bucket, name, up, rev) => {
+    const k = String(name || '').trim();
+    if (!k) return;
+    if (!bucket[k]) bucket[k] = { up: 0, revenue: 0, cases: 0 };
+    bucket[k].up += Number(up) || 0;
+    bucket[k].revenue += Number(rev) || 0;
+    bucket[k].cases++;
+  };
+  (Array.isArray(rows) ? rows : []).forEach(c => {
+    add(out.doctor, c.doctor, c.revenue_up, c.revenue_initial);
+    add(out.assistant, c.assistant, c.revenue_up, c.revenue_initial);
+  });
+  return out;
+}
+
 async function listEntries(res, body) {
   const month = Math.max(1, Math.min(12, parseInt(body.month, 10) || 0));
   const year = Math.max(2000, parseInt(body.year, 10) || 0);
   if (!month || !year) return res.status(400).json({ error: 'Thiếu tháng/năm' });
 
-  const [rowsR, ratesR] = await Promise.all([
+  const [rowsR, ratesR, staffR, tourUpsell] = await Promise.all([
     fetch(sb(`${TABLE}?month=eq.${month}&year=eq.${year}&select=*&order=created_at.asc`), { headers: sbHeaders() }),
-    fetch(sb(`${RATES_TABLE}?id=eq.default&select=*&limit=1`), { headers: sbHeaders() })
+    fetch(sb(`${RATES_TABLE}?id=eq.default&select=*&limit=1`), { headers: sbHeaders() }),
+    fetch(sb('staff_members?select=id,full_name,role&order=full_name.asc'), { headers: sbHeaders() }),
+    tourUpsellByMonth(month, year)
   ]);
   const rows = await rowsR.json();
   if (!rowsR.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
   const ratesArr = await ratesR.json().catch(() => []);
   const rates = Array.isArray(ratesArr) && ratesArr[0] ? ratesArr[0] : null;
+  const staffArr = await staffR.json().catch(() => []);
+  const staff = Array.isArray(staffArr) ? staffArr : [];
 
-  return res.status(200).json({ rows, rates });
+  return res.status(200).json({ rows, rates, staff, tourUpsell });
 }
 
 function buildRow(body) {
   const row = {};
   const fullName = String(body.full_name || '').trim();
   if (fullName) row.full_name = fullName.slice(0, 100);
+  if (body.staff_id != null) row.staff_id = String(body.staff_id).trim() || null;
+  if (body.role != null) row.role = String(body.role).trim().slice(0, 80);
   for (const f of NUM_FIELDS) {
     if (body[f] != null) row[f] = Math.max(0, Number(body[f]) || 0);
   }

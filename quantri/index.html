@@ -960,10 +960,13 @@
       <div class="card" style="margin-top:16px;margin-bottom:14px">
         <div class="card-head"><h2>➕ Thêm nhân viên vào bảng lương tháng</h2></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Nhân viên</label><select id="lg-add-staff" class="bi" onchange="payrollPickStaff()"><option value="">— Chọn từ hồ sơ nhân viên —</option></select></div>
           <div><label class="bl">Họ tên</label><input id="lg-add-name" class="bi" placeholder="Nguyễn Thị A"></div>
+          <div><label class="bl">Chức vụ</label><input id="lg-add-role" class="bi" placeholder="Bác sĩ / Phụ phẫu / Lễ tân…"></div>
           <div><label class="bl">Lương cứng (đ/ngày)</label><input id="lg-add-luongcung" class="bi" type="number" min="0" placeholder="0"></div>
         </div>
         <button class="btn" style="margin-top:14px" onclick="payrollCreate()">➕ Thêm vào tháng đang chọn</button>
+        <div class="sub" style="font-size:.75rem;margin-top:8px;color:var(--muted)">💡 Chọn nhân viên từ hồ sơ để tự điền chức vụ. <b>Bác sĩ</b> và <b>Phụ phẫu</b> sẽ tự lấy tiền up-sale từ <b>Tour phẫu thuật</b> trong tháng để tính hoa hồng.</div>
       </div>
 
       <div class="card">
@@ -978,7 +981,7 @@
         </div>
         <div style="overflow-x:auto;margin-top:12px">
           <table style="font-size:.85rem">
-            <thead><tr><th>Nhân viên</th><th style="text-align:right">Lương cứng</th><th style="text-align:right">Ngày công</th><th style="text-align:right">Thực lương</th><th style="text-align:right">Tổng hoa hồng</th><th style="text-align:right">Ứng lương</th><th style="text-align:right">Tổng lương</th><th></th></tr></thead>
+            <thead><tr><th>Nhân viên</th><th>Chức vụ</th><th style="text-align:right">Lương cứng</th><th style="text-align:right">Ngày công</th><th style="text-align:right">Thực lương</th><th style="text-align:right">Up-sale</th><th style="text-align:right">Tổng hoa hồng</th><th style="text-align:right">Ứng lương</th><th style="text-align:right">Tổng lương</th><th></th></tr></thead>
             <tbody id="lg-rows"></tbody>
           </table>
         </div>
@@ -1004,6 +1007,8 @@
 
       <div class="card" style="margin-bottom:14px">
         <div class="card-head"><h2>➕ Ghi nhận ca mới</h2></div>
+        <!-- Tên gợi ý lấy từ hồ sơ Nhân viên — nhập đúng tên thì Bảng lương mới tính được hoa hồng up-sale -->
+        <datalist id="staffNameList"></datalist>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
           <div><label class="bl">Ngày làm ca</label><input id="tf-date" class="bi" type="date"></div>
           <div><label class="bl">Tên khách</label><input id="tf-name" class="bi" placeholder="Nguyễn Thị A"></div>
@@ -1013,8 +1018,8 @@
           <div><label class="bl">Doanh thu ban đầu (đ)</label><input id="tf-rev1" class="bi" type="number" min="0" placeholder="1500000"></div>
           <div><label class="bl">Doanh thu UP (đ)</label><input id="tf-rev2" class="bi" type="number" min="0" placeholder="0"></div>
           <div><label class="bl">Còn nợ (đ)</label><input id="tf-debt" class="bi" type="number" min="0" placeholder="0"></div>
-          <div><label class="bl">Bác sĩ</label><input id="tf-doctor" class="bi" placeholder="Bs Lan"></div>
-          <div><label class="bl">Phụ tá</label><input id="tf-assist" class="bi" placeholder="Nguyên"></div>
+          <div><label class="bl">Bác sĩ</label><input id="tf-doctor" class="bi" list="staffNameList" placeholder="Chọn từ hồ sơ nhân viên"></div>
+          <div><label class="bl">Phụ tá</label><input id="tf-assist" class="bi" list="staffNameList" placeholder="Chọn từ hồ sơ nhân viên"></div>
         </div>
         <button class="btn" style="margin-top:14px" onclick="tourCreate()">➕ Lưu ca này</button>
       </div>
@@ -1569,8 +1574,9 @@ function openModal(type, ctx){
     t.textContent = `Lương: ${e.full_name}`;
     const num=(id,v)=>`<div><label class="bl">${id.label}</label><input id="${id.id}" class="bi" type="number" min="0" value="${v||0}"></div>`;
     b.innerHTML = `
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px">
         <div><label class="bl">Họ tên</label><input id="pr-ed-name" class="bi" value="${pgEscAttr(e.full_name)}"></div>
+        <div><label class="bl">Chức vụ</label><input id="pr-ed-role" class="bi" value="${pgEscAttr(e.role||'')}" placeholder="Bác sĩ / Phụ phẫu…"></div>
         ${num({id:'pr-ed-luongcung',label:'Lương cứng (đ/ngày)'}, e.luong_cung)}
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
@@ -1592,7 +1598,12 @@ function openModal(type, ctx){
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
         ${num({id:'pr-ed-csd',label:'CSD (ca)'}, e.csd_ca)}
-        ${num({id:'pr-ed-upsale',label:'Up sale / doanh số (đ)'}, e.up_sale)}
+        ${(()=>{ const u=payrollUpsale(e);
+          if(!u.auto) return num({id:'pr-ed-upsale',label:'Up sale / doanh số (đ)'}, e.up_sale);
+          return `<div><label class="bl">Up sale (tự tính từ Tour)</label>
+            <input id="pr-ed-upsale" class="bi" type="number" value="${u.upSale}" disabled style="background:var(--cream);color:var(--muted)">
+            <div style="font-size:.7rem;color:var(--green);margin-top:4px">🩻 ${u.cases} ca tour tháng này · theo chức vụ ${pgEscHtml(e.role||'')}</div></div>`;
+        })()}
         ${num({id:'pr-ed-pct',label:'% hoa hồng'}, e.pct_hoa_hong)}
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
@@ -1855,7 +1866,7 @@ const TOUR  = { rows:null, stats:null, loading:false };
 const VND = n => (n == null || n === 0) ? '' : (Math.round(n)).toLocaleString('vi-VN');
 const VND_FULL = n => (n == null) ? '—' : (Math.round(n)).toLocaleString('vi-VN');
 
-const PAYROLL = { rows:null, rates:null, loading:false, month:null, year:null };
+const PAYROLL = { rows:null, rates:null, staff:[], tourUpsell:null, loading:false, month:null, year:null };
 const PR_RATE_FIELDS = ['meal','phu_thuong','phu_cang_da','lam_thuong','lam_cang_da','tiem','csd'];
 
 async function payrollApi(payload){
@@ -1887,15 +1898,49 @@ async function payrollLoad(force){
   if (PAYROLL.rows && !force && PAYROLL.month===month && PAYROLL.year===year) { payrollRender(); return; }
   PAYROLL.loading = true;
   const tb=document.getElementById('lg-rows');
-  if(tb) tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  if(tb) tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
   try{
     const d = await payrollApi({action:'list', month, year});
     PAYROLL.rows = d.rows||[]; PAYROLL.rates = d.rates||null; PAYROLL.month=month; PAYROLL.year=year;
+    PAYROLL.staff = d.staff||[]; PAYROLL.tourUpsell = d.tourUpsell||null;
+    payrollFillStaffSelect();
     payrollRender();
   }catch(e){
     console.error('payroll load fail', e);
-    if(tb) tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
+    if(tb) tb.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
   }finally{ PAYROLL.loading = false; }
+}
+// Đổ danh sách nhân viên (hồ sơ Nhân viên) vào ô chọn của form thêm lương
+function payrollFillStaffSelect(){
+  const sel=document.getElementById('lg-add-staff'); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Chọn từ hồ sơ nhân viên —</option>'+
+    (PAYROLL.staff||[]).map(s=>`<option value="${s.id}" data-name="${pgEscAttr(s.full_name||'')}" data-role="${pgEscAttr(s.role||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
+  if(cur) sel.value=cur;
+}
+// Chọn nhân viên -> tự điền họ tên + chức vụ
+function payrollPickStaff(){
+  const sel=document.getElementById('lg-add-staff'); if(!sel) return;
+  const o=sel.selectedOptions&&sel.selectedOptions[0]; if(!o||!sel.value) return;
+  const n=document.getElementById('lg-add-name'), r=document.getElementById('lg-add-role');
+  if(n) n.value=o.dataset.name||'';
+  if(r) r.value=o.dataset.role||'';
+}
+window.payrollPickStaff=payrollPickStaff;
+
+// Chức vụ có tiền up-sale lấy tự động từ Tour phẫu thuật
+const isDoctorRole    = r => /b[áa]c\s*s[ĩi]/i.test(String(r||''));
+const isAssistantRole = r => /ph[ụu]\s*ph[ẫâa]u|ph[ụu]\s*t[áa]/i.test(String(r||''));
+// Trả về {upSale, cases, auto} — auto=true nghĩa là số lấy từ Tour, không phải nhập tay
+function payrollUpsale(e){
+  const t=PAYROLL.tourUpsell||{};
+  const name=String(e.full_name||'').trim();
+  let bucket=null;
+  if(isDoctorRole(e.role)) bucket=(t.doctor||{})[name];
+  else if(isAssistantRole(e.role)) bucket=(t.assistant||{})[name];
+  if(bucket) return { upSale:bucket.up||0, cases:bucket.cases||0, auto:true };
+  if(isDoctorRole(e.role)||isAssistantRole(e.role)) return { upSale:0, cases:0, auto:true };
+  return { upSale:e.up_sale||0, cases:0, auto:false };
 }
 function payrollCalc(e, rates){
   rates = rates || PAYROLL.rates || {};
@@ -1907,10 +1952,11 @@ function payrollCalc(e, rates){
   const tienLamCangDa = (e.lam_cang_da_ca||0) * (rates.lam_cang_da||0);
   const tienTiem = (e.tiem_ca||0) * (rates.tiem||0);
   const tienCsd = (e.csd_ca||0) * (rates.csd||0);
-  const tongUp = (e.up_sale||0) * (e.pct_hoa_hong||0) / 100;
+  const up = payrollUpsale(e);
+  const tongUp = up.upSale * (e.pct_hoa_hong||0) / 100;
   const tongHoaHong = tongUp + (e.goi_phau||0) + (e.goi_da||0) + (e.phu_cap_khac||0);
   const tongLuong = thucLuong + phuCapAn + (e.gui_xe||0) + tienPhuThuong + tienPhuCangDa + tienLamThuong + tienLamCangDa + tienTiem + tienCsd + tongHoaHong - (e.ung_luong||0);
-  return { thucLuong, phuCapAn, tienPhuThuong, tienPhuCangDa, tienLamThuong, tienLamCangDa, tienTiem, tienCsd, tongUp, tongHoaHong, tongLuong };
+  return { thucLuong, phuCapAn, tienPhuThuong, tienPhuCangDa, tienLamThuong, tienLamCangDa, tienTiem, tienCsd, upSale:up.upSale, upAuto:up.auto, upCases:up.cases, tongUp, tongHoaHong, tongLuong };
 }
 function payrollRender(){
   const tb=document.getElementById('lg-rows'); if(!tb) return;
@@ -1919,7 +1965,7 @@ function payrollRender(){
   const trv=x=>x>=1e6?(x/1e6).toFixed(1)+'tr':(x>=1e3?Math.round(x/1e3)+'k':String(Math.round(x||0)));
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Chưa có nhân viên nào trong tháng này — thêm ở form phía trên</td></tr>';
+    tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">Chưa có nhân viên nào trong tháng này — thêm ở form phía trên</td></tr>';
     if(sub) sub.textContent='Chưa có dữ liệu';
     set('lg-kTotal','—'); set('lg-kTotalSub',' '); set('lg-kCount','0'); set('lg-kMax','—'); set('lg-kMaxName',' '); set('lg-kAvg','—');
     return;
@@ -1936,16 +1982,18 @@ function payrollRender(){
     const ctxJson=JSON.stringify(e).replace(/'/g,"&#39;");
     return `<tr class="clickable" onclick='openModal("payroll-detail",${ctxJson})'>
       <td><b>${pgEscHtml(e.full_name)}</b></td>
+      <td style="font-size:.82rem">${pgEscHtml(e.role)||'<span style="color:var(--muted)">—</span>'}</td>
       <td style="text-align:right">${e.luong_cung?VND_FULL(e.luong_cung)+'đ':'—'}</td>
       <td style="text-align:right">${e.ngay_cong||'—'}</td>
       <td style="text-align:right">${c.thucLuong?VND_FULL(c.thucLuong)+'đ':'—'}</td>
+      <td style="text-align:right">${c.upSale?VND_FULL(c.upSale)+'đ':'—'}${c.upAuto?`<div style="font-size:.68rem;color:var(--green)">🩻 tự tính · ${c.upCases} ca</div>`:''}</td>
       <td style="text-align:right">${c.tongHoaHong?VND_FULL(c.tongHoaHong)+'đ':'—'}</td>
       <td style="text-align:right">${e.ung_luong?VND_FULL(e.ung_luong)+'đ':'—'}</td>
       <td style="text-align:right"><b style="color:var(--orange-deep)">${VND_FULL(c.tongLuong)}đ</b></td>
       <td>${canDelete()?`<button class="btn ghost sm" onclick="event.stopPropagation();payrollDelete('${e.id}')">🗑</button>`:''}</td>
     </tr>`;
   }).join('')
-  +`<tr style="font-weight:800;background:#FBF6F1"><td>TỔNG</td><td colspan="5"></td><td style="text-align:right;color:var(--orange-deep)">${VND_FULL(total)}đ</td><td></td></tr>`;
+  +`<tr style="font-weight:800;background:#FBF6F1"><td>TỔNG</td><td colspan="7"></td><td style="text-align:right;color:var(--orange-deep)">${VND_FULL(total)}đ</td><td></td></tr>`;
 }
 async function payrollCreate(){
   const get=id=>document.getElementById(id)?.value||'';
@@ -1955,8 +2003,11 @@ async function payrollCreate(){
   const month=parseInt(document.getElementById('lg-month')?.value,10)||(new Date().getMonth()+1);
   const year=parseInt(document.getElementById('lg-year')?.value,10)||new Date().getFullYear();
   try{
-    await payrollApi({action:'create', month, year, full_name:name, luong_cung:get('lg-add-luongcung')});
-    document.getElementById('lg-add-name').value=''; document.getElementById('lg-add-luongcung').value='';
+    await payrollApi({action:'create', month, year, full_name:name,
+      staff_id:get('lg-add-staff')||null, role:get('lg-add-role').trim(),
+      luong_cung:get('lg-add-luongcung')});
+    ['lg-add-name','lg-add-role','lg-add-luongcung'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+    const s=document.getElementById('lg-add-staff'); if(s) s.value='';
     toast('✅ Đã thêm vào bảng lương','green'); if(typeof ding==='function')ding();
     await payrollLoad(true);
   }catch(e){ toast('❌ '+e.message,'red'); }
@@ -1973,7 +2024,7 @@ async function payrollSaveEdit(id){
   const name=get('pr-ed-name').trim();
   if(!name){ toast('⚠️ Họ tên không được để trống','red'); return; }
   try{
-    await payrollApi({action:'update', id, full_name:name,
+    await payrollApi({action:'update', id, full_name:name, role:get('pr-ed-role').trim(),
       luong_cung:get('pr-ed-luongcung'), ngay_cong:get('pr-ed-ngaycong'),
       thuc_luong:get('pr-ed-thucluong'), thuc_luong_override:chk('pr-ed-thucluong-ov'),
       phu_cap_an:get('pr-ed-phucapan'), phu_cap_an_override:chk('pr-ed-phucapan-ov'),
@@ -2020,14 +2071,14 @@ async function payrollSaveRates(){
 window.payrollSaveRates=payrollSaveRates;
 function payrollExportCSV(){
   const rows=PAYROLL.rows||[]; if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
-  const header=['Nhân viên','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
+  const header=['Nhân viên','Chức vụ','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','Nguồn up sale','Ca tour','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
   const lines=[header];
   let total=0;
   rows.forEach(e=>{
     const c=payrollCalc(e); total+=c.tongLuong;
-    lines.push([e.full_name,e.luong_cung,e.ngay_cong,c.thucLuong,c.phuCapAn,e.gui_xe,c.tienPhuThuong,c.tienPhuCangDa,c.tienLamThuong,c.tienLamCangDa,c.tienTiem,c.tienCsd,e.up_sale,e.pct_hoa_hong,c.tongUp,e.goi_phau,e.goi_da,e.phu_cap_khac,c.tongHoaHong,e.ung_luong,c.tongLuong]);
+    lines.push([e.full_name,e.role||'',e.luong_cung,e.ngay_cong,c.thucLuong,c.phuCapAn,e.gui_xe,c.tienPhuThuong,c.tienPhuCangDa,c.tienLamThuong,c.tienLamCangDa,c.tienTiem,c.tienCsd,c.upSale,c.upAuto?'Tour phẫu thuật':'Nhập tay',c.upAuto?c.upCases:'',e.pct_hoa_hong,c.tongUp,e.goi_phau,e.goi_da,e.phu_cap_khac,c.tongHoaHong,e.ung_luong,c.tongLuong]);
   });
-  lines.push(['TỔNG','','','','','','','','','','','','','','','','','','','',total]);
+  lines.push(['TỔNG',...Array(header.length-2).fill(''),total]);
   const csv='﻿'+lines.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`bang-luong-${PAYROLL.month}-${PAYROLL.year}.csv`; a.click();
   toast('⬇ Đã tải CSV lương','green');
@@ -2636,7 +2687,14 @@ function staffToCtx(s){
     tagsRaw:s.tags||'', skillsRaw:s.skills||'',
     sessions:s.sessions||0, rating:s.rating||0, revenue:s.revenue||0, kpi:s.kpi||0, status:s.status||'active'};
 }
+// Đổ tên nhân viên vào ô gợi ý của form Tour phẫu thuật — nhập đúng tên thì
+// Bảng lương mới khớp được ca tour để tính hoa hồng up-sale cho bác sĩ/phụ phẫu.
+function fillStaffNameList(){
+  const dl=document.getElementById('staffNameList'); if(!dl) return;
+  dl.innerHTML=(STAFF_ROWS||[]).map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.role||'')}</option>`).join('');
+}
 function renderStaff(){
+  fillStaffNameList();
   const tb=document.getElementById('staffRows'); if(!tb) return;
   const rows = STAFF_ROWS||[];
   const sub=document.getElementById('staff-sub');
