@@ -3173,7 +3173,7 @@ async function tourLoadPending(){
     if(badge) badge.textContent=rows.length;
     if(!rows.length){ el.innerHTML='Không có khách nào đang chờ nhập ca.'; return; }
     el.innerHTML = rows.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--cream)">
-      <div style="flex:1"><b>${pgEscHtml(a.full_name)}</b> <span style="color:var(--muted);font-size:.82rem">${a.phone||'—'} · ${pgEscHtml(a.consult_service||a.service)||'dịch vụ chưa rõ'}${a.consult_amount?(' · '+VND_FULL(a.consult_amount)+'₫'):''} · ${a.appt_date||''} ${a.appt_time||''}</span></div>
+      <div style="flex:1"><b>${pgEscHtml(a.full_name)}</b> <span style="color:var(--muted);font-size:.82rem">${a.phone||'—'} · ${pgEscHtml(a.consult_service||a.service)||'dịch vụ chưa rõ'}${a.consult_amount?(' · '+VND_FULL(a.consult_amount)+'₫'):''}${a.consult_debt?(' · nợ '+VND_FULL(a.consult_debt)+'₫'):''} · ${a.appt_date||''} ${a.appt_time||''}</span></div>
       <button class="btn sm" onclick='tourPrefillFromAppt(${JSON.stringify(a).replace(/'/g,"&#39;")})'>📝 Nhập ca</button>
     </div>`).join('');
   }catch(e){ el.innerHTML='❌ '+pgEscHtml(e.message); }
@@ -3181,7 +3181,7 @@ async function tourLoadPending(){
 function tourPrefillFromAppt(a){
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v||'';};
   set('tf-date', a.appt_date); set('tf-name', a.full_name); set('tf-phone', a.phone);
-  set('tf-svc1', a.consult_service||a.service); set('tf-rev1', a.consult_amount||''); set('tf-doctor', a.staff);
+  set('tf-svc1', a.consult_service||a.service); set('tf-rev1', a.consult_amount||''); set('tf-debt', a.consult_debt||''); set('tf-doctor', a.staff);
   TOUR_PENDING_APPT_ID = a.id;
   document.getElementById('tf-name')?.scrollIntoView({behavior:'smooth', block:'center'});
   toast('📝 Đã điền sẵn thông tin — nhập thêm doanh thu rồi bấm Lưu ca này','ok');
@@ -3220,6 +3220,7 @@ function openConsultModal(a){
     <div style="display:flex;flex-direction:column;gap:10px">
       <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Dịch vụ chốt *</label><input id="csSvc" style="width:100%" value="${esc(a.service||'')}" placeholder="VD: Cắt mí mắt Hàn Quốc"></div>
       <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Số tiền (đ) *</label><input id="csAmt" type="number" min="0" style="width:100%" placeholder="8500000"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Còn nợ (đ)</label><input id="csDebt" type="number" min="0" style="width:100%" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
@@ -3231,9 +3232,10 @@ function openConsultModal(a){
 async function submitConsult(id){
   const svc=(gel('csSvc')?.value||'').trim();
   const amt=gel('csAmt')?.value||'';
+  const debt=gel('csDebt')?.value||'';
   if(!svc){ toast('❌ Cần nhập dịch vụ','red'); return; }
   try{
-    await apptApi({action:'mark_consulted', id, consult_service:svc, consult_amount:amt});
+    await apptApi({action:'mark_consulted', id, consult_service:svc, consult_amount:amt, consult_debt:debt});
     closeModal();
     toast('✓ Đã chốt tư vấn — chuyển sang Tour phẫu thuật','green');
     renderNewCustomers();

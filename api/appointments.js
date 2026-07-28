@@ -125,10 +125,12 @@ async function markConsulted(res, body, sess) {
   const service = String(body.consult_service || '').trim();
   if (!service) return res.status(400).json({ error: 'Thiếu dịch vụ tư vấn' });
   const amount = Math.max(0, parseInt(body.consult_amount, 10) || 0);
+  const debt = Math.max(0, parseInt(body.consult_debt, 10) || 0);
   const patch = {
     consulted: true,
     consult_service: service.slice(0, 200),
     consult_amount: amount,
+    consult_debt: debt,
     consulted_by: sess.u || '',
     consulted_at: new Date().toISOString(),
     updated_at: new Date().toISOString()

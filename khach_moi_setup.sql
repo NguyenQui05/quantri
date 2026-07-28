@@ -4,6 +4,7 @@
 alter table appointments add column if not exists consulted boolean not null default false;
 alter table appointments add column if not exists consult_service text;
 alter table appointments add column if not exists consult_amount numeric default 0;
+alter table appointments add column if not exists consult_debt numeric default 0;
 alter table appointments add column if not exists consulted_by text;
 alter table appointments add column if not exists consulted_at timestamptz;
 
