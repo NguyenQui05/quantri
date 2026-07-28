@@ -42,10 +42,12 @@ export default async function handler(req, res) {
   const action = String(body.action || '');
 
   try {
-    if (action === 'list')   return await listCases(res, body);
-    if (action === 'create') return await createCase(res, body, sess);
-    if (action === 'update') return await updateCase(res, body);
-    if (action === 'delete') return await deleteCase(res, body);
+    if (action === 'list')           return await listCases(res, body);
+    if (action === 'create')         return await createCase(res, body, sess);
+    if (action === 'update')         return await updateCase(res, body);
+    if (action === 'delete')         return await deleteCase(res, body);
+    if (action === 'list_care')      return await listCare(res);
+    if (action === 'mark_care_done') return await markCareDone(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('tour api error:', e?.message || e);
@@ -125,6 +127,48 @@ async function deleteCase(res, body) {
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
+  return res.status(200).json({ ok: true });
+}
+
+/* ===== HẬU CHĂM SÓC — khách lấy từ ca tour đã nhập ===== */
+const CARE_DAYS = [1, 3, 7, 14, 30, 90];
+const CARE_WINDOW_DAYS = 120;   // ngoài 120 ngày coi như hết vòng chăm sóc
+
+// Trả về các ca trong vòng chăm sóc; client tự tính mốc nào đang tới hạn.
+async function listCare(res) {
+  const from = new Date(Date.now() - CARE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  const params = new URLSearchParams();
+  params.set('select', 'id,case_date,full_name,phone,service_initial,service_up,doctor,assistant,care_done');
+  params.append('case_date', `gte.${from}`);
+  params.set('order', 'case_date.desc');
+  params.set('limit', '2000');
+  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  return res.status(200).json({ rows, careDays: CARE_DAYS });
+}
+
+// Đánh dấu đã xử lý một mốc chăm sóc (đọc rồi ghi lại — PostgREST không có append jsonb).
+async function markCareDone(res, body, sess) {
+  const id = String(body.id || '');
+  const day = parseInt(body.day, 10);
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  if (!CARE_DAYS.includes(day)) return res.status(400).json({ error: 'Mốc chăm sóc không hợp lệ' });
+
+  const cur = await fetch(sb(`${TABLE}?id=eq.${id}&select=care_done`), { headers: sbHeaders() });
+  const rows = await cur.json();
+  if (!cur.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  if (!rows.length) return res.status(404).json({ error: 'Không tìm thấy ca' });
+
+  const done = Array.isArray(rows[0].care_done) ? rows[0].care_done : [];
+  if (done.some(d => Number(d?.day) === day)) return res.status(200).json({ ok: true, already: true });
+  done.push({ day, at: new Date().toISOString(), by: sess.u || '' });
+
+  const r = await fetch(sb(`${TABLE}?id=eq.${id}`), {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ care_done: done, updated_at: new Date().toISOString() })
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu' }); }
   return res.status(200).json({ ok: true });
 }
 

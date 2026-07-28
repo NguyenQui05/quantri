@@ -513,7 +513,7 @@
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
       <a data-section="leads"><span class="ic">📥</span>Lead Mới<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
       <a data-section="newcust"><span class="ic">🆕</span>Khách Mới<span class="badge" id="ncBadge" style="background:var(--gold)">0</span></a>
-      <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge">8</span></a>
+      <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge" id="careBadge">0</span></a>
       <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
 
       <div class="group">Vận hành</div>
@@ -776,17 +776,17 @@
     <!-- ============ HẬU CHĂM SÓC ============ -->
     <section class="page" id="page-care">
       <div class="grid kpi-grid">
-        <div class="kpi k1"><div class="ic">🛎️</div><div class="label">Khách cần follow-up hôm nay</div><div class="val">8</div><div class="delta">3 ngày 1 · 2 ngày 7 · 3 ngày 30</div></div>
-        <div class="kpi k2"><div class="ic">📞</div><div class="label">Đã gọi tuần này</div><div class="val">52</div><div class="delta">94% theo SOP</div></div>
-        <div class="kpi k3"><div class="ic">💌</div><div class="label">Tin Zalo đã gửi</div><div class="val">186</div><div class="delta">▲ 24 so tuần trước</div></div>
-        <div class="kpi k4"><div class="ic">😊</div><div class="label">Phản hồi tích cực</div><div class="val">96<span style="font-size:1rem">%</span></div><div class="delta">Tốt</div></div>
+        <div class="kpi k1"><div class="ic">🛎️</div><div class="label">Khách cần follow-up hôm nay</div><div class="val" id="careK1">—</div><div class="delta" id="careK1d">theo SOP sau ca tour</div></div>
+        <div class="kpi k2"><div class="ic">✅</div><div class="label">Đã xử lý tuần này</div><div class="val" id="careK2">—</div><div class="delta">lễ tân đánh dấu hoàn tất</div></div>
+        <div class="kpi k3"><div class="ic">🩺</div><div class="label">Ca đang theo dõi</div><div class="val" id="careK3">—</div><div class="delta">trong 120 ngày kể từ ngày làm</div></div>
+        <div class="kpi k4"><div class="ic">⚠️</div><div class="label">Quá hạn</div><div class="val" id="careK4">—</div><div class="delta">trễ mốc SOP trên 1 ngày</div></div>
       </div>
 
-      <div class="alert info" style="margin-top:16px"><span class="ic">📋</span><div><b>SOP hậu chăm sóc HANA:</b> Ngày 1 — gọi hỏi thăm · Ngày 3 — hướng dẫn chăm sóc · Ngày 7 — kiểm tra phục hồi · Ngày 14 — tái khám · Ngày 30 — Zalo cảm ơn + voucher</div></div>
+      <div class="alert info" style="margin-top:16px"><span class="ic">📋</span><div><b>SOP hậu chăm sóc HANA:</b> Khách tự vào đây sau khi bác sĩ nhập ca ở <b>Tour phẫu thuật</b> — Ngày 1 gọi hỏi thăm · Ngày 3 hướng dẫn chăm sóc · Ngày 7 kiểm tra phục hồi · Ngày 14 tái khám · Ngày 30 tri ân + voucher · Ngày 90 win-back.</div></div>
 
       <div class="row r-2-1" style="margin-top:16px">
         <div class="card">
-          <div class="card-head"><h2>📋 Danh sách hậu chăm sóc hôm nay</h2><button class="btn ghost sm" onclick="aiAction('care-script')">🤖 AI soạn tin Zalo</button></div>
+          <div class="card-head"><h2>📋 Danh sách hậu chăm sóc hôm nay</h2><button class="btn ghost sm" onclick="renderCare()">🔄 Làm mới</button></div>
           <table>
             <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Ngày làm</th><th>Giai đoạn</th><th>Hành động</th><th></th></tr></thead>
             <tbody id="careRows"></tbody>
@@ -1240,16 +1240,6 @@ const DATA = {
     {id:7, name:'Chị Phương Đào', phone:'0945 678 901', age:36, tier:'silver', ltv:18200000, lastVisit:'22 ngày trước', visits:4, points:620, aiScore:76, aiTag:'Mới', avBg:'linear-gradient(135deg,#F39C12,#E67E22)'}
   ],
   staff: [],
-  care: [
-    {av:'L', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Linh Trang', service:'Cắt mí (3 tuần trước)', daysSince:21, stage:'Ngày 14 — Tái khám 2', action:'📞 Gọi xác nhận', urgent:false},
-    {av:'M', bg:'linear-gradient(135deg,#16A085,#27AE60)', name:'Chị Mai Anh', service:'Filler môi (hôm qua)', daysSince:1, stage:'Ngày 1 — Gọi hỏi thăm', action:'📞 Gọi ngay', urgent:true},
-    {av:'T', bg:'linear-gradient(135deg,#E67E22,#D35400)', name:'Chị Thu Hương', service:'Hifu (3 ngày)', daysSince:3, stage:'Ngày 3 — Hướng dẫn Zalo', action:'💌 Gửi Zalo', urgent:true},
-    {av:'N', bg:'linear-gradient(135deg,#3498DB,#2C3E50)', name:'Chị Nga Vũ', service:'Combo (7 ngày)', daysSince:7, stage:'Ngày 7 — Tái khám 1', action:'📅 Đặt lịch tái khám', urgent:true},
-    {av:'P', bg:'linear-gradient(135deg,#E74C3C,#C0392B)', name:'Chị Phượng Lê', service:'Nâng mũi (30 ngày)', daysSince:30, stage:'Ngày 30 — Tri ân + voucher', action:'🎁 Gửi voucher 15%', urgent:false},
-    {av:'A', bg:'linear-gradient(135deg,#F39C12,#E67E22)', name:'Chị Anh Đào', service:'Botox (14 ngày)', daysSince:14, stage:'Ngày 14 — Tái khám 2', action:'📞 Gọi xác nhận', urgent:false},
-    {av:'H', bg:'linear-gradient(135deg,#1ABC9C,#16A085)', name:'Chị Hằng Nguyễn', service:'Cắt mí (90 ngày)', daysSince:90, stage:'Ngày 90 — Win-back', action:'📞 Mời combo duy trì', urgent:false},
-    {av:'V', bg:'linear-gradient(135deg,#9B59B6,#8E44AD)', name:'Chị Vy Trần', service:'Hifu (3 ngày)', daysSince:3, stage:'Ngày 3 — Hướng dẫn Zalo', action:'💌 Gửi Zalo', urgent:true}
-  ],
   tasks: [
     {id:1, title:'Gọi chị Mai Anh hậu chăm sóc ngày 1 sau Filler', priority:'Cao', owner:'Lễ tân Yến', due:'10:30 hôm nay', done:false, tag:'Chăm sóc'},
     {id:2, title:'Soạn báo cáo doanh thu tháng 5 gửi CEO', priority:'Cao', owner:'KTV Ngọc', due:'17:00 hôm nay', done:false, tag:'Báo cáo'},
@@ -1842,27 +1832,6 @@ function openModal(type, ctx){
     `;
   }
 
-  else if(type==='care-detail'){
-    const c = ctx;
-    t.textContent = `Hậu chăm sóc: ${c.name}`;
-    b.innerHTML = `
-      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
-        <span class="avatar" style="width:54px;height:54px;background:${c.bg};font-size:1.2rem">${c.av}</span>
-        <div><b style="font-size:1.1rem">${c.name}</b><div style="font-size:.84rem;color:var(--muted)">${c.service}</div></div>
-      </div>
-      <div class="alert ${c.urgent?'warn':'info'}"><span class="ic">${c.urgent?'⚠️':'📋'}</span><div><b>${c.stage}</b><br>Đề xuất: ${c.action}</div></div>
-      <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:700;color:var(--brown-deep);margin:14px 0 8px">📝 Mẫu tin nhắn Zalo (AI gợi ý)</h3>
-      <textarea rows="5" placeholder="Em sẽ soạn cho chị..." style="font-size:.88rem">Dạ ${c.name} ơi, em là Yến lễ tân HANA Premium ạ. Hôm nay đã ${c.daysSince} ngày sau khi chị làm ${c.service.split('(')[0].trim()} rồi đúng không ạ? Em muốn hỏi thăm xem chị có thấy ổn không, có cần hỗ trợ gì thêm không ạ? 💕 Nếu chị có thắc mắc gì cứ inbox em hoặc gọi 0855 698 899 nhé!</textarea>
-      <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap">
-        <button class="btn sm" onclick="toast('💌 Đã gửi Zalo cho ${c.name}','green');closeModal()">💌 Gửi Zalo</button>
-        <button class="btn ghost sm" onclick="toast('📞 Đang gọi ${c.name}...')">📞 Gọi ngay</button>
-        <button class="btn ghost sm" onclick="toast('✅ Đã đánh dấu hoàn tất','green');closeModal()">✓ Đã liên hệ</button>
-        <button class="btn ghost sm" onclick="toast('⏰ Đã dời sang ngày mai')">⏰ Dời sau</button>
-      </div>
-    `;
-  }
-
-
   modalBg.classList.add('show');
 }
 
@@ -2204,6 +2173,7 @@ async function tourCreate(){
       await tourLoadPending();
     }
     await tourLoad(true);
+    renderCare();   // ca vừa nhập -> khách vào danh sách hậu chăm sóc theo SOP
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 async function tourDelete(id){
@@ -2504,6 +2474,7 @@ function go(section){
   if(section==='tour'){ tourLoad(); tourLoadPending(); }
   if(section==='phangoi') phangoiLoad();
   if(section==='newcust') renderNewCustomers();
+  if(section==='care') renderCare();
 }
 document.querySelectorAll('.nav a[data-section]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.section)}));
 addEventListener('hashchange',()=>go((location.hash||'#dashboard').slice(1)));
@@ -2744,17 +2715,81 @@ function staffExportAll(){
   toast(`✓ Đã tải ${rows.length} nhân viên`,'green');
 }
 window.staffCreate=staffCreate; window.staffDelete=staffDelete; window.staffExportAll=staffExportAll;
-function renderCare(){
-  document.getElementById('careRows').innerHTML = DATA.care.map(c=>`
-    <tr class="clickable" onclick='openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>
-      <td><div class="with-av"><span class="avatar" style="background:${c.bg}">${c.av}</span><span><b>${c.name}</b></span></div></td>
-      <td>${c.service}</td><td>D${c.daysSince}</td>
-      <td><span class="pill ${c.urgent?'red':'blue'}">${c.stage}</span></td>
-      <td>${c.action}</td>
-      <td><button class="btn sm" onclick='event.stopPropagation();openModal("care-detail",${JSON.stringify(c).replace(/'/g,"&#39;")})'>Xử lý</button></td>
-    </tr>
-  `).join('');
+/* ===== HẬU CHĂM SÓC — khách tự vào sau khi bác sĩ nhập ca ở Tour phẫu thuật ===== */
+const CARE_SOP = [
+  {day:1,  stage:'Ngày 1 — Gọi hỏi thăm',      action:'📞 Gọi ngay'},
+  {day:3,  stage:'Ngày 3 — Hướng dẫn Zalo',    action:'💌 Gửi Zalo'},
+  {day:7,  stage:'Ngày 7 — Tái khám 1',        action:'📅 Đặt lịch tái khám'},
+  {day:14, stage:'Ngày 14 — Tái khám 2',       action:'📞 Gọi xác nhận'},
+  {day:30, stage:'Ngày 30 — Tri ân + voucher', action:'🎁 Gửi voucher 15%'},
+  {day:90, stage:'Ngày 90 — Win-back',         action:'📞 Mời combo duy trì'}
+];
+let CARE_ROWS=[];
+// Mốc SOP sớm nhất đã tới hạn mà chưa được đánh dấu xong
+function carePending(c, daysSince){
+  const done=Array.isArray(c.care_done)?c.care_done.map(d=>Number(d&&d.day)):[];
+  return CARE_SOP.find(s=>daysSince>=s.day && done.indexOf(s.day)<0) || null;
 }
+async function renderCare(){
+  const tb=document.getElementById('careRows'); if(!tb) return;
+  tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
+  let rows=[];
+  try{ const d=await tourApi({action:'list_care'}); rows=d.rows||[]; }
+  catch(e){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">❌ '+esc(e.message)+'</td></tr>'; return; }
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const due=[];
+  let doneThisWeek=0;
+  const dow=(today.getDay()+6)%7;
+  const weekStart=new Date(today); weekStart.setDate(weekStart.getDate()-dow);
+  rows.forEach(c=>{
+    (Array.isArray(c.care_done)?c.care_done:[]).forEach(d=>{ if(d&&d.at&&new Date(d.at)>=weekStart) doneThisWeek++; });
+    const cd=new Date(c.case_date+'T00:00:00'); if(isNaN(cd)) return;
+    const daysSince=Math.floor((today-cd)/86400000);
+    const p=carePending(c, daysSince);
+    if(p) due.push({c, daysSince, sop:p, overdue:daysSince-p.day});
+  });
+  due.sort((a,b)=>b.overdue-a.overdue);
+  CARE_ROWS=due;
+
+  set('careK1', due.length.toLocaleString('vi-VN'));
+  set('careK2', doneThisWeek.toLocaleString('vi-VN'));
+  set('careK3', rows.length.toLocaleString('vi-VN'));
+  set('careK4', due.filter(x=>x.overdue>1).length.toLocaleString('vi-VN'));
+  const b=document.getElementById('careBadge'); if(b) b.textContent=due.length;
+
+  if(!due.length){
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">'+
+      (rows.length?'Không có khách nào cần chăm sóc hôm nay 🎉':'Chưa có ca nào — khách sẽ tự vào đây sau khi bác sĩ nhập ca ở Tour phẫu thuật')+'</td></tr>';
+    return;
+  }
+  tb.innerHTML=due.map(({c,daysSince,sop,overdue})=>{
+    const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
+    const phone=(c.phone||'').replace(/\s/g,'');
+    return `<tr>
+      <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(c.full_name||'?')}</b><span>${esc(c.phone||'')}</span></span></div></td>
+      <td style="font-size:.84rem">${esc(svc)}</td>
+      <td style="white-space:nowrap">D${daysSince}<div style="font-size:.72rem;color:var(--muted)">${esc(c.case_date||'')}</div></td>
+      <td><span class="pill ${overdue>1?'red':'blue'}">${esc(sop.stage)}</span>${overdue>1?`<div style="font-size:.7rem;color:var(--red);margin-top:2px">trễ ${overdue} ngày</div>`:''}</td>
+      <td style="font-size:.84rem">${esc(sop.action)}</td>
+      <td style="white-space:nowrap">
+        ${phone?`<a href="tel:${phone}" class="btn ghost sm" title="Gọi">📞</a> <a href="https://zalo.me/${phone}" target="_blank" class="btn ghost sm" title="Zalo">💬</a> `:''}
+        <button class="btn sm" onclick="careMarkDone('${c.id}',${sop.day})">✓ Xong</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+async function careMarkDone(id, day){
+  try{
+    await tourApi({action:'mark_care_done', id, day});
+    toast('✓ Đã đánh dấu hoàn tất','green');
+    renderCare();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
+}
+window.renderCare=renderCare;
+window.careMarkDone=careMarkDone;
 function renderTasks(){
   document.getElementById('taskList').innerHTML = DATA.tasks.map(t=>`
     <div class="task ${t.done?'done':''}">
@@ -3578,7 +3613,8 @@ const EXPORT_CONFIG = {
   },
   care: {
     file:'hau-cham-soc-HANA', sheet:'Hậu chăm sóc',
-    map: c => ({'Khách':c.name,'Dịch vụ':c.service,'Ngày từ DV':c.daysSince,'Giai đoạn':c.stage,'Hành động':c.action,'Khẩn':c.urgent?'Có':'Không'})
+    map: r => ({'Khách':r.c.full_name,'SĐT':r.c.phone,'Dịch vụ':[r.c.service_initial,r.c.service_up].filter(Boolean).join(' + '),
+      'Ngày làm':r.c.case_date,'Số ngày':r.daysSince,'Giai đoạn':r.sop.stage,'Hành động':r.sop.action,'Trễ (ngày)':Math.max(0,r.overdue)})
   },
   medical: {
     file:'ho-so-y-khoa-HANA', sheet:'Hồ sơ',
@@ -3908,6 +3944,8 @@ if(typeof EXPORT_CONFIG !== 'undefined'){
 }
 // Inject vào DATA để exportExcel('leads') hoạt động
 Object.defineProperty(DATA, 'leads', { get(){ return LEADS_CACHE; } });
+// Xuất Excel hậu chăm sóc dùng danh sách đang tới hạn (tính từ ca tour thật)
+Object.defineProperty(DATA, 'care', { get(){ return CARE_ROWS; } });
 
 /* ===== NOTIFICATION DROPDOWN ===== */
 function buildNotifDropdown(){
