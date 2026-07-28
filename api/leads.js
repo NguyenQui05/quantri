@@ -1,5 +1,14 @@
-// Vercel Serverless — Lead Mới (Kanban 4 giai đoạn: mới → tiếp cận → đặt lịch → đã tới), lưu Supabase.
+// Vercel Serverless — Lead Mới (Kanban 4 giai đoạn: mới → tiếp cận → đặt lịch → đã tới), lưu Supabase bảng web_leads.
+// Gộp 2 vai trò trong 1 function (giới hạn 12 Serverless Functions của gói Hobby):
+//  - Không có "action" trong body -> webhook công khai (landing page gọi, không cần đăng nhập, có CORS)
+//  - Có "action" -> API quản trị cho dashboard /quantri#leads (yêu cầu session hợp lệ)
 import crypto from 'node:crypto';
+
+const ALLOWED_ORIGINS = [
+  'https://phammaiphuong.vn', 'https://www.phammaiphuong.vn',
+  'https://phammaiphuong.com', 'https://www.phammaiphuong.com',
+  'https://thammyvienhana.com', 'https://www.thammyvienhana.com'
+];
 
 function verifySession(req) {
   const secret = process.env.AUTH_SECRET;
@@ -30,16 +39,30 @@ function sbHeaders(extra = {}) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
-  if (!verifySession(req)) return res.status(401).json({ error: 'no session' });
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    return res.status(500).json({ error: 'Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_KEY trên máy chủ' });
+  // CORS — cần cho webhook công khai gọi từ domain HANA + link nháp *.vercel.app
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.vercel.app')) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
   }
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   let body;
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
   catch { return res.status(400).json({ error: 'Body không hợp lệ' }); }
   const action = String(body.action || '');
+
+  // Không có action => webhook công khai từ form landing, không cần đăng nhập
+  if (!action) return await publicCreateLead(res, req, body);
+
+  const sess = verifySession(req);
+  if (!sess) return res.status(401).json({ error: 'no session' });
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    return res.status(500).json({ error: 'Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_KEY trên máy chủ' });
+  }
 
   try {
     if (action === 'list')          return await listLeads(res);
@@ -51,6 +74,43 @@ export default async function handler(req, res) {
   } catch (e) {
     console.error('leads api error:', e?.message || e);
     return res.status(500).json({ error: String(e?.message || e) });
+  }
+}
+
+async function publicCreateLead(res, req, body) {
+  try {
+    let { name = '', phone = '', service = '', time = '', source = '' } = body;
+
+    name = String(name).trim().slice(0, 80);
+    phone = String(phone).trim().slice(0, 20);
+    service = String(service).trim().slice(0, 120);
+    time = String(time).trim().slice(0, 120);
+    source = String(source).trim().slice(0, 120);
+
+    const digits = phone.replace(/\D/g, '');
+    if (!name || digits.length < 9 || digits.length > 12) {
+      return res.status(400).json({ error: 'Thiếu tên hoặc số điện thoại không hợp lệ' });
+    }
+
+    const lead = {
+      name, phone, service, slot: time, source: source || 'web', status: 'new',
+      ip: String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(),
+      ua: String(req.headers['user-agent'] || '').slice(0, 200)
+    };
+
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      console.log('NEW LEAD (chưa cấu hình Supabase):', JSON.stringify(lead));
+      return res.status(200).json({ ok: true });
+    }
+
+    const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(lead) });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      console.error('Lead -> Supabase lỗi:', e?.message || r.status, JSON.stringify(lead));
+    }
+    return res.status(200).json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: 'Server error', detail: String(e?.message || e) });
   }
 }
 

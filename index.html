@@ -1549,7 +1549,7 @@
     // GỬI LEAD VỀ MÁY CHỦ TRUNG TÂM — để HANA nhận được MỌI đăng ký, kể cả khi khách
     // không tự bấm Zalo. Gửi nền (không chặn trải nghiệm), không chờ kết quả.
     try{
-      fetch('/api/lead', {
+      fetch('/api/leads', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({name,phone,service,time,source:location.pathname})
