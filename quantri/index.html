@@ -1007,8 +1007,6 @@
 
       <div class="card" style="margin-bottom:14px">
         <div class="card-head"><h2>➕ Ghi nhận ca mới</h2></div>
-        <!-- Tên gợi ý lấy từ hồ sơ Nhân viên — nhập đúng tên thì Bảng lương mới tính được hoa hồng up-sale -->
-        <datalist id="staffNameList"></datalist>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
           <div><label class="bl">Ngày làm ca</label><input id="tf-date" class="bi" type="date"></div>
           <div><label class="bl">Tên khách</label><input id="tf-name" class="bi" placeholder="Nguyễn Thị A"></div>
@@ -1018,8 +1016,8 @@
           <div><label class="bl">Doanh thu ban đầu (đ)</label><input id="tf-rev1" class="bi" type="number" min="0" placeholder="1500000"></div>
           <div><label class="bl">Doanh thu UP (đ)</label><input id="tf-rev2" class="bi" type="number" min="0" placeholder="0"></div>
           <div><label class="bl">Còn nợ (đ)</label><input id="tf-debt" class="bi" type="number" min="0" placeholder="0"></div>
-          <div><label class="bl">Bác sĩ</label><input id="tf-doctor" class="bi" list="staffNameList" placeholder="Chọn từ hồ sơ nhân viên"></div>
-          <div><label class="bl">Phụ tá</label><input id="tf-assist" class="bi" list="staffNameList" placeholder="Chọn từ hồ sơ nhân viên"></div>
+          <div><label class="bl">Bác sĩ</label><select id="tf-doctor" class="bi"><option value="">— Chọn bác sĩ —</option></select></div>
+          <div><label class="bl">Phụ phẫu</label><select id="tf-assist" class="bi"><option value="">— Chọn phụ phẫu —</option></select></div>
         </div>
         <button class="btn" style="margin-top:14px" onclick="tourCreate()">➕ Lưu ca này</button>
       </div>
@@ -2522,7 +2520,7 @@ function go(section){
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
   if(section==='luong') payrollLoad();
-  if(section==='tour'){ tourLoad(); tourLoadPending(); }
+  if(section==='tour'){ tourLoad(); tourLoadPending(); staffLoad(); }   // staffLoad để đổ tên vào 2 ô chọn Bác sĩ/Phụ phẫu
   if(section==='phangoi') phangoiLoad();
   if(section==='newcust') renderNewCustomers();
   if(section==='care') renderCare();
@@ -2687,14 +2685,24 @@ function staffToCtx(s){
     tagsRaw:s.tags||'', skillsRaw:s.skills||'',
     sessions:s.sessions||0, rating:s.rating||0, revenue:s.revenue||0, kpi:s.kpi||0, status:s.status||'active'};
 }
-// Đổ tên nhân viên vào ô gợi ý của form Tour phẫu thuật — nhập đúng tên thì
-// Bảng lương mới khớp được ca tour để tính hoa hồng up-sale cho bác sĩ/phụ phẫu.
-function fillStaffNameList(){
-  const dl=document.getElementById('staffNameList'); if(!dl) return;
-  dl.innerHTML=(STAFF_ROWS||[]).map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.role||'')}</option>`).join('');
+// Đổ tên nhân viên vào 2 ô chọn Bác sĩ / Phụ phẫu của form Tour phẫu thuật.
+// Chỉ được chọn chứ không gõ tay -> tên luôn khớp hồ sơ, Bảng lương tính đúng hoa hồng up-sale.
+function fillTourStaffSelects(){
+  const all=STAFF_ROWS||[];
+  const opts=list=>list.map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
+  const fill=(id, filtered, placeholder)=>{
+    const el=document.getElementById(id); if(!el) return;
+    const cur=el.value;
+    // Không có ai đúng chức vụ thì cho chọn toàn bộ nhân viên, tránh form bị kẹt
+    const list=filtered.length?filtered:all;
+    el.innerHTML=`<option value="">${placeholder}</option>`+opts(list);
+    if(cur){ el.value=cur; if(el.value!==cur) el.value=''; }   // tên cũ không còn trong hồ sơ -> để trống
+  };
+  fill('tf-doctor', all.filter(s=>isDoctorRole(s.role)), '— Chọn bác sĩ —');
+  fill('tf-assist', all.filter(s=>isAssistantRole(s.role)), '— Chọn phụ phẫu —');
 }
 function renderStaff(){
-  fillStaffNameList();
+  fillTourStaffSelects();
   const tb=document.getElementById('staffRows'); if(!tb) return;
   const rows = STAFF_ROWS||[];
   const sub=document.getElementById('staff-sub');
