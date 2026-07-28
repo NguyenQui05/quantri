@@ -710,42 +710,49 @@
     </section>
 
     <!-- ============ LEAD TỪ LANDING ============ -->
+    <style>
+      .lead-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+      .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;transition:background .15s}
+      .lead-col.drag-over{background:var(--cream-2)}
+      .lead-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.9rem;color:var(--brown-deep)}
+      .lead-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.76rem}
+      .lead-col-body{display:flex;flex-direction:column;gap:8px;min-height:80px;max-height:68vh;overflow-y:auto;padding:2px}
+      .lead-card{background:#fff;border-radius:10px;padding:9px 10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:grab}
+      .lead-card:active{cursor:grabbing}
+      .lead-card.dragging{opacity:.35}
+      @media (max-width:900px){ .lead-board{grid-template-columns:1fr 1fr} }
+      @media (max-width:600px){ .lead-board{grid-template-columns:1fr} }
+    </style>
     <section class="page" id="page-leads">
       <div class="alert success" style="margin-bottom:14px;display:flex;align-items:center">
         <span class="ic">📥</span>
-        <div style="flex:1"><b>Lead Mới</b> · Danh sách trống, sẵn sàng nhận dữ liệu từ form mới.</div>
+        <div style="flex:1"><b>Lead Mới</b> · 4 giai đoạn khách hàng — kéo thả thẻ khách giữa các cột để chuyển giai đoạn.</div>
+        <button class="btn sm" onclick="openAddLeadModal()" style="margin-right:8px">+ Thêm lead</button>
+        <button class="btn sm" onclick="refreshLeads()" style="margin-right:8px">🔄 Làm mới</button>
         <button class="btn ghost sm" onclick="exportExcel('leads')">⬇ Xuất Excel</button>
       </div>
       <div class="grid kpi-grid" id="leadsKpis">
-        <div class="kpi k1"><div class="ic">📥</div><div class="label">Tổng lead</div><div class="val" id="leadsTotal">0</div><div class="delta">Tất cả thời gian</div></div>
-        <div class="kpi k2"><div class="ic">🆕</div><div class="label">Mới hôm nay</div><div class="val" id="leadsToday">0</div><div class="delta">Cần gọi trong 15 phút</div></div>
-        <div class="kpi k3"><div class="ic">⏱</div><div class="label">Đang chờ liên hệ</div><div class="val" id="leadsWaiting">0</div><div class="delta">Chưa mark đã gọi</div></div>
-        <div class="kpi k4"><div class="ic">✅</div><div class="label">Đã chuyển thành KH</div><div class="val" id="leadsConverted">0</div><div class="delta">Conversion %</div></div>
+        <div class="kpi k1"><div class="ic">🆕</div><div class="label">Khách mới</div><div class="val" id="leadsCountNew">0</div><div class="delta">Trực page nhập</div></div>
+        <div class="kpi k2"><div class="ic">📞</div><div class="label">Đã tiếp cận</div><div class="val" id="leadsCountContacted">0</div><div class="delta">Telesale gọi được</div></div>
+        <div class="kpi k3"><div class="ic">📅</div><div class="label">Đã đặt lịch</div><div class="val" id="leadsCountAppointment">0</div><div class="delta">Khách đã đặt lịch</div></div>
+        <div class="kpi k4"><div class="ic">✅</div><div class="label">Khách đã tới</div><div class="val" id="leadsCountArrived">0</div><div class="delta">Đã có mặt tại spa</div></div>
       </div>
-      <div class="card" id="leadFunnelCard" style="margin-top:16px;display:none">
-        <div class="card-head"><div><h3>🔻 Phễu chuyển đổi lead</h3><div class="sub">Lead về → liên hệ → hẹn lịch → chốt khách</div></div></div>
-        <div id="leadFunnel"></div>
-      </div>
-      <div class="row" style="margin-top:16px">
-        <div class="card">
-          <div class="card-head">
-            <div><h3>Danh sách lead khách hàng</h3><div class="sub">Click tên khách để xem đầy đủ · Gọi · Nhắn Zalo · Ghi chú · Đổi trạng thái</div></div>
-            <div style="display:flex;gap:8px">
-              <select id="leadsFilter" onchange="renderLeads()" style="width:auto;padding:7px 12px;font-size:.86rem">
-                <option value="all">Tất cả</option>
-                <option value="new">Mới (chưa xử lý)</option>
-                <option value="contacted">Đã gọi</option>
-                <option value="appointment">Đã hẹn lịch</option>
-                <option value="converted">Đã chốt (thành KH)</option>
-                <option value="lost">Không liên hệ được</option>
-              </select>
-              <button class="btn sm" onclick="refreshLeads()">🔄 Làm mới</button>
-            </div>
-          </div>
-          <table>
-            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Đăng ký lúc</th><th>Nguồn</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
-            <tbody id="leadsRows"></tbody>
-          </table>
+      <div class="lead-board" id="leadBoard">
+        <div class="lead-col" data-status="new" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'new')">
+          <div class="lead-col-head" style="border-top:4px solid var(--red)"><span>🆕 Khách mới</span><span class="badge" id="leadColBadge-new">0</span></div>
+          <div class="lead-col-body" id="leadCol-new"></div>
+        </div>
+        <div class="lead-col" data-status="contacted" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'contacted')">
+          <div class="lead-col-head" style="border-top:4px solid var(--blue)"><span>📞 Đã tiếp cận</span><span class="badge" id="leadColBadge-contacted">0</span></div>
+          <div class="lead-col-body" id="leadCol-contacted"></div>
+        </div>
+        <div class="lead-col" data-status="appointment" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'appointment')">
+          <div class="lead-col-head" style="border-top:4px solid var(--gold-deep)"><span>📅 Đã đặt lịch</span><span class="badge" id="leadColBadge-appointment">0</span></div>
+          <div class="lead-col-body" id="leadCol-appointment"></div>
+        </div>
+        <div class="lead-col" data-status="arrived" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'arrived')">
+          <div class="lead-col-head" style="border-top:4px solid var(--green)"><span>✅ Khách đã tới</span><span class="badge" id="leadColBadge-arrived">0</span></div>
+          <div class="lead-col-body" id="leadCol-arrived"></div>
         </div>
       </div>
     </section>
@@ -3876,15 +3883,10 @@ function restoreAll(file){
 window.backupAll = backupAll;
 window.restoreAll = restoreAll;
 
-/* ===== LEADS — đọc từ landing popup ===== */
-function getLeads(){
-  try{ return dedupeLeads(JSON.parse(localStorage.getItem('hana_bookings')||'[]')); }catch{ return []; }
-}
-function setLeads(arr){ try{localStorage.setItem('hana_bookings', JSON.stringify(dedupeLeads(arr)));}catch{} }
-function isLeadToday(at){
-  const d=new Date(at), t=new Date();
-  return d.toDateString()===t.toDateString();
-}
+/* ===== LEADS — lưu Supabase qua /api/leads (dùng chung project với Phân gọi khách) ===== */
+const LEAD_STAGES = ['new','contacted','appointment','arrived'];
+const LEAD_STAGE_LABEL = {new:'Khách mới',contacted:'Đã tiếp cận',appointment:'Đã đặt lịch',arrived:'Khách đã tới'};
+function leadStage(l){ return LEAD_STAGES.indexOf(l.status)>=0 ? l.status : 'new'; }
 function leadTimeAgo(at){
   const d=new Date(at), now=new Date(), diff=now-d;
   if(diff<60000) return 'Vừa xong';
@@ -3892,190 +3894,93 @@ function leadTimeAgo(at){
   if(diff<86400000) return Math.floor(diff/3600000)+' giờ trước';
   return Math.floor(diff/86400000)+' ngày trước';
 }
-function renderLeads(){
-  const leads = getLeads();
-  // KPI
-  document.getElementById('leadsTotal').textContent = leads.length;
-  document.getElementById('leadsToday').textContent = leads.filter(l=>isLeadToday(l.at)).length;
-  document.getElementById('leadsWaiting').textContent = leads.filter(l=>!l.status || l.status==='new').length;
-  const converted = leads.filter(l=>l.status==='converted').length;
-  const conv = leads.length?Math.round(converted/leads.length*100):0;
-  document.getElementById('leadsConverted').textContent = converted+' ('+conv+'%)';
-  // Badge sidebar
-  const waiting = leads.filter(l=>!l.status || l.status==='new').length;
-  const b=document.getElementById('leadsBadge'); if(b) b.textContent = waiting;
-  // Phễu chuyển đổi
-  renderLeadFunnel(leads);
-  // Rows
-  const filter = document.getElementById('leadsFilter')?.value || 'all';
-  const filteredAll = leads.slice().sort((a,b)=>(new Date(b.at||0))-(new Date(a.at||0))).filter(l=>{
-    const s = l.status || 'new';
-    return filter==='all' || s===filter;
-  });
-  const filtered = filteredAll.slice(0,1000);
-  const root = document.getElementById('leadsRows');
-  if(!root) return;
-  if(filteredAll.length===0){
-    root.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Chưa có lead nào' + (leads.length?' khớp filter':' — sẽ tự xuất hiện khi khách điền form trên landing')+'</td></tr>';
-    return;
-  }
-  const statusColor = {new:'red',contacted:'blue',appointment:'gold',converted:'green',lost:'gray'};
-  const statusText = {new:'Mới',contacted:'Đã gọi',appointment:'Đã hẹn lịch',converted:'Đã chốt',lost:'Mất liên hệ'};
-  root.innerHTML = filtered.map((l,i)=>{
-    const realIdx = leads.indexOf(l);
-    const s = l.status || 'new';
-    const initial = (l.name||'?').trim()[0].toUpperCase();
-    return `<tr>
-      <td style="cursor:pointer" onclick="openLeadDetail(${realIdx})" title="Xem chi tiết & ghi chú"><div class="with-av"><span class="avatar" style="background:var(--grad)">${initial}</span><span><b>${l.name||'?'}</b><span>${l.phone||''}</span></span></div></td>
-      <td>${l.service||'<i style="color:var(--muted)">Chưa chọn</i>'}${l.quote?`<div style="font-size:.72rem;color:var(--gold-deep);font-weight:700;margin-top:2px">💰 ${esc(String(l.quote))}</div>`:''}${l.note?'<div style="font-size:.7rem;color:var(--blue);margin-top:2px">📝 có ghi chú</div>':''}</td>
-      <td>${leadTimeAgo(l.at)}<div style="font-size:.72rem;color:var(--muted)">${new Date(l.at).toLocaleString('vi-VN')}</div></td>
-      <td><span class="pill blue">${l.source||'web'}</span></td>
-      <td><span class="status ${statusColor[s]}">${statusText[s]}</span></td>
-      <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <a href="tel:${(l.phone||'').replace(/\\s/g,'')}" class="btn sm green" style="padding:5px 9px;font-size:.72rem" title="Gọi">📞</a>
-          <a href="https://zalo.me/${(l.phone||'').replace(/\\s/g,'')}" target="_blank" class="btn sm" style="background:linear-gradient(135deg,#0068ff,#00a2ff);padding:5px 9px;font-size:.72rem" title="Zalo">💬</a>
-          <select onchange="setLeadStatus(${realIdx},this.value)" style="padding:4px 6px;font-size:.72rem;width:auto">
-            <option value="new" ${s==='new'?'selected':''}>Mới</option>
-            <option value="contacted" ${s==='contacted'?'selected':''}>Đã gọi</option>
-            <option value="appointment" ${s==='appointment'?'selected':''}>Đã hẹn</option>
-            <option value="converted" ${s==='converted'?'selected':''}>Đã chốt</option>
-            <option value="lost" ${s==='lost'?'selected':''}>Mất</option>
-          </select>
-          <button class="btn ghost sm" style="padding:5px 9px;font-size:.72rem" onclick="openLeadDetail(${realIdx})" title="Chi tiết & ghi chú">📋</button>
+let LEADS_CACHE = [];
+async function apiLeads(payload){
+  const r = await fetch('/api/leads', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d?.error || 'Lỗi kết nối máy chủ');
+  return d;
+}
+async function fetchLeads(){
+  try{ const d = await apiLeads({action:'list'}); LEADS_CACHE = d.rows || []; }
+  catch(e){ console.error('fetchLeads', e); toast('❌ '+(e.message||'Không tải được lead'),'red'); }
+}
+function paintLeads(){
+  const leads = LEADS_CACHE;
+  const counts = {new:0,contacted:0,appointment:0,arrived:0};
+  leads.forEach(l=>counts[leadStage(l)]++);
+  const setTxt=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  setTxt('leadsCountNew',counts.new); setTxt('leadsCountContacted',counts.contacted);
+  setTxt('leadsCountAppointment',counts.appointment); setTxt('leadsCountArrived',counts.arrived);
+  LEAD_STAGES.forEach(s=>setTxt('leadColBadge-'+s,counts[s]));
+  const b=document.getElementById('leadsBadge'); if(b) b.textContent = counts.new;
+
+  const sorted = leads.slice().sort((a,b)=>(new Date(b.created_at||0))-(new Date(a.created_at||0)));
+  LEAD_STAGES.forEach(stage=>{
+    const root = document.getElementById('leadCol-'+stage);
+    if(!root) return;
+    const items = sorted.filter(l=>leadStage(l)===stage);
+    if(!items.length){
+      root.innerHTML = `<div style="text-align:center;padding:22px 8px;color:var(--muted);font-size:.8rem">Chưa có khách${leads.length?'':' — sẽ tự xuất hiện khi khách điền form'}</div>`;
+      return;
+    }
+    root.innerHTML = items.map(l=>{
+      const initial = (l.name||'?').trim()[0]?.toUpperCase()||'?';
+      const meta = [l.phone, l.age?l.age+' tuổi':'', l.gender].filter(Boolean).join(' · ');
+      const cond = l.problem || l.service || 'Chưa rõ tình trạng';
+      return `<div class="lead-card" draggable="true" data-id="${l.id}" ondragstart="leadDragStart(event,'${l.id}')" ondragend="leadDragEnd(event)" onclick="openLeadDetail('${l.id}')">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+          <span class="avatar" style="background:var(--grad);width:28px;height:28px;font-size:.76rem;flex:none">${initial}</span>
+          <div style="min-width:0;flex:1"><b style="display:block;font-size:.84rem;color:var(--brown-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.name||'?')}</b><span style="font-size:.7rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(meta)}</span></div>
         </div>
-      </td>
-    </tr>`;
-  }).join('') + (filteredAll.length>filtered.length?`<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--muted)">Hiển thị ${filtered.length} lead MỚI NHẤT / tổng ${filteredAll.length.toLocaleString('vi-VN')} · lead cũ ở dưới · lọc trạng thái để xem nhóm</td></tr>`:'');
-}
-function setLeadStatus(idx,status){
-  const leads = getLeads();
-  if(!leads[idx]) return;
-  leads[idx].status = status;
-  leads[idx].updatedAt = new Date().toISOString();
-  setLeads(leads);
-  renderLeads();
-  toast('✓ Đã cập nhật trạng thái lead','green');
-}
-function refreshLeads(){ renderLeads(); toast('🔄 Đã làm mới','green'); }
-
-/* ===== Đồng bộ lead THẬT từ Google Sheet (Data Hub) vào danh sách telesale ===== */
-function leadKey(l){
-  const id=(l.leadId!=null?String(l.leadId):'').trim();
-  if(id) return 'id:'+id;
-  const ph=(l.phone||'').replace(/\D/g,'');
-  if(ph.length>=8) return 'ph:'+ph;            // ổn định theo SĐT, không kèm thời gian
-  return 'nm:'+(l.name||'').trim().toLowerCase();
-}
-function dedupeLeads(arr){
-  const seen={}, out=[];
-  (arr||[]).forEach(l=>{
-    const k=leadKey(l), cur=seen[k];
-    if(!cur){ seen[k]=l; out.push(l); }
-    else if(l.status && l.status!=='new' && (!cur.status||cur.status==='new')){ const i=out.indexOf(cur); if(i>=0) out[i]=l; seen[k]=l; } // giữ lead đã có trạng thái
-  });
-  return out;
-}
-const LEAD_SHEET_ID='18zDymZZN0_sGCnFqd2XdDxev-aURoap8'; // Sheet lead CHUẨN (Data thẩm mỹ) — nguồn lead duy nhất
-function mapLeadStatus(s){
-  const x=(s||'').toLowerCase().trim();
-  if(!x) return 'new';
-  if(/đã mua|da mua|chốt|chot/.test(x)) return 'converted';
-  if(/đặt lịch|dat lich|bom lịch|bom lich|đến nhưng|den nhung/.test(x)) return 'appointment';
-  if(/hết nhu cầu|het nhu cau|không mua|khong mua|hu[ỷy]|huy/.test(x)) return 'lost';
-  if(/thuê bao|thue bao|sai số|sai so/.test(x)) return 'new';
-  if(/tham khảo|tham khao|tiềm năng|tiem nang|kbm|gọi|goi|liên hệ|lien he/.test(x)) return 'contacted';
-  return 'contacted';
-}
-// 26 tab DATA lead theo tháng T3/2024 → T6/2026 (cũ→mới để trạng thái mới nhất ghi đè)
-const LEAD_TABS=[
-  {g:1020996235,y:2024,m:3},{g:321458567,y:2024,m:4},{g:932432865,y:2024,m:8},{g:2118234011,y:2024,m:9},
-  {g:2015922888,y:2024,m:10},{g:1700770515,y:2024,m:11},{g:1613942860,y:2024,m:12},
-  {g:456458735,y:2025,m:1},{g:1877816892,y:2025,m:2},{g:1492210253,y:2025,m:3},{g:977175530,y:2025,m:4},
-  {g:1878665835,y:2025,m:5},{g:1902817739,y:2025,m:6},{g:1354680026,y:2025,m:7},{g:304904734,y:2025,m:7},
-  {g:1180466520,y:2025,m:8},{g:491498340,y:2025,m:8},{g:666789144,y:2025,m:9},{g:1298666908,y:2025,m:10},
-  {g:1964158943,y:2025,m:11},{g:1389061209,y:2025,m:12},{g:1830891711,y:2026,m:1},{g:1085329435,y:2026,m:2},
-  {g:60726700,y:2026,m:3},{g:1034437935,y:2026,m:4},{g:2050765869,y:2026,m:5},{g:1227745731,y:2026,m:6}
-];
-function ingestLeadTab(cache, fallbackAt, leads, byKey, ctr){
-  if(!cache||!cache.rows||!cache.rows.length) return;
-  const C=cache.cols||[];
-  const iName=leadColIdx(C,/họ tên|ho ten|^tên|^ten|facebook|name|khách hàng|khach hang/i);
-  const iPhone=leadColIdx(C,/sđt|sdt|phone|điện thoại|dien thoai|số đt/i);
-  const iSvc=leadColIdx(C,/dịch vụ|dich vu|service/i);
-  const iTime=leadColIdx(C,/ngày tháng|thời gian|thoi gian|^ngày|^ngay|date|đăng ký/i);
-  const iSrc=leadColIdx(C,/nguồn|nguon|source|kênh|kenh|khu vực|khu vuc/i);
-  const iQuote=leadColIdx(C,/báo giá|bao gia|quote/i);
-  const iId=leadColIdx(C,/lead id|^id$|mã lead|ma lead/i);
-  const iSlot=leadColIdx(C,/khung giờ|khung gio|giờ hẹn|gio hen|lịch hẹn/i);
-  const iStatus=leadColIdx(C,/trạng thái|trang thai|status/i);
-  const iNote=leadColIdx(C,/ghi chú|ghi chu|note/i);
-  cache.rows.forEach(r=>{
-    const get=i=> i>=0 ? String(r[i]==null?'':r[i]).trim() : '';
-    const phone=get(iPhone), name=get(iName);
-    if(!phone && !name) return;
-    if(!phone && /^(tên|ten|họ tên|facebook|stt)/i.test(name)) return;
-    const obj={ name:name||'(chưa rõ tên)', phone, service:get(iSvc),
-      at: fallbackAt, source:get(iSrc)||'web', leadId:get(iId),
-      quote:get(iQuote), slot:get(iSlot), time:get(iSlot)||'',
-      status:mapLeadStatus(get(iStatus)), sheetStatus:get(iStatus), sheetNote:get(iNote), fromSheet:true };
-    const k=leadKey(obj), ex=byKey[k];
-    if(ex){
-      ex.name=obj.name; ex.phone=obj.phone||ex.phone; if(obj.service)ex.service=obj.service; ex.source=obj.source;
-      if(obj.quote)ex.quote=obj.quote; if(obj.slot)ex.slot=obj.slot; if(obj.leadId)ex.leadId=obj.leadId;
-      ex.status=obj.status; ex.sheetStatus=obj.sheetStatus; ex.sheetNote=obj.sheetNote; ex.fromSheet=true; ex.at=obj.at;
-      ctr.updated++;
-    } else { obj.createdAt=new Date().toISOString(); leads.push(obj); byKey[k]=obj; ctr.added++; }
+        <div style="font-size:.76rem;color:var(--brown-deep);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(cond)}">${esc(cond)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+          <span class="pill" style="font-size:.66rem;padding:2px 7px">${esc(l.source||'web')}</span>
+          <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">${leadTimeAgo(l.created_at)}</span>
+        </div>
+      </div>`;
+    }).join('');
   });
 }
-async function syncLeadsFromSheet(silent){
-  try{ const last=+localStorage.getItem('hana_leads_synced')||0; if(silent && getLeads().length>50 && (Date.now()-last)<7200000){ renderLeads(); return 0; } }catch(e){}
-  let leads=getLeads();
-  const byKey={}; leads.forEach(l=>{ byKey[leadKey(l)]=l; });
-  const ctr={added:0,updated:0}; let tabsOK=0;
-  const B=8;
-  for(let i=0;i<LEAD_TABS.length;i+=B){
-    const batch=LEAD_TABS.slice(i,i+B);
-    const caches=await Promise.all(batch.map(t=> fetchSheet(LEAD_SHEET_ID,{gid:t.g}).then(c=>({c,t})).catch(()=>({c:null,t})) ));
-    caches.forEach(({c,t})=>{ if(c&&c.rows&&c.rows.length){ tabsOK++; ingestLeadTab(c, new Date(t.y,t.m-1,1).toISOString(), leads, byKey, ctr); } });
+async function renderLeads(){ await fetchLeads(); paintLeads(); }
+let leadDragId = null;
+function leadDragStart(ev,id){
+  leadDragId = id;
+  try{ ev.dataTransfer.setData('text/plain',String(id)); ev.dataTransfer.effectAllowed='move'; }catch(e){}
+  ev.target.classList.add('dragging');
+}
+function leadDragEnd(ev){
+  ev.target.classList.remove('dragging');
+  document.querySelectorAll('.lead-col.drag-over').forEach(c=>c.classList.remove('drag-over'));
+}
+function leadDragOver(ev){ ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+function leadDragLeave(ev){ ev.currentTarget.classList.remove('drag-over'); }
+function leadDrop(ev,status){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  let id = leadDragId;
+  if(!id){ try{ id = ev.dataTransfer.getData('text/plain'); }catch(e){} }
+  leadDragId = null;
+  if(!id) return;
+  moveLeadStatus(id,status);
+}
+async function moveLeadStatus(id,status){
+  const l = LEADS_CACHE.find(x=>x.id===id);
+  if(!l || l.status===status) return;
+  const prev = l.status;
+  l.status = status; paintLeads(); // optimistic
+  try{
+    await apiLeads({action:'update_status', id, status});
+    toast('✓ Đã chuyển sang "'+(LEAD_STAGE_LABEL[status]||status)+'"','green');
+  }catch(e){
+    l.status = prev; paintLeads();
+    toast('❌ '+(e.message||'Lỗi cập nhật trạng thái'),'red');
   }
-  setLeads(leads); renderLeads();
-  try{ localStorage.setItem('hana_leads_synced', String(Date.now())); }catch(e){}
-  if(!silent) toast('✓ Nạp lead: +'+ctr.added+' mới · '+ctr.updated+' cập nhật · '+tabsOK+'/'+LEAD_TABS.length+' bảng','green');
-  return ctr.added;
 }
+function refreshLeads(){ renderLeads().then(()=>toast('🔄 Đã làm mới','green')); }
 
-function renderLeadFunnel(leads){
-  const card=gel('leadFunnelCard'), box=gel('leadFunnel'); if(!card||!box) return;
-  if(!leads||!leads.length){ card.style.display='none'; return; }
-  card.style.display='';
-  const total=leads.length;
-  const has=arr=>leads.filter(l=>arr.indexOf(l.status||'new')>=0).length;
-  const contacted=has(['contacted','appointment','converted']);
-  const appt=has(['appointment','converted']);
-  const won=has(['converted']);
-  const lost=has(['lost']);
-  const stages=[
-    {label:'Tổng lead', n:total, color:'#C0392B'},
-    {label:'Đã liên hệ', n:contacted, color:'#2980B9'},
-    {label:'Đã hẹn lịch', n:appt, color:'#B8860B'},
-    {label:'Đã chốt', n:won, color:'#27AE60'}
-  ];
-  box.innerHTML = stages.map((st,i)=>{
-    const pct=total? Math.round(st.n/total*100):0;
-    const fromPrev= i>0 && stages[i-1].n ? Math.round(st.n/stages[i-1].n*100) : null;
-    return `<div style="margin-bottom:11px">
-      <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px">
-        <span style="font-weight:700;color:#3B2113">${st.label}</span>
-        <span style="color:${st.color};font-weight:700">${st.n}${fromPrev!=null?` · ${fromPrev}% từ bước trước`:''}</span></div>
-      <div style="height:14px;background:#F1E8DF;border-radius:7px;overflow:hidden">
-        <div style="height:100%;width:${Math.max(pct,4)}%;background:${st.color};border-radius:7px;transition:width .4s"></div></div>
-    </div>`;
-  }).join('') + `<div class="sub" style="margin-top:10px">Tỉ lệ chốt tổng: <b style="color:#27AE60">${total?Math.round(won/total*100):0}%</b> · Đang mất liên hệ: <b style="color:#888">${lost}</b></div>`;
-}
-
-function openLeadDetail(idx){
-  const leads=getLeads(), l=leads[idx]; if(!l) return;
+function openLeadDetail(id){
+  const l = LEADS_CACHE.find(x=>x.id===id); if(!l) return;
   const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
   modalEl.classList.add('lg'); t.textContent='📥 '+(l.name||'Lead');
   const phoneClean=(l.phone||'').replace(/\s/g,'');
@@ -4088,20 +3993,20 @@ function openLeadDetail(idx){
     </div>
     <table style="width:100%;font-size:.86rem;border-collapse:collapse">
       ${row('Dịch vụ', l.service)}
+      ${row('Tình trạng', l.problem)}
       ${row('Gói gợi ý', l.pkg)}
       ${row('Báo giá', l.quote)}
-      ${row('Vấn đề / Vùng', l.problem)}
       ${row('Mục tiêu / Dáng', l.goal)}
       ${row('Tuổi', l.age)}
+      ${row('Giới tính', l.gender)}
       ${row('Khung giờ mong muốn', l.slot)}
       ${row('Nguồn', l.source)}
-      ${row('Lead ID', l.leadId)}
-      ${row('Đăng ký lúc', l.at? new Date(l.at).toLocaleString('vi-VN'):'')}
+      ${row('Đăng ký lúc', l.created_at? new Date(l.created_at).toLocaleString('vi-VN'):'')}
     </table>
     <div style="margin-top:14px">
       <label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Trạng thái</label>
       <select id="ldStatus" style="width:100%">
-        ${opt('new','Mới')}${opt('contacted','Đã gọi')}${opt('appointment','Đã hẹn lịch')}${opt('converted','Đã chốt (thành KH)')}${opt('lost','Mất liên hệ')}
+        ${opt('new','Khách mới')}${opt('contacted','Đã tiếp cận')}${opt('appointment','Đã đặt lịch')}${opt('arrived','Khách đã tới')}
       </select>
     </div>
     <div style="margin-top:12px">
@@ -4110,33 +4015,74 @@ function openLeadDetail(idx){
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
-      <button class="btn sm" onclick="saveLeadDetail(${idx})">💾 Lưu</button>
+      <button class="btn sm" onclick="saveLeadDetail('${id}')">💾 Lưu</button>
     </div>`;
   modalBg.classList.add('show');
 }
-function saveLeadDetail(idx){
-  const leads=getLeads(); if(!leads[idx]) return;
+async function saveLeadDetail(id){
+  const l = LEADS_CACHE.find(x=>x.id===id); if(!l) return;
   const st=gel('ldStatus'), nt=gel('ldNote');
-  if(st) leads[idx].status=st.value;
-  if(nt) leads[idx].note=nt.value;
-  leads[idx].updatedAt=new Date().toISOString();
-  setLeads(leads); renderLeads(); closeModal();
-  toast('✓ Đã lưu lead','green');
+  const status = st?st.value:l.status, note = nt?nt.value:l.note;
+  try{
+    await apiLeads({action:'update', id, status, note});
+    l.status = status; l.note = note; paintLeads(); closeModal();
+    toast('✓ Đã lưu lead','green');
+  }catch(e){
+    toast('❌ '+(e.message||'Lỗi lưu lead'),'red');
+  }
+}
+
+function openAddLeadModal(){
+  const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
+  modalEl.classList.remove('lg');
+  t.textContent='📥 Thêm lead mới';
+  b.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Họ tên *</label><input id="nlName" style="width:100%" placeholder="Tên khách"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">SĐT *</label><input id="nlPhone" style="width:100%" placeholder="09xx xxx xxx"></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Tuổi</label><input id="nlAge" type="number" min="0" max="120" style="width:100%" placeholder="VD: 28"></div>
+        <div style="flex:1"><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Giới tính</label>
+          <select id="nlGender" style="width:100%"><option value="">—</option><option value="Nữ">Nữ</option><option value="Nam">Nam</option><option value="Khác">Khác</option></select>
+        </div>
+      </div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Tình trạng</label><textarea id="nlCondition" rows="2" style="width:100%" placeholder="VD: da dầu mụn, muốn nâng mũi..."></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
+      <button class="btn sm" onclick="submitAddLead()">+ Thêm lead</button>
+    </div>`;
+  modalBg.classList.add('show');
+  setTimeout(()=>gel('nlName')?.focus(),50);
+}
+async function submitAddLead(){
+  const name=(gel('nlName')?.value||'').trim();
+  const phone=(gel('nlPhone')?.value||'').trim();
+  const age=(gel('nlAge')?.value||'').trim();
+  const gender=(gel('nlGender')?.value||'').trim();
+  const condition=(gel('nlCondition')?.value||'').trim();
+  if(!name || !phone){ toast('❌ Cần nhập tên và SĐT','red'); return; }
+  try{
+    await apiLeads({action:'create', name, phone, age, gender, problem:condition, source:'trực page'});
+    closeModal();
+    await renderLeads();
+    toast('✓ Đã thêm lead mới','green');
+  }catch(e){
+    toast('❌ '+(e.message||'Lỗi thêm lead'),'red');
+  }
 }
 
 window.renderLeads=renderLeads;
-window.setLeadStatus=setLeadStatus;
+window.moveLeadStatus=moveLeadStatus;
 window.refreshLeads=refreshLeads;
-window.syncLeadsFromSheet=syncLeadsFromSheet;
 window.openLeadDetail=openLeadDetail;
 window.saveLeadDetail=saveLeadDetail;
+window.openAddLeadModal=openAddLeadModal;
+window.submitAddLead=submitAddLead;
 // Auto refresh leads mỗi 30s khi đang ở section đó
 setInterval(()=>{
-  if(document.getElementById('page-leads')?.classList.contains('active')) renderLeads();
-  // Update badge mọi lúc
-  const leads = getLeads();
-  const waiting = leads.filter(l=>!l.status || l.status==='new').length;
-  const b=document.getElementById('leadsBadge'); if(b) b.textContent = waiting;
+  if(document.getElementById('page-leads')?.classList.contains('active')){ renderLeads(); }
+  else { const waiting = LEADS_CACHE.filter(l=>leadStage(l)==='new').length; const b=document.getElementById('leadsBadge'); if(b) b.textContent = waiting; }
 }, 30000);
 // Thêm vào EXPORT_CONFIG để Xuất Excel lead
 if(typeof EXPORT_CONFIG !== 'undefined'){
@@ -4144,24 +4090,24 @@ if(typeof EXPORT_CONFIG !== 'undefined'){
     sheet:'Leads', file:'leads-tu-web',
     map: (l,i) => ({
       STT:i+1, 'Họ tên':l.name||'', SĐT:l.phone||'',
-      'Dịch vụ':l.service||'', 'Thời gian dự kiến':l.time||'',
-      'Đăng ký lúc': new Date(l.at).toLocaleString('vi-VN'),
-      'Trạng thái': l.status||'new', 'Nguồn': l.source||'web'
+      'Dịch vụ':l.service||'', 'Khung giờ mong muốn':l.slot||'',
+      'Đăng ký lúc': l.created_at? new Date(l.created_at).toLocaleString('vi-VN'):'',
+      'Trạng thái': LEAD_STAGE_LABEL[leadStage(l)], 'Nguồn': l.source||'web'
     })
   };
 }
 // Inject vào DATA để exportExcel('leads') hoạt động
-Object.defineProperty(DATA, 'leads', { get(){ return getLeads(); } });
+Object.defineProperty(DATA, 'leads', { get(){ return LEADS_CACHE; } });
 
 /* ===== NOTIFICATION DROPDOWN ===== */
 function buildNotifDropdown(){
-  const leads = getLeads();
-  const newLeads = leads.filter(l=>!l.status||l.status==='new').slice(-5).reverse();
+  const leads = LEADS_CACHE;
+  const newLeads = leads.filter(l=>leadStage(l)==='new').slice(-5).reverse();
   const items = [];
   newLeads.forEach(l=>items.push({
     type:'lead', icon:'📥', color:'green',
     title:`Lead mới: ${l.name}`, sub:`${l.phone} · ${l.service||'Chưa chọn DV'}`,
-    time: leadTimeAgo(l.at), action:()=>go('leads')
+    time: leadTimeAgo(l.created_at), action:()=>go('leads')
   }));
   // Mock các notif khác
   items.push({type:'task',icon:'📋',color:'blue',title:'3 task quá hạn',sub:'Cần xử lý gấp trong hôm nay',time:'2h',action:()=>go('tasks')});
