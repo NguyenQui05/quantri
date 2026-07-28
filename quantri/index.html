@@ -508,7 +508,6 @@
 
     <div class="nav">
       <a data-section="dashboard" class="active"><span class="ic">📊</span>Tổng quan</a>
-      <a data-section="datahub"><span class="ic">🗂️</span>Tổng hợp dữ liệu<span class="badge" id="datahubBadge" style="background:var(--gold-deep)">LIVE</span></a>
       <a data-section="calendar"><span class="ic">📅</span>Lịch hẹn<span class="badge" id="calBadge">0</span></a>
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
       <a data-section="leads"><span class="ic">📥</span>Lead Mới<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
@@ -520,16 +519,13 @@
       <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
       <a data-section="luong"><span class="ic">💵</span>Bảng lương nhân viên</a>
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
-      <a data-section="telesale"><span class="ic">📞</span>Telesale &amp; Lễ tân</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
 
       <div class="group">Kinh doanh</div>
       <a data-section="revenue"><span class="ic">💰</span>Doanh thu</a>
-      <a data-section="inventory"><span class="ic">📦</span>Kho hàng</a>
       <a data-section="marketing"><span class="ic">📢</span>Marketing</a>
 
       <div class="group">2026 — Thông minh</div>
-      <a data-section="ai"><span class="ic">🤖</span>AI Assistant<span class="badge" style="background:var(--gold-deep)">MỚI</span></a>
 
       <div class="group">Khác</div>
       <a href="/quantri/huong-dan" target="_blank"><span class="ic">📘</span>Hướng dẫn</a>
@@ -1017,48 +1013,6 @@
       </div>
     </section>
 
-    <!-- ============ TELESALE & LỄ TÂN KPI ============ -->
-    <section class="page" id="page-telesale">
-      <div class="alert info" style="margin-bottom:14px"><span class="ic">📞</span><div><b>KPI Telesale tháng 5/2026:</b> <span id="ts-note">đang tải…</span></div></div>
-
-      <div class="grid kpi-grid" style="margin-bottom:14px">
-        <div class="kpi k1"><div class="ic">📞</div><div class="label">Tổng cuộc gọi</div><div class="val" id="ts-kpi-goi">—</div><div class="delta" id="ts-kpi-goi-sub">&nbsp;</div></div>
-        <div class="kpi k2"><div class="ic">⏱️</div><div class="label">Tổng phút gọi</div><div class="val" id="ts-kpi-phut">—</div><div class="delta">cả team trong tháng</div></div>
-        <div class="kpi k3"><div class="ic">🎯</div><div class="label">Khách mời đến</div><div class="val" id="ts-kpi-khach">—</div><div class="delta">làm dịch vụ</div></div>
-        <div class="kpi k4"><div class="ic">💸</div><div class="label">Hoa hồng + thưởng</div><div class="val" id="ts-kpi-thuong">—</div><div class="delta">chi cho team</div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <div><h2>Bảng so sánh team telesale</h2><div class="sub">Tháng 5/2026 · bấm vào tên để xem nhật ký gọi theo ngày</div></div>
-          <button class="btn ghost sm" onclick="telesaleExportCSV()">⬇ Xuất CSV</button>
-        </div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th>Telesale</th><th style="text-align:center">Ngày làm</th><th style="text-align:center">Data nóng</th><th style="text-align:center">Cuộc gọi</th><th style="text-align:center">Phút gọi</th><th style="text-align:center">Khách đến</th><th style="text-align:center">% chốt</th><th style="text-align:right">Hoa hồng</th><th style="text-align:right">Tổng thưởng</th></tr></thead>
-            <tbody id="ts-team-tbody"></tbody>
-            <tfoot id="ts-team-tfoot"></tfoot>
-          </table>
-        </div>
-        <div id="ts-chart-wrap" style="margin-top:16px;display:none;height:240px"><canvas id="ts-chart"></canvas></div>
-      </div>
-
-      <div class="card" id="ts-detail-card" style="margin-top:14px">
-        <div class="card-head">
-          <div><h2>Chi tiết theo ngày</h2><div class="sub" id="ts-person-sub">Chọn telesale để xem nhật ký gọi</div></div>
-          <select id="tsPerson" style="min-width:150px"></select>
-        </div>
-        <div style="overflow-x:auto">
-          <table><thead><tr><th>Ngày</th><th style="text-align:center">Công</th><th style="text-align:center">Data nóng</th><th style="text-align:center">Cuộc gọi</th><th style="text-align:center">Phút</th><th style="text-align:center">Đặt lịch</th><th style="text-align:center">Khách đến</th><th style="text-align:center">KPI gọi</th><th style="text-align:right">Hoa hồng</th><th style="text-align:right">Thưởng</th></tr></thead><tbody id="ts-day-tbody"></tbody></table>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px">
-        <div class="card-head"><div><h2>🛎️ KPI Lễ tân</h2><div class="sub" id="ts-letan-note"></div></div></div>
-        <div id="ts-letan-headers" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-      </div>
-    </section>
-
     <!-- ============ MEDICAL RECORDS ============ -->
     <!-- ============ BEFORE/AFTER GALLERY ============ -->
     <!-- ============ REVENUE ============ -->
@@ -1092,46 +1046,6 @@
       </div>
     </section>
 
-    <!-- ============ AI ============ -->
-    <section class="page" id="page-ai">
-      <div class="row r-2-1">
-        <div>
-          <div class="ai-card" style="color:#fff;margin-bottom:16px">
-            <div class="ai-icon">🤖</div>
-            <h3 style="font-size:1.4rem">AI Assistant — Tính năng 2026</h3>
-            <p style="opacity:.85;margin-top:5px">Vũ khí AI mà spa hàng đầu 2026 đang dùng — tích hợp sẵn.</p>
-          </div>
-          <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:12px">
-            <div class="card" onclick="aiAction('no-show')"><div style="font-size:1.5rem">🎯</div><h3 style="margin-top:6px">No-show Prediction</h3><div class="sub">Chấm điểm rủi ro vắng mặt, nhắn Zalo nhắc 2h trước.</div></div>
-            <div class="card" onclick="aiAction('ltv')"><div style="font-size:1.5rem">💎</div><h3 style="margin-top:6px">LTV Scoring</h3><div class="sub">Tính giá trị trọn đời mỗi khách.</div></div>
-            <div class="card" onclick="aiAction('churn')"><div style="font-size:1.5rem">🚨</div><h3 style="margin-top:6px">Churn Detection</h3><div class="sub">Phát hiện khách sắp rời 30 ngày trước.</div></div>
-            <div class="card" onclick="aiAction('smart-book')"><div style="font-size:1.5rem">📅</div><h3 style="margin-top:6px">Smart Booking</h3><div class="sub">Đề xuất flash-sale lấp slot.</div></div>
-            <div class="card" onclick="aiAction('copy')"><div style="font-size:1.5rem">💬</div><h3 style="margin-top:6px">Auto Marketing Copy</h3><div class="sub">Sinh nội dung Zalo/SMS/FB.</div></div>
-            <div class="card" onclick="aiAction('birthday')"><div style="font-size:1.5rem">🎂</div><h3 style="margin-top:6px">Birthday Auto-greet</h3><div class="sub">Tự gửi voucher sinh nhật.</div></div>
-            <div class="card" onclick="aiAction('qr')"><div style="font-size:1.5rem">📱</div><h3 style="margin-top:6px">QR Check-in</h3><div class="sub">Khách quét QR → cộng điểm tự động.</div></div>
-            <div class="card" onclick="aiAction('reviews')"><div style="font-size:1.5rem">⭐</div><h3 style="margin-top:6px">Review Aggregator</h3><div class="sub">Gom review Google/FB/TikTok.</div></div>
-            <div class="card" onclick="aiAction('forecast')"><div style="font-size:1.5rem">📊</div><h3 style="margin-top:6px">Revenue Forecast</h3><div class="sub">Dự báo doanh thu 30 ngày.</div></div>
-            <div class="card" onclick="aiAction('inventory')"><div style="font-size:1.5rem">📦</div><h3 style="margin-top:6px">Smart Inventory</h3><div class="sub">Cảnh báo + tự đặt restock.</div></div>
-          </div>
-        </div>
-
-        <div class="ai-chat">
-          <div style="border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
-            <span style="width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff">✨</span>
-            <div><b>HANA AI Assistant</b><div style="font-size:.72rem;color:var(--green)" id="aiStatus">● Gemini 2.5 Flash · Sẵn sàng</div></div>
-          </div>
-          <div style="flex:1;overflow-y:auto;padding-right:4px" id="aiMessages">
-            <div class="ai-msg bot">Chào chị Phương! Em là HANA AI Assistant — nắm rõ thông tin phòng khám, dịch vụ, giá cả. Chị (hoặc khách) hỏi gì về thẩm mỹ, dịch vụ HANA — em trả lời ngay.</div>
-            <div class="ai-msg bot">💡 Ví dụ chị có thể hỏi:<br>• "Soạn tin Zalo mời khách Diamond đi tái khám -15%"<br>• "Khách 38t sau sinh, gợi ý liệu trình"<br>• "Phân tích case khách Yến đang nguy cơ rời"</div>
-          </div>
-          <div style="display:flex;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
-            <input id="aiInput" style="flex:1;border:1px solid var(--line);border-radius:99px;padding:9px 15px" placeholder="Hỏi AI bất cứ điều gì…" onkeydown="if(event.key==='Enter')sendAI()">
-            <button class="btn" onclick="sendAI()" id="aiSend">Gửi</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ============ MARKETING ============ -->
     <section class="page" id="page-marketing">
       <div class="card-head" style="margin-bottom:14px">
@@ -1147,7 +1061,7 @@
       <div id="mktFunnel" style="margin-top:16px"></div>
 
       <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div></div><button class="btn ghost sm" onclick="go('datahub')">⚙️ Quản lý nguồn</button></div>
+        <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div></div></div>
         <div id="mktDaily"><div class="sub" style="text-align:center;padding:24px">Đang nạp số liệu quảng cáo…</div></div>
       </div>
 
@@ -1178,24 +1092,6 @@
       </div>
     </section>
 
-    <!-- ============ INVENTORY ============ -->
-    <section class="page" id="page-inventory">
-      <div class="grid kpi-grid">
-        <div class="kpi k1"><div class="ic">📦</div><div class="label">Tổng SKU</div><div class="val">142</div><div class="delta">28 bán lẻ</div></div>
-        <div class="kpi k4"><div class="ic">⚠️</div><div class="label">Sắp hết hàng</div><div class="val">8</div><div class="delta down">Đặt gấp</div></div>
-        <div class="kpi k2"><div class="ic">💰</div><div class="label">Giá trị kho</div><div class="val">580tr</div><div class="delta">Vòng 42 ngày</div></div>
-        <div class="kpi k3"><div class="ic">🤖</div><div class="label">AI auto-restock</div><div class="val">12</div><div class="delta">PO chờ duyệt</div></div>
-      </div>
-      <div class="alert danger" style="margin-top:16px"><span class="ic">⚠️</span><div><b>Cần xử:</b> Filler Juvederm còn 8 ngày. AI đã chuẩn bị PO — bấm duyệt là gửi.</div><button class="btn sm" onclick="toast('✅ Đã duyệt PO Filler Juvederm','green')">Duyệt PO</button></div>
-      <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h2>Vật tư & sản phẩm</h2><div class="sub">Cập nhật realtime</div></div><button class="btn" onclick="openModal('new-stock')">+ Nhập kho</button></div>
-        <table>
-          <thead><tr><th>SKU</th><th>Tên</th><th>Tồn</th><th>Đơn vị</th><th>Mức tối thiểu</th><th>Dự đoán hết</th><th>Trạng thái</th></tr></thead>
-          <tbody id="invRows"></tbody>
-        </table>
-      </div>
-    </section>
-
     <!-- ============ SETTINGS ============ -->
     <section class="page" id="page-settings">
       <div class="card">
@@ -1203,7 +1099,6 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('🏥 Mở thông tin phòng khám…')"><h3>🏥 Thông tin phòng khám</h3><div class="sub" style="margin-top:5px">Tên · địa chỉ · hotline · giờ</div></div>
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('💳 Mở cấu hình thanh toán…')"><h3>💳 Thanh toán</h3><div class="sub" style="margin-top:5px">MoMo · ZaloPay · VNPay · thẻ</div></div>
-          <div class="card" style="background:linear-gradient(135deg,#FFF8EC,#FBEFD8);cursor:pointer;border:1px solid #E8C25A" onclick="go('datahub')"><h3>🗂️ Nguồn dữ liệu Google Sheets</h3><div class="sub" style="margin-top:5px">Quảng cáo · doanh thu · data · lợi nhuận</div></div>
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('📲 Mở tích hợp…')"><h3>📲 Tích hợp</h3><div class="sub" style="margin-top:5px">Zalo OA · FB · TikTok · Google</div></div>
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('👥 Mở phân quyền…')"><h3>👥 Phân quyền</h3><div class="sub" style="margin-top:5px">CEO · bác sĩ · KTV · lễ tân</div></div>
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="toast('🔔 Mở thông báo…')"><h3>🔔 Thông báo</h3><div class="sub" style="margin-top:5px">Email · push · Zalo · SMS</div></div>
@@ -1217,81 +1112,6 @@
           <div class="card" style="background:#FDEAEA;cursor:pointer;border:1px solid #F0AAA8" onclick="if(typeof canDelete==='function'&&!canDelete()){toast('🔒 Vai trò của bạn không có quyền xóa','red');return;} if(confirm('Xác nhận xoá toàn bộ dữ liệu localStorage (reset về mặc định)?')){localStorage.clear();location.reload()}"><h3>🗑️ Reset dữ liệu demo</h3><div class="sub" style="margin-top:5px;color:#7E150F">Xoá localStorage, về mặc định</div></div>
           <div class="card" style="background:var(--cream);cursor:pointer" onclick="location.href='/api/logout'"><h3>↪ Đăng xuất</h3><div class="sub" style="margin-top:5px">Xoá session</div></div>
         </div>
-      </div>
-    </section>
-
-    <!-- ============ TỔNG HỢP DỮ LIỆU (Google Sheets) ============ -->
-    <section class="page" id="page-datahub">
-      <div class="alert info" style="margin-bottom:14px;display:flex;align-items:flex-start">
-        <span class="ic">🗂️</span>
-        <div style="flex:1">
-          <b>Trung tâm dữ liệu phòng khám</b> — kết nối mọi file <b>Google Sheets</b> của chị (quảng cáo · doanh thu · data · lợi nhuận) vào 1 nơi. Số liệu tự tổng hợp, tính lợi nhuận &amp; ROAS realtime.
-          <div style="margin-top:6px;font-size:.82rem;color:var(--muted)">⚠️ Mỗi file cần <b>Chia sẻ → Bất kỳ ai có đường liên kết → Người xem</b> thì hệ thống mới đọc được. Dữ liệu chỉ hiển thị cho chị, không lưu lên server.</div>
-        </div>
-        <button class="btn sm" onclick="refreshAllSheets()" id="dhRefreshBtn">🔄 Đồng bộ tất cả</button>
-      </div>
-
-      <!-- KPI tổng hợp -->
-      <div class="grid kpi-grid">
-        <div class="kpi k3"><div class="ic">💰</div><div class="label">Tổng doanh thu</div><div class="val" id="aggRevenue">—</div><div class="delta" id="aggRevenueSub">Từ các sheet doanh thu</div></div>
-        <div class="kpi k4" style="--k:#E0762C"><div class="ic">📢</div><div class="label">Tổng chi quảng cáo</div><div class="val" id="aggAdspend">—</div><div class="delta" id="aggAdspendSub">Từ các sheet quảng cáo</div></div>
-        <div class="kpi k1"><div class="ic">📈</div><div class="label">Lợi nhuận tạm tính</div><div class="val" id="aggProfit">—</div><div class="delta" id="aggProfitSub">Doanh thu − quảng cáo</div></div>
-        <div class="kpi k2"><div class="ic">🎯</div><div class="label">ROAS quảng cáo</div><div class="val" id="aggRoas">—</div><div class="delta" id="aggRoasSub">Doanh thu / chi QC</div></div>
-      </div>
-
-      <div class="row r-1-2" style="margin-top:16px;align-items:start">
-        <!-- Form thêm nguồn -->
-        <div class="card">
-          <div class="card-head"><div><h3>➕ Kết nối Google Sheet</h3><div class="sub">Dán link file là xong</div></div></div>
-          <label style="display:block;font-size:.82rem;font-weight:600;color:var(--brown);margin:10px 0 5px">Tên gợi nhớ</label>
-          <input id="dsName" type="text" placeholder="VD: Quảng cáo Facebook T5" style="width:100%;padding:11px 13px;border:1px solid #F0E5D0;border-radius:10px;font:inherit;background:var(--cream)">
-          <label style="display:block;font-size:.82rem;font-weight:600;color:var(--brown);margin:12px 0 5px">Link Google Sheet</label>
-          <input id="dsUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." style="width:100%;padding:11px 13px;border:1px solid #F0E5D0;border-radius:10px;font:inherit;background:var(--cream)">
-          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-            <div style="flex:1;min-width:140px">
-              <label style="display:block;font-size:.82rem;font-weight:600;color:var(--brown);margin-bottom:5px">Loại dữ liệu</label>
-              <select id="dsCat" style="width:100%;padding:11px 13px;border:1px solid #F0E5D0;border-radius:10px;font:inherit;background:var(--cream)">
-                <option value="doanhthu">💰 Doanh thu</option>
-                <option value="quangcao">📢 Quảng cáo</option>
-                <option value="data">📋 Data / Lead</option>
-                <option value="loinhuan">📈 Lợi nhuận</option>
-                <option value="khac">🗃️ Khác</option>
-              </select>
-            </div>
-            <div style="flex:1;min-width:120px">
-              <label style="display:block;font-size:.82rem;font-weight:600;color:var(--brown);margin-bottom:5px">Tên tab <span style="font-weight:400;color:var(--muted)">(nếu cần)</span></label>
-              <input id="dsTab" type="text" placeholder="Sheet1 / để trống = tab đầu" style="width:100%;padding:11px 13px;border:1px solid #F0E5D0;border-radius:10px;font:inherit;background:var(--cream)">
-            </div>
-          </div>
-          <button class="btn" style="width:100%;margin-top:14px" onclick="addDataSource()">🔗 Kết nối &amp; đọc dữ liệu</button>
-          <div id="dsFormMsg" style="margin-top:10px;font-size:.84rem"></div>
-        </div>
-
-        <!-- Bảng nguồn đã kết nối -->
-        <div class="card">
-          <div class="card-head">
-            <div><h3>📡 Nguồn đã kết nối</h3><div class="sub" id="dsCountSub">Chưa có nguồn nào</div></div>
-            <button class="btn ghost sm" onclick="refreshAllSheets()">🔄 Làm mới</button>
-          </div>
-          <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th>Tên · Loại</th><th>Số dòng</th><th>Tổng tiền</th><th>Đồng bộ</th><th></th></tr></thead>
-            <tbody id="dsRows"></tbody>
-          </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phân tích theo loại -->
-      <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h3>📊 Phân tích theo loại dữ liệu</h3><div class="sub">Tổng hợp realtime từ tất cả nguồn đã kết nối</div></div></div>
-        <div id="dsBreakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:6px"></div>
-      </div>
-
-      <!-- Phân tích Lead từ nguồn Data -->
-      <div class="card" id="leadIntelCard" style="margin-top:16px;display:none">
-        <div class="card-head"><div><h3>🎯 Phân tích Lead khách hàng</h3><div class="sub">Tự tổng hợp từ các nguồn loại “Data / Lead” đã kết nối</div></div></div>
-        <div id="leadIntel"></div>
       </div>
     </section>
 
@@ -1845,7 +1665,6 @@ function openModal(type, ctx){
       'new-service':'➕ Thêm dịch vụ mới',
       'new-task':'➕ Thêm công việc',
       'new-medical':'➕ Tạo hồ sơ y khoa',
-      'new-stock':'➕ Nhập kho mới',
       'new-photo':'➕ Thêm case trước/sau',
       'new-campaign':'➕ Tạo chiến dịch marketing'
     };
@@ -1856,7 +1675,6 @@ function openModal(type, ctx){
       'new-service': `<label>Tên dịch vụ</label><input id="f1"><label>Giá (VNĐ)</label><input id="f2" type="number"><label>Thời gian (phút)</label><input id="f3" type="number"><label>Mô tả</label><textarea id="f5" rows="3"></textarea>`,
       'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
       'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
-      'new-stock': `<label>SKU</label><input id="f1"><label>Tên sản phẩm</label><input id="f2"><label>Số lượng nhập</label><input id="f3" type="number"><label>Đơn vị</label><select id="f4"><option>ống</option><option>lọ</option><option>tuýp</option><option>chai</option><option>miếng</option><option>cây</option><option>hộp</option></select><label>Mức tối thiểu</label><input id="f5" type="number"><label>Nhà cung cấp</label><input id="f6">`,
       'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
       'new-campaign': `<label>Tên chiến dịch</label><input id="f1"><label>Kênh</label><select id="f2"><option>Zalo OA</option><option>Facebook Ads</option><option>TikTok Ads</option><option>Google Ads</option><option>SMS</option><option>Email</option></select><label>Đối tượng</label><select id="f3"><option>Toàn bộ khách</option><option>Diamond</option><option>Gold</option><option>Silver</option><option>Khách mới &lt; 30 ngày</option><option>Khách rủi ro rời</option><option>Sinh nhật tháng</option></select><label>Ngân sách (VNĐ)</label><input id="f4" type="number"><label>Mã giảm giá / quà tặng</label><input id="f5">`
     };
@@ -1944,9 +1762,9 @@ function openModal(type, ctx){
   else if(type==='storage-help'){
     modalEl.classList.add('lg');
     t.textContent = '💾 Dữ liệu lưu ở đâu? Backup, Export, kết nối DB ngoài';
-    const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
+    const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length};
     b.innerHTML = `
-      <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task · <b>${cnt.kho}</b> SKU kho</div></div>
+      <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task</div></div>
 
       <h3 style="font-family:'Be Vietnam Pro';font-size:1rem;font-weight:800;color:var(--brown-deep);margin:18px 0 10px">📤 Xuất dữ liệu — Excel & Word</h3>
       <p>Mỗi bảng đều có nút <b>"⬇ Xuất Excel"</b> ở góc phải. File .xlsx chuẩn, mở được Excel/Google Sheets ngay.</p>
@@ -1956,7 +1774,6 @@ function openModal(type, ctx){
           <tr><td>Khách hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('customers')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Nhân sự</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('staff')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Công việc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('tasks')">⬇ Xuất ngay</button></td></tr>
-          <tr><td>Kho hàng</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('inventory')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hậu chăm sóc</td><td>Excel .xlsx</td><td><button class="btn ghost sm" onclick="exportExcel('care')">⬇ Xuất ngay</button></td></tr>
           <tr><td>Hồ sơ nhân viên đơn lẻ</td><td>Word .doc</td><td>Bấm vào hồ sơ NV → "📄 Xuất hồ sơ Word"</td></tr>
         </tbody>
@@ -2044,7 +1861,6 @@ function handleSubmit(type){
     'new-service':'➕ Đã thêm dịch vụ',
     'new-task':'➕ Đã thêm công việc',
     'new-medical':'🩺 Đã tạo hồ sơ y khoa',
-    'new-stock':'📦 Đã nhập kho',
     'new-photo':'📸 Đã thêm case trước/sau',
     'new-campaign':'🚀 Đã khởi tạo chiến dịch'
   };
@@ -2053,7 +1869,6 @@ function handleSubmit(type){
 
 /* ===== LƯƠNG + TOUR PHẪU ===== */
 const TOUR  = { rows:null, stats:null, loading:false };
-const TELESALE = { data:null, loading:false, person:null };
 
 const VND = n => (n == null || n === 0) ? '' : (Math.round(n)).toLocaleString('vi-VN');
 const VND_FULL = n => (n == null) ? '—' : (Math.round(n)).toLocaleString('vi-VN');
@@ -2389,180 +2204,9 @@ document.addEventListener('input', (e)=>{
   if (e.target && e.target.id === 'tourSearch') tourRender();
 });
 
-/* ===== TELESALE & LỄ TÂN ===== */
-async function telesaleLoad(){
-  if (TELESALE.data || TELESALE.loading) return TELESALE.data;
-  TELESALE.loading = true;
-  try{
-    const res = await fetch('/quantri/telesale.json', {credentials:'same-origin'});
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    TELESALE.data = await res.json();
-    telesaleRender();
-  }catch(e){
-    console.error('telesale load fail', e);
-    toast('⚠️ Không tải được dữ liệu telesale: '+e.message, 'red');
-  }finally{ TELESALE.loading = false; }
-  return TELESALE.data;
-}
-
-const tsVND = n => (n==null||n===0) ? '' : Math.round(n).toLocaleString('vi-VN')+'đ';
-
-function telesaleRender(){
-  const d = TELESALE.data; if (!d) return;
-  document.getElementById('ts-note').textContent = d.kpiNote || '';
-
-  // KPI tổng team
-  const t = d.team.reduce((a,p)=>({
-    cuocGoi:a.cuocGoi+(p.tong.cuocGoi||0), phut:a.phut+(p.tong.phut||0),
-    khachDen:a.khachDen+(p.tong.khachDen||0),
-    thuong:a.thuong+(p.tong.thuong||0)+(p.tong.hoaHong||0),
-    datLich:a.datLich+(p.tong.datLich||0)
-  }), {cuocGoi:0,phut:0,khachDen:0,thuong:0,datLich:0});
-  document.getElementById('ts-kpi-goi').textContent = t.cuocGoi.toLocaleString('vi-VN');
-  document.getElementById('ts-kpi-goi-sub').textContent = t.datLich.toLocaleString('vi-VN')+' lịch đặt';
-  document.getElementById('ts-kpi-phut').textContent = t.phut.toLocaleString('vi-VN');
-  document.getElementById('ts-kpi-khach').textContent = t.khachDen.toLocaleString('vi-VN');
-  document.getElementById('ts-kpi-thuong').textContent = trShort(t.thuong);
-
-  // bảng team
-  const tbody = document.getElementById('ts-team-tbody');
-  tbody.innerHTML = d.team.map(p=>{
-    const dataNong = p.tong.dataNong||0;
-    const pct = dataNong>0 ? Math.round((p.tong.khachDen||0)/dataNong*100) : 0;
-    return `<tr style="cursor:pointer" onclick="telesaleSelect('${(p.ten||'').replace(/'/g,"\\'")}')">
-      <td><b style="color:var(--brown-deep)">${p.ten}</b></td>
-      <td style="text-align:center">${p.soNgayLam||0}</td>
-      <td style="text-align:center">${dataNong.toLocaleString('vi-VN')}</td>
-      <td style="text-align:center;font-weight:600;color:var(--orange-deep)">${(p.tong.cuocGoi||0).toLocaleString('vi-VN')}</td>
-      <td style="text-align:center">${(p.tong.phut||0).toLocaleString('vi-VN')}</td>
-      <td style="text-align:center;font-weight:700;background:#FFF6E0">${p.tong.khachDen||0}</td>
-      <td style="text-align:center">${pct?pct+'%':'·'}</td>
-      <td style="text-align:right">${tsVND(p.tong.hoaHong)||'·'}</td>
-      <td style="text-align:right;color:var(--orange-deep);font-weight:700">${tsVND(p.tong.thuong)||'·'}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('ts-team-tfoot').innerHTML =
-    `<tr style="background:#FBEFD8;font-weight:700">
-      <th style="color:var(--brown-deep)">TỔNG TEAM</th>
-      <th style="text-align:center">—</th>
-      <th style="text-align:center">${d.team.reduce((s,p)=>s+(p.tong.dataNong||0),0).toLocaleString('vi-VN')}</th>
-      <th style="text-align:center;color:var(--orange-deep)">${t.cuocGoi.toLocaleString('vi-VN')}</th>
-      <th style="text-align:center">${t.phut.toLocaleString('vi-VN')}</th>
-      <th style="text-align:center">${t.khachDen}</th>
-      <th style="text-align:center">—</th>
-      <th style="text-align:right">${tsVND(d.team.reduce((s,p)=>s+(p.tong.hoaHong||0),0))}</th>
-      <th style="text-align:right;color:var(--orange-deep)">${tsVND(d.team.reduce((s,p)=>s+(p.tong.thuong||0),0))}</th>
-    </tr>`;
-
-  // select người
-  const sel = document.getElementById('tsPerson');
-  if (sel && !sel.dataset.filled){
-    sel.innerHTML = d.team.map(p=>`<option value="${p.ten}">${p.ten}</option>`).join('');
-    sel.dataset.filled = '1';
-    sel.onchange = ()=>telesaleRenderPerson(sel.value);
-  }
-  TELESALE.person = TELESALE.person || (d.team[0] && d.team[0].ten);
-  if (TELESALE.person){ if(sel) sel.value = TELESALE.person; telesaleRenderPerson(TELESALE.person); }
-
-  // lễ tân
-  if (d.letan){
-    document.getElementById('ts-letan-note').textContent = d.letan.note || '';
-    document.getElementById('ts-letan-headers').innerHTML = (d.letan.headers||[]).map(h=>
-      `<span class="badge" style="background:#fff;border:1px solid #FBEFD8;color:var(--brown-deep);font-weight:600">${h}</span>`
-    ).join('');
-  }
-
-  telesaleChart(d.team);
-}
-
-function telesaleSelect(name){
-  TELESALE.person = name;
-  const sel = document.getElementById('tsPerson'); if (sel) sel.value = name;
-  telesaleRenderPerson(name);
-  document.getElementById('ts-detail-card')?.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function telesaleRenderPerson(name){
-  const d = TELESALE.data; if (!d) return;
-  const p = d.team.find(x=>x.ten===name); if (!p) return;
-  document.getElementById('ts-person-sub').innerHTML =
-    `<b style="color:var(--orange-deep)">${p.ten}</b> · ${p.soNgayLam||0} ngày làm · ${(p.tong.cuocGoi||0).toLocaleString('vi-VN')} cuộc gọi · ${p.tong.khachDen||0} khách đến · thưởng ${tsVND(p.tong.thuong)||'0đ'}`;
-  const tb = document.getElementById('ts-day-tbody');
-  if (!p.days || !p.days.length){
-    tb.innerHTML = '<tr><td colspan="10" style="padding:18px;text-align:center;color:var(--muted)">Chưa có nhật ký gọi trong tháng</td></tr>';
-    return;
-  }
-  tb.innerHTML = p.days.map(r=>`
-    <tr>
-      <td><b>${r.ngay}</b></td>
-      <td style="text-align:center">${r.ngayCong??'·'}</td>
-      <td style="text-align:center">${r.dataNong||'·'}</td>
-      <td style="text-align:center;font-weight:600;color:var(--orange-deep)">${(r.cuocGoi||0).toLocaleString('vi-VN')}</td>
-      <td style="text-align:center">${r.phut||'·'}</td>
-      <td style="text-align:center">${r.datLich||'·'}</td>
-      <td style="text-align:center;${r.khachDen?'font-weight:700;background:#FFF6E0':''}">${r.khachDen||'·'}</td>
-      <td style="text-align:center">${r.kpiGoi!=null?(r.kpiGoi+'%'):'·'}</td>
-      <td style="text-align:right">${tsVND(r.hoaHong)||'·'}</td>
-      <td style="text-align:right;color:var(--orange-deep)">${tsVND(r.thuong)||'·'}</td>
-    </tr>`).join('');
-}
-
-let _tsChart = null;
-function telesaleChart(team){
-  const wrap = document.getElementById('ts-chart-wrap');
-  const cv = document.getElementById('ts-chart');
-  if (!wrap || !cv || !window.Chart) return;
-  wrap.style.display = 'block';
-  if (_tsChart) _tsChart.destroy();
-  _tsChart = new Chart(cv.getContext('2d'), {
-    type:'bar',
-    data:{
-      labels: team.map(p=>p.ten),
-      datasets:[
-        {label:'Cuộc gọi', data:team.map(p=>p.tong.cuocGoi||0), backgroundColor:'#E8964E', borderRadius:6, yAxisID:'y'},
-        {label:'Khách đến', data:team.map(p=>p.tong.khachDen||0), backgroundColor:'#7BA86B', borderRadius:6, yAxisID:'y1'}
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'top'}},
-      scales:{
-        y:{position:'left', title:{display:true,text:'Cuộc gọi'}, grid:{color:'#F0E6D5'}},
-        y1:{position:'right', title:{display:true,text:'Khách đến'}, grid:{drawOnChartArea:false}, beginAtZero:true}
-      }
-    }
-  });
-}
-
-function telesaleExportCSV(){
-  const d = TELESALE.data; if (!d) return;
-  let csv = `Telesale KPI - ${d.thang||''}\n`;
-  csv += 'Telesale,Ngày làm,Data nóng,Cuộc gọi,Phút gọi,Khách đến,Hoa hồng,Tổng thưởng\n';
-  for (const p of d.team){
-    csv += [`"${(p.ten||'').replace(/"/g,'""')}"`, p.soNgayLam??'', p.tong.dataNong??'',
-            p.tong.cuocGoi??'', p.tong.phut??'', p.tong.khachDen??'',
-            p.tong.hoaHong??'', p.tong.thuong??''].join(',') + '\n';
-  }
-  csv += '\nChi tiết theo ngày\nTelesale,Ngày,Công,Data nóng,Cuộc gọi,Phút,Đặt lịch,Khách đến,KPI gọi(%),Hoa hồng,Thưởng\n';
-  for (const p of d.team){
-    for (const r of (p.days||[])){
-      csv += [`"${(p.ten||'').replace(/"/g,'""')}"`, r.ngay, r.ngayCong??'', r.dataNong??'',
-              r.cuocGoi??'', r.phut??'', r.datLich??'', r.khachDen??'',
-              r.kpiGoi??'', r.hoaHong??'', r.thuong??''].join(',') + '\n';
-    }
-  }
-  const blob = new Blob([new TextEncoder().encode('﻿'+csv)], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'telesale-T5-2026.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  toast('⬇ Đã tải CSV telesale', 'ok');
-}
-
 /* ===== ROUTING ===== */
 const titles = {
   dashboard:['Tổng quan','Xin chào chị Phương · Thứ Tư · 20/05/2026'],
-  datahub:['🗂️ Tổng hợp dữ liệu','Kết nối Google Sheets · quảng cáo · doanh thu · data · lợi nhuận'],
   calendar:['Lịch hẹn','Telesale tạo lịch · Lễ tân xác nhận đến/chưa đến · lưu thật, đồng bộ mọi thiết bị'],
   crm:['Khách hàng','2.847 khách · 186 VIP & Diamond'],
   leads:['📥 Lead Mới','Khách đăng ký từ phammaiphuong.vn'],
@@ -2572,11 +2216,8 @@ const titles = {
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
   luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
-  telesale:['📞 Telesale & Lễ tân','KPI cuộc gọi · khách mời đến · hoa hồng telesale tháng 5/2026'],
   revenue:['Doanh thu','Tháng 5/2026 · Q2'],
-  inventory:['Kho hàng','142 SKU · 8 sắp hết'],
   marketing:['Marketing & Loyalty','4 campaign đang chạy'],
-  ai:['🤖 AI Assistant — 2026','Spa hàng đầu đang dùng'],
   billing:['🧾 Hóa đơn','Tạo & in bill 80mm cho khách tại quầy'],
   accounts:['👤 Tài khoản','Tạo & phân quyền tài khoản nhân viên'],
   settings:['Cài đặt','Cấu hình hệ thống']
@@ -2839,7 +2480,6 @@ function go(section){
   // scroll lên đầu khi đổi section trên mobile
   if(window.innerWidth<=767) window.scrollTo({top:0,behavior:'smooth'});
   if(section==='dashboard'){initDashboardCharts();syncOverviewRevenue();syncOverviewAppts();}
-  if(section==='datahub')renderDataSources();
   if(section==='revenue')renderRevenue();
   if(section==='crm')renderCRM();
   if(section==='calendar')apptLoad();
@@ -2848,7 +2488,6 @@ function go(section){
   if(section==='marketing')renderMarketing();
   if(section==='luong') payrollLoad();
   if(section==='tour'){ tourLoad(); tourLoadPending(); }
-  if(section==='telesale') telesaleLoad();
   if(section==='phangoi') phangoiLoad();
 }
 document.querySelectorAll('.nav a[data-section]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.section)}));
@@ -3174,8 +2813,8 @@ window.assignTaskTo = assignTaskTo;
 function updateStorageInfo(){
   const el = document.getElementById('storageInfo');
   if(!el) return;
-  const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length, kho: DATA.inventory.length};
-  el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task · ${cnt.kho} SKU kho`;
+  const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length};
+  el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task`;
 }
 
 function renderMedical(){
@@ -3220,17 +2859,6 @@ function renderServices(){
         </div>
       </div>
     </div>
-  `).join('');
-}
-function renderInventory(){
-  document.getElementById('invRows').innerHTML = DATA.inventory.map(i=>`
-    <tr>
-      <td>${i.sku}</td><td>${i.name}</td>
-      <td class="${i.low?'stock-low':'stock-ok'}">${i.stock}</td>
-      <td>${i.unit}</td><td>${i.min}</td>
-      <td class="${i.low?'stock-low':''}">${i.runOut}</td>
-      <td><span class="pill ${i.low?'red':'green'}">${i.low?'SẮP HẾT':'Đủ'}</span></td>
-    </tr>
   `).join('');
 }
 function renderCampaigns(){
@@ -3492,37 +3120,6 @@ function aiAction(t){
 }
 window.aiAction = aiAction;
 
-/* ===== AI CHAT ===== */
-const aiHistory = [];
-async function sendAI(){
-  const input = document.getElementById('aiInput');
-  const msgs = document.getElementById('aiMessages');
-  const sendBtn = document.getElementById('aiSend');
-  const status = document.getElementById('aiStatus');
-  const text = (input.value || '').trim();
-  if (!text) return;
-  input.value = '';
-  const um = document.createElement('div'); um.className='ai-msg user'; um.textContent=text; msgs.appendChild(um);
-  const tm = document.createElement('div'); tm.className='ai-msg bot'; tm.textContent='…'; msgs.appendChild(tm);
-  msgs.scrollTop = msgs.scrollHeight;
-  sendBtn.disabled = true;
-  status.textContent = '● Đang suy nghĩ...'; status.style.color = 'var(--orange-deep)';
-  try {
-    const res = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message:text, history: aiHistory.slice(-10) }) });
-    const data = await res.json();
-    const reply = data.reply || data.error || 'Em chưa kết nối được, chị thử lại nhé.';
-    tm.innerHTML = String(reply).replace(/\n/g,'<br>');
-    aiHistory.push({role:'user',text}); aiHistory.push({role:'model',text:reply});
-  } catch (e) {
-    tm.textContent = 'Lỗi: ' + (e?.message || e); tm.style.color='var(--red)';
-  } finally {
-    sendBtn.disabled = false;
-    status.textContent = '● Gemini 2.5 Flash · Sẵn sàng'; status.style.color='var(--green)';
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-}
-window.sendAI = sendAI;
-
 /* ===== CHARTS ===== */
 // Tinh chỉnh chart cho mobile
 if(window.Chart){
@@ -3762,10 +3359,6 @@ const EXPORT_CONFIG = {
     file:'cong-viec-HANA', sheet:'Công việc',
     map: t => ({'ID':t.id,'Tiêu đề':t.title,'Mức độ':t.priority,'Người phụ trách':t.owner,'Hạn':t.due,'Phân loại':t.tag,'Trạng thái':t.done?'Hoàn thành':'Đang làm'})
   },
-  inventory: {
-    file:'kho-hang-HANA', sheet:'Kho hàng',
-    map: i => ({'SKU':i.sku,'Tên':i.name,'Tồn':i.stock,'Đơn vị':i.unit,'Min':i.min,'Dự đoán hết':i.runOut,'Trạng thái':i.low?'SẮP HẾT':'Đủ'})
-  },
   care: {
     file:'hau-cham-soc-HANA', sheet:'Hậu chăm sóc',
     map: c => ({'Khách':c.name,'Dịch vụ':c.service,'Ngày từ DV':c.daysSince,'Giai đoạn':c.stage,'Hành động':c.action,'Khẩn':c.urgent?'Có':'Không'})
@@ -3840,7 +3433,6 @@ function confirmImport(){
     customers: r => ({id: Date.now()+Math.random(), name:r['Họ tên']||r.name, phone:r['SĐT']||r.phone, age:+r['Tuổi']||30, tier:(r['Hạng']||r.tier||'silver').toLowerCase(), ltv:+r['LTV (VNĐ)']||0, visits:+r['Số ca']||0, points:+r['Điểm']||0, aiScore:+r['AI Score']||60, aiTag:r['Tag AI']||'Mới', lastVisit:r['Gần nhất']||'Vừa thêm', avBg:'var(--grad)'}),
     staff: r => ({id:r['Mã NV']||'NV-'+Date.now(), name:r['Họ tên']||r.name, role:r['Vai trò']||'KTV', spec:r['Chuyên môn']||'', phone:r['SĐT']||'', email:r['Email']||'', tags:(r['Tags']||'').split(',').map(t=>t.trim()).filter(Boolean), skills:(r['Kỹ năng']||'').split(',').map(t=>t.trim()).filter(Boolean), sessions:+r['Ca tháng']||0, rating:r['Đánh giá']||'5.0 ⭐', revenue:r['Doanh thu']||'0', kpi:r['KPI']||'100%', kpiClass:'', status:r['Trạng thái']||'active', av:(r['Họ tên']||'X').slice(0,1).toUpperCase(), bg:'linear-gradient(135deg,#16A085,#27AE60)'}),
     tasks: r => ({id:Date.now()+Math.random(), title:r['Tiêu đề']||r.title, priority:r['Mức độ']||'TB', owner:r['Người phụ trách']||'CEO Phương', due:r['Hạn']||'Hôm nay', tag:r['Phân loại']||'Khác', done:r['Trạng thái']==='Hoàn thành'}),
-    inventory: r => ({sku:r['SKU'], name:r['Tên']||r.name, stock:+r['Tồn']||0, unit:r['Đơn vị']||'cái', min:+r['Min']||10, runOut:r['Dự đoán hết']||'?', low:+r['Tồn']<+r['Min']}),
     medical: r => ({code:r['Mã HS']||'HS-'+Date.now(), name:r['Khách']||r.name, age:+r['Tuổi']||30, history:r['Tiền sử / Dị ứng']||'', lastVisit:r['Lần gần nhất']||'Mới tạo', protocol:r['Phác đồ']||''})
   };
   const mapper = mappers[target];
@@ -3854,7 +3446,6 @@ function confirmImport(){
   if(target==='customers') renderCRM();
   if(target==='staff') renderStaff();
   if(target==='tasks') renderTasks();
-  if(target==='inventory') renderInventory();
 }
 window.confirmImport = confirmImport;
 window.importExcelFile = importExcelFile;
@@ -4111,7 +3702,6 @@ function buildNotifDropdown(){
   }));
   // Mock các notif khác
   items.push({type:'task',icon:'📋',color:'blue',title:'3 task quá hạn',sub:'Cần xử lý gấp trong hôm nay',time:'2h',action:()=>go('tasks')});
-  items.push({type:'inv',icon:'📦',color:'red',title:'8 SKU sắp hết hàng',sub:'Cần đặt thêm mỹ phẩm',time:'4h',action:()=>go('inventory')});
   return items;
 }
 function toggleNotif(){
@@ -4207,9 +3797,7 @@ const QS_INDEX = [
   {sec:'revenue',title:'Doanh thu',hint:'Báo cáo doanh thu · trend · breakdown',ic:'💰'},
   {sec:'billing',title:'Hóa đơn',hint:'Tạo & in bill 80mm · lịch sử hóa đơn',ic:'🧾'},
   {sec:'accounts',title:'Tài khoản',hint:'Tạo tài khoản · chức vụ · phân quyền nhân viên',ic:'👤'},
-  {sec:'inventory',title:'Kho hàng',hint:'142 SKU · cảnh báo hết hàng · nhập xuất',ic:'📦'},
   {sec:'marketing',title:'Marketing & Loyalty',hint:'4 campaign · ROAS · referral',ic:'📢'},
-  {sec:'ai',title:'AI Assistant',hint:'Hỏi Gemini về vận hành · phân tích',ic:'🤖'},
   {sec:'settings',title:'Cài đặt',hint:'Backup · phục hồi · phân quyền · logout',ic:'⚙️'}
 ];
 function openQuickSearch(){
@@ -5013,8 +4601,8 @@ const ROLE_MENUS={
   'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Sale':['dashboard','calendar','leads','telesale','phangoi','crm','care'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','services','telesale','phangoi']
+  'Sale':['dashboard','calendar','leads','phangoi','crm','care'],
+  'Sale trực tiếp':['dashboard','crm','billing','leads','services','phangoi']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
@@ -5039,7 +4627,7 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
-renderTasks(); renderInventory();
+renderTasks();
 renderCampaigns(); apptLoad(); renderLeads();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
