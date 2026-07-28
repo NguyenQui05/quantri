@@ -46,6 +46,11 @@ export default async function handler(req, res) {
     if (action === 'create') return await createStaff(res, body, sess);
     if (action === 'update') return await updateStaff(res, body);
     if (action === 'delete') return await deleteStaff(res, body);
+    // Công việc giao cho nhân viên (gộp vào đây vì gói Vercel Hobby giới hạn 12 function)
+    if (action === 'task_list')   return await listTasks(res);
+    if (action === 'task_create') return await createTask(res, body, sess);
+    if (action === 'task_toggle') return await toggleTask(res, body, sess);
+    if (action === 'task_delete') return await deleteTask(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('staff api error:', e?.message || e);
@@ -104,6 +109,64 @@ async function deleteStaff(res, body) {
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
+  return res.status(200).json({ ok: true });
+}
+
+/* ===== CÔNG VIỆC ===== */
+const TASKS_TABLE = 'staff_tasks';
+const VALID_PRIORITY = ['Khẩn', 'Cao', 'TB', 'Thấp'];
+// Giao/xoá việc là quyền của chủ phòng khám — chặn ở server, không chỉ ẩn nút trên giao diện
+const canManageTasks = sess => sess.role === 'Toàn quyền kiểm soát';
+
+async function listTasks(res) {
+  const r = await fetch(sb(`${TASKS_TABLE}?select=*&order=done.asc,due.asc,created_at.desc&limit=500`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  return res.status(200).json({ rows });
+}
+
+async function createTask(res, body, sess) {
+  if (!canManageTasks(sess)) return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được giao việc' });
+  const title = String(body.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'Thiếu tiêu đề công việc' });
+  const priority = VALID_PRIORITY.includes(body.priority) ? body.priority : 'TB';
+  const row = {
+    title: title.slice(0, 300),
+    owner: String(body.owner || '').trim().slice(0, 100) || null,
+    staff_id: body.staff_id ? String(body.staff_id).trim() : null,
+    priority,
+    tag: String(body.tag || '').trim().slice(0, 60) || null,
+    due: body.due ? new Date(body.due).toISOString() : null,
+    created_by: sess.u || ''
+  };
+  if (row.due && isNaN(new Date(row.due).getTime())) row.due = null;
+  const r = await fetch(sb(TASKS_TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi tạo công việc' }); }
+  return res.status(200).json({ ok: true });
+}
+
+// Ai cũng được tích hoàn thành việc của mình
+async function toggleTask(res, body, sess) {
+  const id = String(body.id || '');
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  const done = !!body.done;
+  const patch = {
+    done,
+    done_at: done ? new Date().toISOString() : null,
+    done_by: done ? (sess.u || '') : null,
+    updated_at: new Date().toISOString()
+  };
+  const r = await fetch(sb(`${TASKS_TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi cập nhật' }); }
+  return res.status(200).json({ ok: true });
+}
+
+async function deleteTask(res, body, sess) {
+  if (!canManageTasks(sess)) return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá công việc' });
+  const id = String(body.id || '');
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  const r = await fetch(sb(`${TASKS_TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi xoá' }); }
   return res.status(200).json({ ok: true });
 }

@@ -886,8 +886,11 @@
       <div class="row r-2-1">
         <div class="card">
           <div class="card-head">
-            <div><h2>Công việc hôm nay</h2><div class="sub">14 task · 6 hoàn thành · 8 còn lại</div></div>
-            <div style="display:flex;gap:8px"><select style="width:140px"><option>Tất cả</option><option>Của tôi</option><option>Cao</option></select><button class="btn sm" onclick="openModal('new-task')">+ Thêm task</button></div>
+            <div><h2>Công việc</h2><div class="sub" id="taskSub">đang tải…</div></div>
+            <div style="display:flex;gap:8px">
+              <select id="taskFilter" style="width:150px" onchange="renderTasks()"><option value="open">Chưa xong</option><option value="all">Tất cả</option><option value="mine">Của tôi</option><option value="done">Đã xong</option></select>
+              <button class="btn sm" id="taskAddBtn" onclick="openModal('new-task')" style="display:none">+ Thêm task</button>
+            </div>
           </div>
           <div id="taskList"></div>
         </div>
@@ -895,7 +898,6 @@
         <div class="card">
           <h3>📊 Hiệu suất team</h3>
           <div style="margin-top:14px" id="staffPerf"></div>
-          <div class="alert success" style="margin-top:16px"><span class="ic">🎉</span><div><b>Team đang vượt KPI tuần!</b> Tỉ lệ hoàn thành task 89%, cao hơn tuần trước.</div></div>
         </div>
       </div>
     </section>
@@ -1243,22 +1245,6 @@ const DATA = {
     {id:7, name:'Chị Phương Đào', phone:'0945 678 901', age:36, tier:'silver', ltv:18200000, lastVisit:'22 ngày trước', visits:4, points:620, aiScore:76, aiTag:'Mới', avBg:'linear-gradient(135deg,#F39C12,#E67E22)'}
   ],
   staff: [],
-  tasks: [
-    {id:1, title:'Gọi chị Mai Anh hậu chăm sóc ngày 1 sau Filler', priority:'Cao', owner:'Lễ tân Yến', due:'10:30 hôm nay', done:false, tag:'Chăm sóc'},
-    {id:2, title:'Soạn báo cáo doanh thu tháng 5 gửi CEO', priority:'Cao', owner:'KTV Ngọc', due:'17:00 hôm nay', done:false, tag:'Báo cáo'},
-    {id:3, title:'Đặt thêm Filler Juvederm — đã có PO sẵn', priority:'Khẩn', owner:'Bs. Hà', due:'14:00 hôm nay', done:false, tag:'Kho'},
-    {id:4, title:'Xử lý SOS chị Quỳnh Anh đau sau filler', priority:'Khẩn', owner:'Bs. Mai', due:'Trong 1h', done:false, tag:'SOS'},
-    {id:5, title:'Quay video case trước/sau cho Marketing', priority:'TB', owner:'KTV Ngọc', due:'Mai', done:false, tag:'MKT'},
-    {id:6, title:'Họp team đầu tuần 9:00', priority:'TB', owner:'CEO Phương', due:'Sáng nay', done:true, tag:'Họp'},
-    {id:7, title:'Cập nhật phác đồ Hifu 2026 cho team', priority:'TB', owner:'Bs. Hà', due:'Mai', done:false, tag:'Đào tạo'},
-    {id:8, title:'Reply 12 đánh giá Google chưa phản hồi', priority:'TB', owner:'Lễ tân Yến', due:'Hôm nay', done:false, tag:'Review'},
-    {id:9, title:'Khám sàng lọc cho chị Vy Trần lần đầu', priority:'TB', owner:'CEO Phương', due:'10:00 hôm nay', done:true, tag:'Khám'},
-    {id:10, title:'Chuẩn bị slide đào tạo KTV mới', priority:'TB', owner:'Bs. Mai', due:'Thứ 6', done:false, tag:'Đào tạo'},
-    {id:11, title:'Kiểm tra hạn sử dụng Botox Allergan', priority:'TB', owner:'KTV Ngọc', due:'Hôm nay', done:true, tag:'Kho'},
-    {id:12, title:'Gọi chị Yến win-back (67 ngày)', priority:'Cao', owner:'CEO Phương', due:'Hôm nay', done:false, tag:'Win-back'},
-    {id:13, title:'Cập nhật bảng giá dịch vụ Q3', priority:'TB', owner:'CEO Phương', due:'Tuần sau', done:false, tag:'KD'},
-    {id:14, title:'Đóng SOS chị Hà Linh hoàn tiền', priority:'Khẩn', owner:'CEO Phương', due:'Trong 45 phút', done:false, tag:'SOS'}
-  ],
   medical: [
     {code:'HS-2026-001', name:'Chị Linh Nguyễn', age:38, history:'Dị ứng kháng sinh Penicillin', lastVisit:'19/05/2026', protocol:'Combo trẻ hóa 6 buổi (3/6)'},
     {code:'HS-2026-002', name:'Chị Hương Trần', age:34, history:'Không có tiền sử đặc biệt', lastVisit:'17/05/2026', protocol:'Cắt mí (đã xong)'},
@@ -1502,6 +1488,9 @@ function openModal(type, ctx){
   const b = document.getElementById('modalBody');
   modalEl.classList.remove('lg','sm');
 
+  // Giao việc là quyền của chủ phòng khám (server cũng chặn lại lần nữa)
+  if(type==='new-task' && !canManageTasks()){ toast('🔒 Chỉ Toàn quyền kiểm soát mới được giao việc','red'); return; }
+
   if(type==='customer'){
     const c = ctx;
     modalEl.classList.add('lg');
@@ -1685,7 +1674,7 @@ function openModal(type, ctx){
       'new-customer': `<label>Họ tên</label><input id="f1" placeholder="Chị Nguyễn Văn A"><label>Số điện thoại</label><input id="f2" placeholder="0912 345 678"><label>Tuổi</label><input id="f3" type="number" placeholder="35"><label>Nguồn</label><select id="f4"><option>Khách giới thiệu</option><option>Facebook</option><option>TikTok</option><option>Google</option><option>Walk-in</option></select><label>Ghi chú</label><textarea id="f5" rows="3" placeholder="Khách quan tâm dịch vụ..."></textarea>`,
       'new-staff': `<label>Họ tên</label><input id="f1"><label>Vai trò</label><select id="f2"><option>Bác sĩ phẫu thuật</option><option>Bác sĩ tiêm chỉnh</option><option>KTV cao cấp</option><option>KTV</option><option>Lễ tân</option><option>Marketing</option></select><label>Chuyên môn</label><input id="f3" placeholder="Cắt mí, Filler..."><label>SĐT</label><input id="f4">`,
       'new-service': `<label>Tên dịch vụ</label><input id="f1"><label>Giá (VNĐ)</label><input id="f2" type="number"><label>Thời gian (phút)</label><input id="f3" type="number"><label>Mô tả</label><textarea id="f5" rows="3"></textarea>`,
-      'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2">${DATA.staff.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
+      'new-task': `<label>Tiêu đề công việc</label><input id="f1"><label>Người phụ trách</label><select id="f2"><option value="">— Chọn nhân viên —</option>${(STAFF_ROWS||[]).map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('')}</select><label>Mức độ</label><select id="f3"><option>Khẩn</option><option>Cao</option><option selected>TB</option><option>Thấp</option></select><label>Hạn</label><input id="f4" type="datetime-local"><label>Phân loại</label><select id="f5"><option>Chăm sóc</option><option>Khám</option><option>Báo cáo</option><option>MKT</option><option>SOS</option><option>Kho</option><option>Đào tạo</option><option>Họp</option><option>Khác</option></select>`,
       'new-medical': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Tiền sử bệnh</label><textarea id="f2" rows="2"></textarea><label>Dị ứng</label><input id="f3" placeholder="VD: Penicillin, Latex..."><label>Đang dùng thuốc</label><textarea id="f4" rows="2"></textarea><label>Phác đồ điều trị</label><textarea id="f5" rows="2"></textarea>`,
       'new-photo': `<label>Khách hàng</label><select id="f1">${DATA.customers.map(c=>`<option>${c.name}</option>`).join('')}</select><label>Dịch vụ</label><select id="f2">${DATA.services.map(s=>`<option>${s.name}</option>`).join('')}</select><label>Thời điểm chụp sau</label><select id="f3"><option>1 tuần</option><option>1 tháng</option><option>3 tháng</option><option>6 tháng</option></select><label>Ảnh trước</label><input id="f4" type="file" accept="image/*"><label>Ảnh sau</label><input id="f5" type="file" accept="image/*"><label>Đã ký consent dùng marketing</label><select id="f6"><option>Có</option><option>Không</option></select>`,
       'new-campaign': `<label>Tên chiến dịch</label><input id="f1"><label>Kênh</label><select id="f2"><option>Zalo OA</option><option>Facebook Ads</option><option>TikTok Ads</option><option>Google Ads</option><option>SMS</option><option>Email</option></select><label>Đối tượng</label><select id="f3"><option>Toàn bộ khách</option><option>Diamond</option><option>Gold</option><option>Silver</option><option>Khách mới &lt; 30 ngày</option><option>Khách rủi ro rời</option><option>Sinh nhật tháng</option></select><label>Ngân sách (VNĐ)</label><input id="f4" type="number"><label>Mã giảm giá / quà tặng</label><input id="f5">`
@@ -1697,7 +1686,7 @@ function openModal(type, ctx){
     const s = ctx;
     modalEl.classList.add('lg');
     t.textContent = `Hồ sơ nhân viên: ${s.name}`;
-    const myTasks = DATA.tasks.filter(x=>x.owner===s.name);
+    const myTasks = (TASK_ROWS||[]).filter(x=>x.owner===s.name);
     const doneTasks = myTasks.filter(x=>x.done).length;
     b.innerHTML = `
       <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px">
@@ -1774,7 +1763,7 @@ function openModal(type, ctx){
   else if(type==='storage-help'){
     modalEl.classList.add('lg');
     t.textContent = '💾 Dữ liệu lưu ở đâu? Backup, Export, kết nối DB ngoài';
-    const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length};
+    const cnt = {khach: DATA.customers.length, task: (TASK_ROWS||[]).length, hoso: DATA.medical.length};
     b.innerHTML = `
       <div class="alert info"><span class="ic">💾</span><div><b>Hiện tại — Bản demo:</b> Dữ liệu lưu tại <b>localStorage trình duyệt</b> (chỉ máy này, chỉ trình duyệt này). Mở máy khác sẽ không thấy.<br>Đang lưu: <b>${cnt.khach}</b> khách · <b>${cnt.task}</b> task</div></div>
 
@@ -1844,7 +1833,19 @@ function openModal(type, ctx){
   modalBg.classList.add('show');
 }
 
-function handleSubmit(type){
+async function handleSubmit(type){
+  // Công việc lưu thật vào Supabase — các form còn lại vẫn là bản nháp
+  if(type==='new-task'){
+    const get=id=>document.getElementById(id)?.value||'';
+    const title=get('f1').trim();
+    if(!title){ toast('⚠️ Nhập tiêu đề công việc','red'); return; }
+    try{
+      await staffApi({action:'task_create', title, owner:get('f2'), priority:get('f3'), due:get('f4')||null, tag:get('f5')});
+      closeModal(); toast('➕ Đã giao việc','green'); if(typeof ding==='function')ding();
+      renderTasks(true);
+    }catch(e){ toast('❌ '+e.message,'red'); }
+    return;
+  }
   closeModal();
   const successMsg = {
     'new-customer':'➕ Đã thêm khách hàng mới',
@@ -2858,32 +2859,88 @@ async function careMarkDone(id, day){
 }
 window.renderCare=renderCare;
 window.careMarkDone=careMarkDone;
-function renderTasks(){
-  document.getElementById('taskList').innerHTML = DATA.tasks.map(t=>`
-    <div class="task ${t.done?'done':''}">
-      <input type="checkbox" ${t.done?'checked':''} onchange='toggleTask(${t.id})'>
-      <div style="flex:1">
-        <b style="${t.done?'text-decoration:line-through':''}">${t.title}</b>
-        <div class="meta"><span><b>${t.owner}</b></span><span>⏱ ${t.due}</span><span class="pill ${t.priority==='Khẩn'?'red':t.priority==='Cao'?'':'gray'}">${t.priority}</span><span class="pill blue">${t.tag}</span></div>
+/* ===== CÔNG VIỆC — lưu Supabase, chỉ Toàn quyền kiểm soát được giao/xoá việc ===== */
+let TASK_ROWS=[], TASKS_LOADED=false;
+const canManageTasks = () => curRole()==='Toàn quyền kiểm soát';
+function taskDueText(d){
+  if(!d) return 'Không hạn';
+  const dt=new Date(d); if(isNaN(dt)) return 'Không hạn';
+  const now=new Date(), diff=dt-now;
+  const s=dt.toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  if(diff<0) return '⚠️ Quá hạn · '+s;
+  if(diff<86400000) return 'Hôm nay · '+s;
+  return s;
+}
+async function loadTasks(force){
+  if(TASKS_LOADED && !force) return;
+  try{ const d=await staffApi({action:'task_list'}); TASK_ROWS=d.rows||[]; TASKS_LOADED=true; }
+  catch(e){ console.error('load tasks', e); TASK_ROWS=[]; }
+}
+async function renderTasks(force){
+  const list=document.getElementById('taskList'); if(!list) return;
+  if(!TASKS_LOADED || force){ list.innerHTML='<div class="sub" style="padding:18px;text-align:center;color:var(--muted)">Đang tải…</div>'; await loadTasks(true); }
+
+  const btn=document.getElementById('taskAddBtn'); if(btn) btn.style.display=canManageTasks()?'':'none';
+  const me=(sessGet()||{}).user||'';
+  const filter=document.getElementById('taskFilter')?.value||'open';
+  const rows=TASK_ROWS.filter(t=>{
+    if(filter==='open') return !t.done;
+    if(filter==='done') return t.done;
+    if(filter==='mine') return String(t.owner||'')===me;
+    return true;
+  });
+  const sub=document.getElementById('taskSub');
+  const doneAll=TASK_ROWS.filter(t=>t.done).length;
+  if(sub) sub.textContent = TASK_ROWS.length ? `${TASK_ROWS.length} việc · ${doneAll} hoàn thành · ${TASK_ROWS.length-doneAll} còn lại` : 'Chưa có công việc nào';
+
+  if(!rows.length){
+    list.innerHTML='<div class="sub" style="padding:22px;text-align:center;color:var(--muted)">'+
+      (TASK_ROWS.length?'Không có việc nào khớp bộ lọc':(canManageTasks()?'Chưa có công việc — bấm "+ Thêm task" để giao việc':'Chưa có công việc nào được giao'))+'</div>';
+  } else {
+    list.innerHTML = rows.map(t=>`
+      <div class="task ${t.done?'done':''}">
+        <input type="checkbox" ${t.done?'checked':''} onchange="taskToggle('${t.id}',this.checked)">
+        <div style="flex:1">
+          <b style="${t.done?'text-decoration:line-through':''}">${esc(t.title)}</b>
+          <div class="meta"><span><b>${esc(t.owner)||'Chưa giao'}</b></span><span>⏱ ${esc(taskDueText(t.due))}</span><span class="pill ${t.priority==='Khẩn'?'red':t.priority==='Cao'?'':'gray'}">${esc(t.priority)}</span>${t.tag?`<span class="pill blue">${esc(t.tag)}</span>`:''}</div>
+        </div>
+        ${canManageTasks()?`<button class="btn ghost sm" onclick="taskDelete('${t.id}')" title="Xoá việc">🗑</button>`:''}
       </div>
-      <button class="btn ghost sm" onclick="toast('💬 Mở chat task ${t.id}')">💬</button>
-    </div>
-  `).join('');
-  // Staff perf
-  const grouped = {};
-  DATA.tasks.forEach(t=>{ grouped[t.owner]=grouped[t.owner]||{done:0,total:0}; grouped[t.owner].total++; if(t.done)grouped[t.owner].done++; });
-  document.getElementById('staffPerf').innerHTML = Object.entries(grouped).map(([n,v])=>`
-    <div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:5px"><b>${n}</b><span>${v.done}/${v.total}</span></div>
-      <div class="progress"><div style="width:${v.done/v.total*100}%"></div></div>
-    </div>
-  `).join('');
+    `).join('');
+  }
+
+  // Hiệu suất team — tính từ việc thật đã giao
+  const perf=document.getElementById('staffPerf');
+  if(perf){
+    const grouped={};
+    TASK_ROWS.forEach(t=>{ const n=t.owner||'Chưa giao'; grouped[n]=grouped[n]||{done:0,total:0}; grouped[n].total++; if(t.done)grouped[n].done++; });
+    const keys=Object.keys(grouped);
+    perf.innerHTML = keys.length ? keys.map(n=>{
+      const v=grouped[n];
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:5px"><b>${esc(n)}</b><span>${v.done}/${v.total}</span></div>
+        <div class="progress"><div style="width:${Math.round(v.done/v.total*100)}%"></div></div>
+      </div>`;
+    }).join('') : '<div class="sub" style="color:var(--muted)">Chưa có việc nào được giao</div>';
+  }
 }
-function toggleTask(id){
-  const t = DATA.tasks.find(x=>String(x.id)===String(id));
-  if(t){ t.done=!t.done; saveData('tasks',DATA.tasks); renderTasks(); toast(t.done?'✓ Đã hoàn tất task':'↺ Bật lại task','ok') }
+async function taskToggle(id, done){
+  try{
+    await staffApi({action:'task_toggle', id, done});
+    const t=TASK_ROWS.find(x=>x.id===id); if(t) t.done=done;
+    renderTasks();
+    toast(done?'✓ Đã hoàn tất công việc':'↺ Đã bật lại công việc','green');
+  }catch(e){ toast('❌ '+e.message,'red'); renderTasks(true); }
 }
-window.toggleTask = toggleTask;
+async function taskDelete(id){
+  if(!canManageTasks()){ toast('🔒 Vai trò của bạn không được xoá việc','red'); return; }
+  if(!confirm('Xoá công việc này?')) return;
+  try{ await staffApi({action:'task_delete', id}); toast('🗑️ Đã xoá','dark'); renderTasks(true); }
+  catch(e){ toast('❌ '+e.message,'red'); }
+}
+window.renderTasks=renderTasks;
+window.taskToggle=taskToggle;
+window.taskDelete=taskDelete;
 
 async function staffPatchListField(staffId, field, newList){
   try{
@@ -2912,24 +2969,20 @@ async function removeTag(staffId, field, val){
   await staffPatchListField(staffId, field, list);
   toast(`✓ Đã xoá: ${val}`,'ok');
 }
-function assignTaskTo(name){
+async function assignTaskTo(name){
+  if(!canManageTasks()){ toast('🔒 Chỉ Toàn quyền kiểm soát mới được giao việc','red'); return; }
   const title = (document.getElementById('newTaskTitle')?.value||'').trim();
   if(!title){ toast('⚠️ Nhập tiêu đề','red'); return; }
-  const newTask = {
-    id: Date.now(),
-    title,
-    priority: document.getElementById('newTaskPriority').value,
-    owner: name,
-    due: document.getElementById('newTaskDue').value || 'Hôm nay',
-    tag: document.getElementById('newTaskTag').value,
-    done: false
-  };
-  DATA.tasks.unshift(newTask);
-  saveData('tasks', DATA.tasks);
-  renderTasks();
-  const s = DATA.staff.find(x=>x.name===name);
-  if(s) openModal('staff-detail', s);
-  toast(`📌 Đã giao việc cho ${name}: "${title}"`,'green');
+  try{
+    await staffApi({action:'task_create', title, owner:name,
+      priority:document.getElementById('newTaskPriority')?.value||'TB',
+      due:document.getElementById('newTaskDue')?.value||null,
+      tag:document.getElementById('newTaskTag')?.value||''});
+    await renderTasks(true);
+    const s=(STAFF_ROWS||[]).find(x=>x.full_name===name);
+    if(s) openModal('staff-detail', staffToCtx(s));
+    toast(`📌 Đã giao việc cho ${name}: "${title}"`,'green');
+  }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.addTag = addTag;
 window.removeTag = removeTag;
@@ -2938,7 +2991,7 @@ window.assignTaskTo = assignTaskTo;
 function updateStorageInfo(){
   const el = document.getElementById('storageInfo');
   if(!el) return;
-  const cnt = {khach: DATA.customers.length, task: DATA.tasks.length, hoso: DATA.medical.length};
+  const cnt = {khach: DATA.customers.length, task: (TASK_ROWS||[]).length, hoso: DATA.medical.length};
   el.textContent = `Đang lưu localStorage: ${cnt.khach} khách · ${cnt.task} task`;
 }
 
@@ -3677,7 +3730,7 @@ const EXPORT_CONFIG = {
   },
   tasks: {
     file:'cong-viec-HANA', sheet:'Công việc',
-    map: t => ({'ID':t.id,'Tiêu đề':t.title,'Mức độ':t.priority,'Người phụ trách':t.owner,'Hạn':t.due,'Phân loại':t.tag,'Trạng thái':t.done?'Hoàn thành':'Đang làm'})
+    map: t => ({'Tiêu đề':t.title,'Người phụ trách':t.owner||'','Mức độ':t.priority,'Hạn':t.due?new Date(t.due).toLocaleString('vi-VN'):'','Phân loại':t.tag||'','Trạng thái':t.done?'Hoàn thành':'Đang làm','Hoàn thành lúc':t.done_at?new Date(t.done_at).toLocaleString('vi-VN'):''})
   },
   care: {
     file:'hau-cham-soc-HANA', sheet:'Hậu chăm sóc',
@@ -4014,6 +4067,7 @@ if(typeof EXPORT_CONFIG !== 'undefined'){
 Object.defineProperty(DATA, 'leads', { get(){ return LEADS_CACHE; } });
 // Xuất Excel hậu chăm sóc dùng danh sách đang tới hạn (tính từ ca tour thật)
 Object.defineProperty(DATA, 'care', { get(){ return CARE_ROWS; } });
+Object.defineProperty(DATA, 'tasks', { get(){ return TASK_ROWS; } });
 
 /* ===== NOTIFICATION DROPDOWN ===== */
 function buildNotifDropdown(){
@@ -5008,6 +5062,7 @@ function roleLogout(){ try{localStorage.removeItem('hana_session');}catch(e){} l
 async function roleInitFromServer(){
   try{ const r=await fetch('/api/me',{credentials:'same-origin'}); if(r.ok){ const d=await r.json(); if(d&&d.role) sessSet({user:d.user,role:d.role}); } }catch(e){}
   applyRole();
+  if(typeof renderTasks==='function') renderTasks();   // biết vai trò rồi mới quyết định hiện nút giao việc
 }
 window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromServer=roleInitFromServer;
 
