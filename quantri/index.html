@@ -3936,9 +3936,11 @@ function leadDrop(ev,status){
   if(!id){ try{ id = ev.dataTransfer.getData('text/plain'); }catch(e){} }
   leadDragId = null;
   if(!id) return;
+  // Kéo sang "Đã đặt lịch" -> bắt buộc nhập ngày giờ hẹn, tạo lịch hẹn THẬT bên tab Lịch hẹn trước khi chuyển
+  if(status==='appointment'){ openLeadApptModal(id); return; }
   moveLeadStatus(id,status);
 }
-async function moveLeadStatus(id,status){
+async function moveLeadStatus(id,status,silent){
   const l = LEADS_CACHE.find(x=>x.id===id);
   if(!l || l.status===status) return;
   const prev = l.status;
@@ -3946,12 +3948,60 @@ async function moveLeadStatus(id,status){
   try{
     await apiLeads({action:'update_status', id, status});
     syncOverviewMonth();
-    toast('✓ Đã chuyển sang "'+(LEAD_STAGE_LABEL[status]||status)+'"','green');
+    if(!silent) toast('✓ Đã chuyển sang "'+(LEAD_STAGE_LABEL[status]||status)+'"','green');
   }catch(e){
     l.status = prev; paintLeads();
     toast('❌ '+(e.message||'Lỗi cập nhật trạng thái'),'red');
+    throw e;
   }
 }
+
+/* ===== Kéo lead sang "Đã đặt lịch" -> mở form tạo lịch hẹn thật (bảng appointments) ===== */
+function openLeadApptModal(id){
+  const l = LEADS_CACHE.find(x=>x.id===id); if(!l) return;
+  const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
+  modalEl.classList.remove('lg');
+  t.textContent='📅 Đặt lịch hẹn — '+(l.name||'');
+  const now=new Date(), p=n=>String(n).padStart(2,'0');
+  const todayIso=now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate());
+  b.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Ngày hẹn *</label><input id="laDate" type="date" style="width:100%" value="${todayIso}"></div>
+        <div style="flex:1"><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Giờ hẹn</label><input id="laTime" style="width:100%" placeholder="09:30"></div>
+      </div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Tên khách *</label><input id="laName" style="width:100%" value="${esc(l.name||'')}"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">SĐT</label><input id="laPhone" style="width:100%" value="${esc(l.phone||'')}"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Dịch vụ</label><input id="laSvc" style="width:100%" value="${esc(l.problem||l.service||'')}"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">NV phụ trách</label><input id="laStaff" style="width:100%" placeholder="Telesale / tư vấn"></div>
+      <div><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Ghi chú</label><input id="laNote" style="width:100%" placeholder="Ghi chú thêm (nếu có)"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn ghost sm" onclick="closeModal()">Huỷ</button>
+      <button class="btn sm" onclick="submitLeadAppt('${id}')">📅 Tạo lịch hẹn</button>
+    </div>`;
+  modalBg.classList.add('show');
+  setTimeout(()=>gel('laDate')?.focus(),50);
+}
+async function submitLeadAppt(id){
+  const date=gel('laDate')?.value||'';
+  const name=(gel('laName')?.value||'').trim();
+  if(!date){ toast('❌ Cần chọn ngày hẹn','red'); return; }
+  if(!name){ toast('❌ Cần nhập tên khách','red'); return; }
+  try{
+    await apptApi({action:'create', appt_date:date, appt_time:gel('laTime')?.value||'', full_name:name,
+      phone:gel('laPhone')?.value||'', service:gel('laSvc')?.value||'', staff:gel('laStaff')?.value||'', note:gel('laNote')?.value||''});
+    await moveLeadStatus(id,'appointment',true);
+    closeModal();
+    toast('✅ Đã tạo lịch hẹn và chuyển lead sang "Đã đặt lịch"','green'); if(typeof ding==='function')ding();
+    if(typeof apptLoad==='function') apptLoad(true);
+    if(typeof renderTodayApps==='function') renderTodayApps();
+    if(typeof syncOverviewAppts==='function') syncOverviewAppts();
+    if(typeof syncOverviewTopServices==='function') syncOverviewTopServices();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi tạo lịch hẹn'),'red'); }
+}
+window.openLeadApptModal=openLeadApptModal;
+window.submitLeadAppt=submitLeadAppt;
 function refreshLeads(){ renderLeads().then(()=>toast('🔄 Đã làm mới','green')); }
 
 function openLeadDetail(id){

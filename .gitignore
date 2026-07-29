@@ -16,3 +16,7 @@ node_modules
 .env.*
 *.key
 *.pem
+
+# File chứa dữ liệu khách hàng thật (tên, SĐT...) để nhập tay vào Supabase — KHÔNG commit vì repo đang public
+leads_import_*.sql
+*_import_*.sql
