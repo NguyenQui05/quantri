@@ -3243,7 +3243,7 @@ async function syncOverviewMonth(){
   // 1) Tổng lead trong tháng
   try{
     if(!LEADS_LOADED) await fetchLeads();
-    const inMonth=LEADS_CACHE.filter(l=>String(l.created_at||'').slice(0,7)===prefix);
+    const inMonth=LEADS_CACHE.filter(l=>String(l.lead_date||l.created_at||'').slice(0,7)===prefix);
     const arrived=inMonth.filter(l=>leadStage(l)==='arrived').length;
     set('ovLeadVal', inMonth.length.toLocaleString('vi-VN'));
     set('ovLeadDelta', LEADS_CACHE.length.toLocaleString('vi-VN')+' lead tất cả thời gian'+(arrived?(' · '+arrived+' đã tới'):''));
@@ -3859,6 +3859,14 @@ function leadTimeAgo(at){
   if(diff<86400000) return Math.floor(diff/3600000)+' giờ trước';
   return Math.floor(diff/86400000)+' ngày trước';
 }
+// Ngày khách thả số, hiển thị gọn dd/mm (kèm năm nếu khác năm nay)
+function leadDateShort(d){
+  if(!d) return '—';
+  const dt=new Date(d); if(isNaN(dt)) return '—';
+  const now=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return p(dt.getDate())+'/'+p(dt.getMonth()+1)+(dt.getFullYear()!==now.getFullYear()?'/'+dt.getFullYear():'');
+}
 let LEADS_CACHE = [];
 let LEADS_LOADED = false;
 async function apiLeads(payload){
@@ -3881,7 +3889,7 @@ function paintLeads(){
   LEAD_STAGES.forEach(s=>setTxt('leadColBadge-'+s,counts[s]));
   const b=document.getElementById('leadsBadge'); if(b) b.textContent = counts.new;
 
-  const sorted = leads.slice().sort((a,b)=>(new Date(b.created_at||0))-(new Date(a.created_at||0)));
+  const sorted = leads.slice().sort((a,b)=>(new Date(b.lead_date||b.created_at||0))-(new Date(a.lead_date||a.created_at||0)));
   LEAD_STAGES.forEach(stage=>{
     const root = document.getElementById('leadCol-'+stage);
     if(!root) return;
@@ -3902,7 +3910,7 @@ function paintLeads(){
         <div style="font-size:.76rem;color:var(--brown-deep);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(cond)}">${esc(cond)}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
           <span class="pill" style="font-size:.66rem;padding:2px 7px">${esc(l.source||'web')}</span>
-          <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">${leadTimeAgo(l.created_at)}</span>
+          <span style="font-size:.68rem;color:var(--muted);white-space:nowrap" title="Ngày thả số">📅 ${leadDateShort(l.lead_date||l.created_at)}</span>
         </div>
       </div>`;
     }).join('');
@@ -3968,6 +3976,7 @@ function openLeadDetail(id){
       ${row('Giới tính', l.gender)}
       ${row('Khung giờ mong muốn', l.slot)}
       ${row('Nguồn', l.source)}
+      ${row('Ngày thả số', l.lead_date? new Date(l.lead_date).toLocaleDateString('vi-VN'):'')}
       ${row('Đăng ký lúc', l.created_at? new Date(l.created_at).toLocaleString('vi-VN'):'')}
     </table>
     <div style="margin-top:14px">
@@ -4058,6 +4067,7 @@ if(typeof EXPORT_CONFIG !== 'undefined'){
     map: (l,i) => ({
       STT:i+1, 'Họ tên':l.name||'', SĐT:l.phone||'',
       'Dịch vụ':l.service||'', 'Khung giờ mong muốn':l.slot||'',
+      'Ngày thả số': l.lead_date? new Date(l.lead_date).toLocaleDateString('vi-VN'):'',
       'Đăng ký lúc': l.created_at? new Date(l.created_at).toLocaleString('vi-VN'):'',
       'Trạng thái': LEAD_STAGE_LABEL[leadStage(l)], 'Nguồn': l.source||'web'
     })

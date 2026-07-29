@@ -29,6 +29,7 @@ function verifySession(req) {
 
 const TABLE = 'web_leads';
 const VALID_STATUS = ['new', 'contacted', 'appointment', 'arrived'];
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 function sb(path) {
   const base = process.env.SUPABASE_URL;
   return `${base}/rest/v1/${path}`;
@@ -138,6 +139,8 @@ async function createLead(res, body) {
     source: String(body.source || 'trực page').slice(0, 50),
     status: 'new'
   };
+  // Ngày khách thả số — không truyền thì để cột tự lấy mặc định (hôm nay)
+  if (body.lead_date != null && DATE_RE.test(body.lead_date)) row.lead_date = body.lead_date;
   const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi tạo lead' }); }
   return res.status(200).json({ ok: true });
@@ -166,6 +169,10 @@ async function updateLead(res, body) {
   if (body.status != null) {
     if (!VALID_STATUS.includes(body.status)) return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
     patch.status = body.status;
+  }
+  if (body.lead_date != null) {
+    if (!DATE_RE.test(body.lead_date)) return res.status(400).json({ error: 'Ngày thả số không hợp lệ (YYYY-MM-DD)' });
+    patch.lead_date = body.lead_date;
   }
   if (!Object.keys(patch).length) return res.status(400).json({ error: 'Không có gì để cập nhật' });
   patch.updated_at = new Date().toISOString();
