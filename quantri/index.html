@@ -5074,7 +5074,16 @@ renderTasks();
 renderCampaigns(); apptLoad(); renderLeads(); syncOverviewTopServices(); renderNewCustomers();
 seedDataSources(); renderDataSources();
 try{ if(localStorage.getItem('hana_leads_ver')!=='v6'){ localStorage.removeItem('hana_bookings'); localStorage.removeItem('hana_leads_synced'); localStorage.setItem('hana_leads_ver','v6'); } }catch(e){} // v6: dừng nạp lead cũ từ Sheet, xóa trắng "Lead Mới" — 1 lần
-setTimeout(()=>{ if(loadDataSources().length) refreshAllSheets(true).then(()=>{ renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); }); else { renderRevenue(); syncOverviewRevenue(); syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines(); } }, 800);
+// Đồng bộ toàn bộ Google Sheet (Marketing, Doanh thu, Tổng quan) — gọi lúc tải trang và lặp lại mỗi 30 phút bên dưới
+function refreshAllOverview(){
+  return (loadDataSources().length ? refreshAllSheets(true) : Promise.resolve()).then(()=>{
+    renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts();
+    syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines();
+  });
+}
+setTimeout(refreshAllOverview, 800);
+// Tự động cập nhật Marketing/Doanh thu mỗi 30 phút — chỉ chạy khi trình duyệt còn mở tab này
+setInterval(refreshAllOverview, 30*60*1000);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
