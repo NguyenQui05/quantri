@@ -4515,9 +4515,9 @@ const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
     url:'https://docs.google.com/spreadsheets/d/1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg',
     cat:'data', tab:'Lead HANA', sheetId:'1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg', gid:null },
-  { id:'DSMKT', name:'Báo cáo MKT T6 (nguồn quảng cáo)',
-    url:'https://docs.google.com/spreadsheets/d/1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E/edit',
-    cat:'quangcao', tab:null, sheetId:'1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E', gid:'1504707702' },
+  { id:'DSMKT', name:'Báo cáo MKT T7 (nguồn quảng cáo)',
+    url:'https://docs.google.com/spreadsheets/d/1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI/edit',
+    cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
     cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
@@ -4537,9 +4537,10 @@ const SEED_SOURCES = [
     url:'https://docs.google.com/spreadsheets/d/1cfyLQ5vwBIG-IvTVZTzKIiIYnfsQ06_tPH5SmzCehMs',
     cat:'khac', tab:null, sheetId:'1cfyLQ5vwBIG-IvTVZTzKIiIYnfsQ06_tPH5SmzCehMs', gid:null }
 ];
-// Migration: repoint nguồn báo cáo MKT sang đúng tab tháng (tránh dính tab cũ đã lưu localStorage)
+// Migration: repoint nguồn báo cáo MKT sang đúng file/tab (tránh dính sheetId cũ đã lưu localStorage).
+// newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
-  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { tab:null, gid:'1504707702', name:'Báo cáo MKT T6 (nguồn quảng cáo)' }
+  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
@@ -4551,10 +4552,11 @@ function seedDataSources(){
       changed=true;
     }
   });
-  // Reconcile các nguồn đã lưu nếu đang trỏ sai tab/gid
+  // Reconcile các nguồn đã lưu nếu đang trỏ sai sheetId/tab/gid
   sources.forEach(s=>{
     const rt=SOURCE_RETARGET[s.sheetId];
-    if(rt && (s.tab!==rt.tab || s.gid!==rt.gid)){
+    if(rt && (s.sheetId!==(rt.newSheetId||s.sheetId) || s.tab!==rt.tab || s.gid!==rt.gid)){
+      if(rt.newSheetId) s.sheetId=rt.newSheetId;
       s.tab=rt.tab; s.gid=rt.gid; if(rt.name) s.name=rt.name; s.status='pending'; s.lastSync=0; s.error='';
       changed=true;
     }
@@ -4728,7 +4730,7 @@ function aggregateMarketing(){
   const roas=T.spend?(T.rev/T.spend):0;
   return {srcs,T,days,names,hasFunnel,hasLead,hasRev,roas};
 }
-const MKT_SHEET_ID='1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E';
+const MKT_SHEET_ID='1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI';
 // Tab trong Sheet đặt tên dạng "BÁO CÁO MKT T<số tháng>" (VD: BÁO CÁO MKT T7).
 // Tự sinh danh sách tháng từ tháng HIỆN TẠI lùi về T12/2025 → khỏi sửa code mỗi tháng.
 function buildMktMonths(){
