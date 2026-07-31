@@ -732,6 +732,7 @@
         <button class="btn sm" onclick="refreshLeads()" style="margin-right:8px">🔄 Làm mới</button>
         <button class="btn ghost sm" onclick="exportExcel('leads')">⬇ Xuất Excel</button>
       </div>
+      <div id="leadMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
       <div class="grid kpi-grid" id="leadsKpis">
         <div class="kpi k1"><div class="ic">🆕</div><div class="label">Khách mới</div><div class="val" id="leadsCountNew">0</div><div class="delta">Trực page nhập</div></div>
         <div class="kpi k2"><div class="ic">📞</div><div class="label">Đã tiếp cận</div><div class="val" id="leadsCountContacted">0</div><div class="delta">Telesale gọi được</div></div>
@@ -3883,15 +3884,43 @@ async function fetchLeads(){
   try{ const d = await apiLeads({action:'list'}); LEADS_CACHE = d.rows || []; LEADS_LOADED = true; }
   catch(e){ console.error('fetchLeads', e); toast('❌ '+(e.message||'Không tải được lead'),'red'); }
 }
+/* ===== Bộ lọc theo tháng cho Lead Mới — chọn tháng để xem riêng số liệu tháng đó ===== */
+function buildLeadMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[{key:'all',label:'Tất cả'}];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const LEAD_MONTHS = buildLeadMonths();
+let leadMonthFilter = 'all';
+function renderLeadMonthTabs(){
+  const el=document.getElementById('leadMonthTabs'); if(!el) return;
+  el.innerHTML = LEAD_MONTHS.map(m=>`<button class="btn ${leadMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectLeadMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectLeadMonth(key){
+  leadMonthFilter = key;
+  renderLeadMonthTabs();
+  paintLeads();
+}
+window.selectLeadMonth = selectLeadMonth;
 function paintLeads(){
-  const leads = LEADS_CACHE;
+  renderLeadMonthTabs();
+  const leads = leadMonthFilter==='all' ? LEADS_CACHE
+    : LEADS_CACHE.filter(l=>String(l.lead_date||l.created_at||'').slice(0,7)===leadMonthFilter);
   const counts = {new:0,contacted:0,appointment:0,arrived:0};
   leads.forEach(l=>counts[leadStage(l)]++);
   const setTxt=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   setTxt('leadsCountNew',counts.new); setTxt('leadsCountContacted',counts.contacted);
   setTxt('leadsCountAppointment',counts.appointment); setTxt('leadsCountArrived',counts.arrived);
   LEAD_STAGES.forEach(s=>setTxt('leadColBadge-'+s,counts[s]));
-  const b=document.getElementById('leadsBadge'); if(b) b.textContent = counts.new;
+  // Badge sidebar luôn tính TOÀN BỘ khách mới, không phụ thuộc tháng đang xem trên trang
+  const totalNew = LEADS_CACHE.filter(l=>leadStage(l)==='new').length;
+  const b=document.getElementById('leadsBadge'); if(b) b.textContent = totalNew;
 
   const sorted = leads.slice().sort((a,b)=>(new Date(b.lead_date||b.created_at||0))-(new Date(a.lead_date||a.created_at||0)));
   LEAD_STAGES.forEach(stage=>{
