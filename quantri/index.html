@@ -3296,29 +3296,26 @@ async function syncOverviewMonth(){
 }
 window.syncOverviewMonth=syncOverviewMonth;
 
-/* ===== Khách mới tháng này (Tổng quan) — đếm qua Supabase, không cần tải cả danh sách ===== */
+/* ===== Khách mới tháng này (Tổng quan) — đếm lịch hẹn đã được lễ tân xác nhận "Đã đến" trong tháng.
+   Trước đây đếm theo created_at của bảng khách hàng, bị lẫn khách import hàng loạt nên sai số. ===== */
 async function syncOverviewNewCustomers(){
   const g=id=>document.getElementById(id);
   if(!g('ovNewCustVal')) return;
+  if(!APPTS.rows) await apptLoad();
   const p=n=>String(n).padStart(2,'0');
-  const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  const prefixOf=d=>d.getFullYear()+'-'+p(d.getMonth()+1);
   const now=new Date();
-  const thisMon=new Date(now.getFullYear(), now.getMonth(), 1);
-  const nextMon=new Date(now.getFullYear(), now.getMonth()+1, 1);
-  const lastMon=new Date(now.getFullYear(), now.getMonth()-1, 1);
-  try{
-    const [cur, prev]=await Promise.all([
-      crmApi({action:'count_new', from:iso(thisMon), to:iso(nextMon)}),
-      crmApi({action:'count_new', from:iso(lastMon), to:iso(thisMon)})
-    ]);
-    const n=cur.count||0, prevN=prev.count||0;
-    g('ovNewCustVal').textContent=n.toLocaleString('vi-VN');
-    const d=g('ovNewCustDelta');
-    if(d){
-      if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tháng trước'; }
-      else d.textContent=n?('so với 0 tháng trước'):'Chưa có khách mới tháng này';
-    }
-  }catch(e){ console.error('ov new customers', e); }
+  const thisPrefix=prefixOf(now);
+  const prevPrefix=prefixOf(new Date(now.getFullYear(), now.getMonth()-1, 1));
+  const all=APPTS.rows||[];
+  const countArrived=prefix=>all.filter(a=>a.status==='den' && String(a.appt_date||'').slice(0,7)===prefix).length;
+  const n=countArrived(thisPrefix), prevN=countArrived(prevPrefix);
+  g('ovNewCustVal').textContent=n.toLocaleString('vi-VN');
+  const d=g('ovNewCustDelta');
+  if(d){
+    if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tháng trước'; }
+    else d.textContent=n?('so với 0 tháng trước'):'Chưa có khách đến tháng này';
+  }
 }
 window.syncOverviewNewCustomers=syncOverviewNewCustomers;
 
