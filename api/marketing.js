@@ -1,6 +1,7 @@
-// Vercel Serverless — Sao lưu số liệu Marketing hằng ngày vào Supabase (bảng marketing_daily).
-// Google Sheet vẫn là nơi nhập liệu; dashboard đọc Sheet rồi gọi action 'sync' để lưu bản sao.
+// Vercel Serverless — Sao lưu số liệu Marketing + Doanh thu (Sổ thu/chi) hằng ngày vào Supabase.
+// Google Sheet vẫn là nơi nhập liệu; dashboard đọc Sheet rồi gọi action 'sync'/'sync_revenue' để lưu bản sao.
 // Nhờ vậy số liệu không mất khi Sheet bị xoá / đổi quyền chia sẻ / đổi tên tab.
+// Gộp 2 module vào 1 file để không vượt giới hạn 12 Serverless Functions (Vercel Hobby).
 import crypto from 'node:crypto';
 
 function verifySession(req) {
@@ -21,6 +22,7 @@ function verifySession(req) {
 }
 
 const TABLE = 'marketing_daily';
+const REV_TABLE = 'revenue_daily';
 function sb(path) {
   const base = process.env.SUPABASE_URL;
   return `${base}/rest/v1/${path}`;
@@ -34,6 +36,12 @@ const num = (v, max = 1e15) => {
   const n = Math.round(Number(v) || 0);
   if (!isFinite(n) || n < 0) return 0;
   return Math.min(n, max);
+};
+// Doanh thu/chi/lợi nhuận có thể âm (ngày lỗ) — không clamp về 0 như num().
+const signedNum = (v, max = 1e15) => {
+  const n = Math.round(Number(v) || 0);
+  if (!isFinite(n)) return 0;
+  return Math.max(-max, Math.min(n, max));
 };
 
 export default async function handler(req, res) {
@@ -49,8 +57,10 @@ export default async function handler(req, res) {
   const action = String(body.action || '');
 
   try {
-    if (action === 'sync') return await syncDays(res, body);
-    if (action === 'list') return await listDays(res, body);
+    if (action === 'sync')          return await syncDays(res, body);
+    if (action === 'list')          return await listDays(res, body);
+    if (action === 'sync_revenue')  return await syncRevenueDays(res, body);
+    if (action === 'list_revenue')  return await listRevenueDays(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('marketing api error:', e?.message || e);
@@ -97,6 +107,49 @@ async function listDays(res, body) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(from)) params.append('report_date', `gte.${from}`);
   if (/^\d{4}-\d{2}-\d{2}$/.test(to)) params.append('report_date', `lte.${to}`);
   const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  return res.status(200).json({ rows });
+}
+
+// Ghi đè theo ngày (upsert): chạy lại nhiều lần không tạo bản ghi trùng. Số có thể âm (ngày lỗ).
+async function syncRevenueDays(res, body) {
+  const input = Array.isArray(body.rows) ? body.rows : [];
+  if (!input.length) return res.status(400).json({ error: 'Không có dữ liệu để đồng bộ' });
+  if (input.length > 400) return res.status(400).json({ error: 'Quá nhiều dòng trong một lần đồng bộ' });
+
+  const now = new Date().toISOString();
+  const rows = [];
+  for (const r of input) {
+    const d = String(r.report_date || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+    if (isNaN(new Date(d + 'T00:00:00Z').getTime())) continue;
+    rows.push({
+      report_date: d,
+      thu: signedNum(r.thu), chi: signedNum(r.chi), loinhuan: signedNum(r.loinhuan),
+      synced_at: now, updated_at: now
+    });
+  }
+  if (!rows.length) return res.status(400).json({ error: 'Không có dòng nào hợp lệ (thiếu ngày)' });
+
+  const r = await fetch(sb(`${REV_TABLE}?on_conflict=report_date`), {
+    method: 'POST',
+    headers: sbHeaders({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify(rows)
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu Supabase' }); }
+  return res.status(200).json({ ok: true, saved: rows.length, synced_at: now });
+}
+
+async function listRevenueDays(res, body) {
+  const params = new URLSearchParams();
+  params.set('select', '*');
+  params.set('order', 'report_date.desc');
+  params.set('limit', '2000');
+  const from = String(body.from || ''), to = String(body.to || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(from)) params.append('report_date', `gte.${from}`);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(to)) params.append('report_date', `lte.${to}`);
+  const r = await fetch(sb(`${REV_TABLE}?${params.toString()}`), { headers: sbHeaders() });
   const rows = await r.json();
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
   return res.status(200).json({ rows });

@@ -1028,7 +1028,7 @@
         <div class="kpi k4"><div class="ic">🎯</div><div class="label">ROAS</div><div class="val">—</div><div class="delta">—</div></div>
       </div>
       <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h3>📊 Doanh thu theo tháng</h3><div class="sub" id="revMonthSub">7 tháng gần nhất · từ SỔ THU/CHI</div></div><span class="pill" id="revMonthTrend" style="white-space:nowrap"></span></div>
+        <div class="card-head"><div><h3>📊 Doanh thu theo tháng</h3><div class="sub" id="revMonthSub">7 tháng gần nhất · từ SỔ THU/CHI</div><div class="sub" id="revSyncStatus" style="font-size:.74rem;margin-top:2px"></div></div><span class="pill" id="revMonthTrend" style="white-space:nowrap"></span></div>
         <canvas id="chartRevMonths" height="92"></canvas>
         <div id="revMonthCards" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
         <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">📈 Cột đỏ = doanh thu · đường xanh = lợi nhuận (cột LỢI NHUẬN trong sổ). <b>T5 đang để "chờ rà"</b> vì cột chi tháng 5 lẫn tiền chuyển khoản nội bộ — chị xác nhận giúp em. T3 đã gộp khoản ghi nhầm năm.</div>
@@ -3627,7 +3627,7 @@ function revenueModel(){
   const cost = hasBook?chiVH:adCost;                 // "tổng chi" hiển thị: vận hành nếu có sổ, else chi QC
   const roas = adCost?(revAds/adCost):0;
   const margin = revenue?(profit/revenue*100):0;
-  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
+  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,iso:d.iso,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
   return {AG,revenue,revRecorded,revAds,revFromAds,cost,profit,profitRecordedFlag,roas,margin,days,hasRev:AG.hasRev,adCost,chiVH,hasBook,profitSource};
 }
 function renderRevenue(){
@@ -3673,6 +3673,7 @@ function renderRevenue(){
   const sh=gel('revSvcHead'); if(sh) sh.textContent = M.hasBook?'Cơ cấu: tổng chi vs lợi nhuận thật':'Cơ cấu: chi phí vs lợi nhuận';
   renderRevTarget(M);
   renderRevMonths(M);
+  if(M.hasBook) syncRevenueToSupabase(M.days);   // sao lưu nền, không chặn giao diện
 }
 // ===== Doanh thu theo tháng (lịch sử từ SỔ THU/CHI — đơn vị: đồng) =====
 const REV_HISTORY = [
@@ -4847,13 +4848,17 @@ function parseRevenueBook(cache){
   let totThu=0,totChi=0,totLoi=0; const days=[];
   rows.forEach(r=>{
     const dRaw=String(r[iDate]==null?'':r[iDate]).trim();
-    const m=dRaw.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})(?:\s*[\/.\-]\s*\d{2,4})?$/);
+    const m=dRaw.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{2,4}))?$/);
     if(!m) return;
     const thu=iThu>=0?parseSignedMoney(r[iThu]):0;
     const chi=iChi>=0?parseSignedMoney(r[iChi]):0;
     const loi=iLoi>=0?parseSignedMoney(r[iLoi]):(thu-chi);
     const _o=parseInt(m[2],10)*100+parseInt(m[1],10);
-    days.push({date:parseInt(m[1],10)+'/'+parseInt(m[2],10),thu,chi,loinhuan:loi,_o});
+    const dd=parseInt(m[1],10), mo=parseInt(m[2],10);
+    let yy=m[3]?parseInt(m[3],10):new Date().getFullYear();
+    if(m[3]&&m[3].length===2) yy=2000+yy;
+    const iso=yy+'-'+String(mo).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+    days.push({date:dd+'/'+mo,iso,thu,chi,loinhuan:loi,_o});
     totThu+=thu; totChi+=chi; totLoi+=loi;
   });
   days.sort((a,b)=>a._o-b._o);
@@ -5065,6 +5070,31 @@ async function syncMarketingToSupabase(monthKey, days, silent){
   }catch(e){
     console.error('sync marketing', monthKey, e);
     if(!silent) mktSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
+  }
+}
+
+/* ===== Sao lưu SỔ THU/CHI (Doanh thu) sang Supabase — cùng cơ chế với Marketing ở trên ===== */
+let _revSynced = null;   // chữ ký dữ liệu đã lưu, tránh ghi lại khi không đổi
+function revSyncNote(txt, color){
+  const el=gel('revSyncStatus'); if(!el) return;
+  el.textContent = txt; el.style.color = color || 'var(--muted)';
+}
+async function syncRevenueToSupabase(days, silent){
+  const rows = (days||[]).filter(d=>d.iso).map(d=>({report_date:d.iso, thu:Math.round(d.rev||0), chi:Math.round(d.spend||0), loinhuan:Math.round(d.loinhuan||0)}));
+  if(!rows.length) return;
+  const sig = JSON.stringify(rows);
+  if(_revSynced === sig) return;
+  if(!silent) revSyncNote('⏳ Đang lưu Supabase…');
+  try{
+    const r = await fetch('/api/marketing',{method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync_revenue',rows})});
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d?.error||'Lỗi lưu Supabase');
+    _revSynced = sig;
+    if(!silent) revSyncNote('☁️ Đã lưu Supabase '+d.saved+' ngày · '+new Date().toLocaleTimeString('vi-VN'), 'var(--green)');
+  }catch(e){
+    console.error('sync revenue', e);
+    if(!silent) revSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
   }
 }
 window.addDataSource=addDataSource; window.removeDataSource=removeDataSource;
