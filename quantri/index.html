@@ -4714,9 +4714,12 @@ const SEED_SOURCES = [
   { id:'DSMKT', name:'Báo cáo MKT T7 (nguồn quảng cáo)',
     url:'https://docs.google.com/spreadsheets/d/1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI/edit',
     cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
-  { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
-    url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
-    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
+  { id:'DSBOOK', name:'SỔ THU/CHI T7 (doanh thu · chi · lợi nhuận thật)',
+    // sếp tạo tab riêng mỗi tháng (vd "DOANH THU T82026") và hay đổi tab lên đầu TRƯỚC khi qua tháng mới —
+    // nếu đọc "tab đầu tiên" (gid:null) sẽ ăn nhầm số tháng sau khi chưa tới ngày. Phải trỏ đích danh gid
+    // của tab THÁNG HIỆN TẠI, đổi lại mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
+    url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q/edit?gid=797748578',
+    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:'797748578' },
   { id:'DSKH', name:'Danh sách khách hàng (tổng)',
     url:'https://docs.google.com/spreadsheets/d/1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo',
     cat:'data', tab:null, sheetId:'1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo', gid:null },
@@ -4736,7 +4739,8 @@ const SEED_SOURCES = [
 // Migration: repoint nguồn báo cáo MKT sang đúng file/tab (tránh dính sheetId cũ đã lưu localStorage).
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
-  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' }
+  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
+  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:'797748578', name:'SỔ THU/CHI T7 (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
