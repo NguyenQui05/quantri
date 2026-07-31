@@ -4034,7 +4034,7 @@ async function submitLeadAppt(id){
   if(!name){ toast('❌ Cần nhập tên khách','red'); return; }
   try{
     await apptApi({action:'create', appt_date:date, appt_time:gel('laTime')?.value||'', full_name:name,
-      phone:gel('laPhone')?.value||'', service:gel('laSvc')?.value||'', staff:gel('laStaff')?.value||'', note:gel('laNote')?.value||''});
+      phone:gel('laPhone')?.value||'', service:gel('laSvc')?.value||'', staff:gel('laStaff')?.value||'', note:gel('laNote')?.value||'', lead_id:id});
     await moveLeadStatus(id,'appointment',true);
     closeModal();
     toast('✅ Đã tạo lịch hẹn và chuyển lead sang "Đã đặt lịch"','green'); if(typeof ding==='function')ding();

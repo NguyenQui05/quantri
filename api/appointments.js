@@ -157,6 +157,9 @@ async function createAppt(res, body, sess) {
     status: 'cho',
     created_by: sess.u || ''
   };
+  // Lịch hẹn tạo từ Lead Mới -> lưu lại lead gốc, để khi lễ tân xác nhận "Đã đến"
+  // thì lead tự chuyển sang cột "Khách đã tới".
+  if (body.lead_id != null && /^[0-9a-f-]{36}$/i.test(String(body.lead_id))) row.lead_id = String(body.lead_id);
   const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi tạo lịch hẹn' }); }
   return res.status(200).json({ ok: true });
@@ -186,6 +189,23 @@ async function markStatus(res, body, sess) {
   if (status === 'den') { patch.confirmed_by = sess.u || ''; patch.confirmed_at = new Date().toISOString(); }
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi cập nhật trạng thái' }); }
+
+  // Lễ tân xác nhận "Đã đến" -> nếu lịch hẹn này gắn với 1 lead ở Lead Mới,
+  // tự chuyển lead đó sang cột "Khách đã tới" (không chặn kết quả API dù bước này lỗi).
+  if (status === 'den') {
+    try {
+      const g = await fetch(sb(`${TABLE}?id=eq.${id}&select=lead_id`), { headers: sbHeaders() });
+      const rows = await g.json();
+      const leadId = rows?.[0]?.lead_id;
+      if (leadId) {
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/web_leads?id=eq.${leadId}`, {
+          method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+          body: JSON.stringify({ status: 'arrived', updated_at: new Date().toISOString() })
+        });
+      }
+    } catch (e) { console.error('sync lead arrived error:', e?.message || e); }
+  }
+
   return res.status(200).json({ ok: true });
 }
 
