@@ -711,9 +711,13 @@
       .lead-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
       .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;transition:background .15s}
       .lead-col.drag-over{background:var(--cream-2)}
-      .lead-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.9rem;color:var(--brown-deep)}
+      .lead-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.9rem;color:var(--brown-deep);cursor:pointer;gap:8px}
       .lead-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.76rem}
+      .lead-col-head span:first-child{flex:1}
+      .lead-col-chevron{font-size:.7rem;color:var(--muted);transition:transform .15s;flex:none}
+      .lead-col.collapsed .lead-col-chevron{transform:rotate(-90deg)}
       .lead-col-body{display:flex;flex-direction:column;gap:6px;min-height:80px;max-height:68vh;overflow-y:auto;padding:2px}
+      .lead-col.collapsed .lead-col-body{display:none}
       .lead-card{background:#fff;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:grab;overflow:hidden}
       .lead-card:active{cursor:grabbing}
       .lead-card.dragging{opacity:.35}
@@ -740,20 +744,20 @@
         <div class="kpi k4"><div class="ic">✅</div><div class="label">Khách đã tới</div><div class="val" id="leadsCountArrived">0</div><div class="delta">Đã có mặt tại spa</div></div>
       </div>
       <div class="lead-board" id="leadBoard">
-        <div class="lead-col" data-status="new" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'new')">
-          <div class="lead-col-head" style="border-top:4px solid var(--red)"><span>🆕 Khách mới</span><span class="badge" id="leadColBadge-new">0</span></div>
+        <div class="lead-col collapsed" data-status="new" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'new')">
+          <div class="lead-col-head" style="border-top:4px solid var(--red)" onclick="toggleLeadColumn(this)"><span>🆕 Khách mới</span><span class="badge" id="leadColBadge-new">0</span><span class="lead-col-chevron">▾</span></div>
           <div class="lead-col-body" id="leadCol-new"></div>
         </div>
-        <div class="lead-col" data-status="contacted" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'contacted')">
-          <div class="lead-col-head" style="border-top:4px solid var(--blue)"><span>📞 Đã tiếp cận</span><span class="badge" id="leadColBadge-contacted">0</span></div>
+        <div class="lead-col collapsed" data-status="contacted" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'contacted')">
+          <div class="lead-col-head" style="border-top:4px solid var(--blue)" onclick="toggleLeadColumn(this)"><span>📞 Đã tiếp cận</span><span class="badge" id="leadColBadge-contacted">0</span><span class="lead-col-chevron">▾</span></div>
           <div class="lead-col-body" id="leadCol-contacted"></div>
         </div>
-        <div class="lead-col" data-status="appointment" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'appointment')">
-          <div class="lead-col-head" style="border-top:4px solid var(--gold-deep)"><span>📅 Đã đặt lịch</span><span class="badge" id="leadColBadge-appointment">0</span></div>
+        <div class="lead-col collapsed" data-status="appointment" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'appointment')">
+          <div class="lead-col-head" style="border-top:4px solid var(--gold-deep)" onclick="toggleLeadColumn(this)"><span>📅 Đã đặt lịch</span><span class="badge" id="leadColBadge-appointment">0</span><span class="lead-col-chevron">▾</span></div>
           <div class="lead-col-body" id="leadCol-appointment"></div>
         </div>
-        <div class="lead-col" data-status="arrived" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'arrived')">
-          <div class="lead-col-head" style="border-top:4px solid var(--green)"><span>✅ Khách đã tới</span><span class="badge" id="leadColBadge-arrived">0</span></div>
+        <div class="lead-col collapsed" data-status="arrived" ondragover="leadDragOver(event)" ondragleave="leadDragLeave(event)" ondrop="leadDrop(event,'arrived')">
+          <div class="lead-col-head" style="border-top:4px solid var(--green)" onclick="toggleLeadColumn(this)"><span>✅ Khách đã tới</span><span class="badge" id="leadColBadge-arrived">0</span><span class="lead-col-chevron">▾</span></div>
           <div class="lead-col-body" id="leadCol-arrived"></div>
         </div>
       </div>
@@ -3953,9 +3957,16 @@ function toggleLeadCard(ev, headEl){
 window.toggleLeadCard = toggleLeadCard;
 function leadDragOver(ev){ ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
 function leadDragLeave(ev){ ev.currentTarget.classList.remove('drag-over'); }
+// Bấm tiêu đề cột để thu gọn/mở rộng toàn bộ danh sách khách trong cột đó
+function toggleLeadColumn(headEl){
+  const col = headEl.closest('.lead-col'); if(!col) return;
+  col.classList.toggle('collapsed');
+}
+window.toggleLeadColumn = toggleLeadColumn;
 function leadDrop(ev,status){
   ev.preventDefault();
   ev.currentTarget.classList.remove('drag-over');
+  ev.currentTarget.classList.remove('collapsed');   // vừa thả khách vào cột này -> tự mở ra để thấy ngay
   let id = leadDragId;
   if(!id){ try{ id = ev.dataTransfer.getData('text/plain'); }catch(e){} }
   leadDragId = null;
