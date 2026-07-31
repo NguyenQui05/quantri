@@ -2224,7 +2224,7 @@ const titles = {
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
   luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
-  revenue:['Doanh thu','Tháng 5/2026 · Q2'],
+  revenue:['Doanh thu','Doanh thu & lợi nhuận thật từ SỔ THU/CHI'],
   marketing:['Marketing & Loyalty','4 campaign đang chạy'],
   billing:['🧾 Hóa đơn','Tạo & in bill 80mm cho khách tại quầy'],
   accounts:['👤 Tài khoản','Tạo & phân quyền tài khoản nhân viên'],
@@ -3615,8 +3615,10 @@ function revenueModel(){
   let profitSheet=0, hasProfitSheet=false;
   srcs.filter(s=>s.cat==='loinhuan'&&DS_CACHE[s.id]).forEach(s=>{ profitSheet+=(+s.sumAmount||0); hasProfitSheet=true; });
   const revAds=AG.T.rev||0, adCost=AG.T.spend||0;
-  const revenue = revRecorded>0?revRecorded:revAds;
-  const revFromAds = revRecorded<=0;
+  // Có SỔ THU/CHI (hasBook) thì LUÔN dùng số thật, kể cả khi = 0 (vd đầu tháng chưa có ca) —
+  // không được lặng lẽ thay bằng doanh số quảng cáo, kẻo hiện nhầm số trong khi lợi nhuận/chi vẫn đúng là 0.
+  const revenue = hasBook ? revRecorded : (revRecorded>0?revRecorded:revAds);
+  const revFromAds = !hasBook && revRecorded<=0;
   // Lợi nhuận: sổ thu/chi > sheet lợi nhuận > tạm tính (doanh thu − chi QC)
   let profit, profitSource;
   if(hasBook){ profit=bookProfit; profitSource='book'; }
@@ -5293,6 +5295,13 @@ setTimeout(refreshAllOverview, 800);
 // Tự động cập nhật Marketing/Doanh thu mỗi 30 phút — chỉ chạy khi trình duyệt còn mở tab này
 setInterval(refreshAllOverview, 30*60*1000);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
+try{
+  const _now=new Date(), _m=_now.getMonth()+1, _q=Math.ceil(_m/3);
+  const _rg='Tháng '+_m+'/'+_now.getFullYear()+' · Q'+_q;
+  if(typeof titles!=='undefined'&&titles.revenue) titles.revenue[1]=_rg;
+  const _rs=document.getElementById('page-sub');
+  if(_rs && document.getElementById('page-revenue') && document.getElementById('page-revenue').classList.contains('active')) _rs.innerHTML=_rg;
+}catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
 setTimeout(initSparklines, 200);
