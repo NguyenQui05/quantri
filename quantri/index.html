@@ -578,7 +578,7 @@
         <div class="kpi k3" onclick="go('calendar')"><div class="ic">🏥</div><div class="label">Khách mới đã tới <span id="ovMonthLbl3" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovArrivedVal">—</div><div class="delta" id="ovArrivedDelta">lịch hẹn đã xác nhận đến</div></div>
       </div>
 
-      <div class="row r-2-1">
+      <div class="row">
         <div class="card">
           <div class="card-head">
             <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">Từ Data Hub (Sổ thu/chi hoặc sheet doanh thu)</div></div>
@@ -586,49 +586,6 @@
           </div>
           <canvas id="chartRevenue" height="110"></canvas>
           <div id="ovRevChartEmpty" style="display:none;text-align:center;color:var(--muted);padding:30px 0">Chưa có dữ liệu doanh thu — kết nối Google Sheet ở Data Hub.</div>
-        </div>
-
-        <div class="card ai-card" style="color:#fff">
-          <div class="ai-icon">✨</div>
-          <h3>AI Insights hôm nay</h3>
-          <div id="ovAiInsights"><div class="ai-insight" style="opacity:.75">Chưa có đủ dữ liệu để phân tích AI.</div></div>
-        </div>
-      </div>
-
-      <div class="row r-1-2" style="margin-top:16px">
-        <div class="card">
-          <div class="card-head"><h3>Phân loại khách</h3></div>
-          <canvas id="chartGender" height="200" style="display:none"></canvas>
-          <div id="ovGenderEmpty" style="text-align:center;color:var(--muted);padding:40px 0">Chưa có dữ liệu phân loại khách (cần thêm trường giới tính/hạng ở Sổ khách hàng).</div>
-        </div>
-        <div class="card">
-          <div class="card-head">
-            <div><h3>Lịch hẹn sắp tới hôm nay</h3><div class="sub" id="ovTodaySub">đang tải…</div></div>
-            <button class="btn sm" onclick="go('calendar')">Xem tất cả</button>
-          </div>
-          <table>
-            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Giờ</th><th>KTV</th><th>Trạng thái</th></tr></thead>
-            <tbody id="todayApps"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="row r-3" style="margin-top:16px">
-        <div class="card">
-          <h3>🏆 Top dịch vụ tuần</h3>
-          <div style="display:flex;flex-direction:column;gap:11px;margin-top:14px" id="ovTopServices">
-            <div style="color:var(--muted);font-size:.85rem">Đang tải…</div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>👑 Top KTV / Tư vấn viên</h3>
-          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px" id="topStaff"></div>
-        </div>
-        <div class="card">
-          <h3>🎂 Sự kiện hôm nay</h3>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:.86rem;margin-top:14px" id="ovEvents">
-            <div style="color:var(--muted)">Chưa có dữ liệu sự kiện (sinh nhật, tái khám...) để hiển thị.</div>
-          </div>
         </div>
       </div>
     </section>
