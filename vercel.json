@@ -117,6 +117,6 @@
     }
   ],
   "crons": [
-    { "path": "/api/leads?cron=sync_sheet", "schedule": "0 1 * * *" }
+    { "path": "/api/leads?cron=sync_sheet", "schedule": "0 5 * * *" }
   ]
 }

@@ -565,20 +565,25 @@
       <!-- Storage info banner -->
       <div class="alert info" style="margin-bottom:14px;display:flex;align-items:center"><span class="ic">💾</span><div style="flex:1"><b>Dữ liệu lưu ở đâu?</b> <span id="storageInfo">Hiện đang lưu tại trình duyệt (localStorage) — gồm Task, KH thêm mới, ghi chú</span>. <a href="#" onclick="openModal('storage-help');return false" style="color:var(--orange-deep);font-weight:700">Tìm hiểu cách backup, export, kết nối DB ngoài →</a></div><button class="btn ghost sm" onclick="openModal('storage-help')">📖 Hướng dẫn</button></div>
 
-      <div class="grid kpi-grid kpi-grid-3">
+      <div class="sub" style="font-size:.8rem;margin-bottom:6px">📅 Xem số liệu theo tháng (áp dụng cho các khối có ghi "· Tháng")</div>
+      <div id="ovMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
+      <div class="grid kpi-grid">
         <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val" id="ovApptVal">—</div><div class="delta" id="ovApptDelta">đang tải…</div><canvas id="sparkK1" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
-        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới <span id="ovMonthLbl5" style="font-weight:600;color:var(--muted)">tháng này</span></div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label" id="ovRevLabel">Doanh thu</div><div class="val" id="ovRevVal">—</div><div class="delta" id="ovRevDelta">Kết nối Data Hub</div><canvas id="sparkK3" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k4" onclick="go('revenue')"><div class="ic">💳</div><div class="label" id="ovCostLabel">Tổng chi</div><div class="val" id="ovCostVal">—</div><div class="delta" id="ovCostDelta">Kết nối Data Hub</div></div>
       </div>
 
       <!-- Số liệu tháng hiện tại -->
-      <div class="grid kpi-grid kpi-grid-3" style="margin-top:16px">
+      <div class="grid kpi-grid" style="margin-top:16px">
         <div class="kpi k1" onclick="go('leads')"><div class="ic">🧲</div><div class="label">Tổng lead <span id="ovMonthLbl1" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovLeadVal">—</div><div class="delta" id="ovLeadDelta">từ tab Lead Mới</div></div>
         <div class="kpi k2" onclick="go('marketing')"><div class="ic">📢</div><div class="label">Chi phí quảng cáo <span id="ovMonthLbl2" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsVal">—</div><div class="delta" id="ovAdsDelta">từ báo cáo Marketing</div></div>
-        <div class="kpi k3" onclick="go('calendar')"><div class="ic">🏥</div><div class="label">Khách mới đã tới <span id="ovMonthLbl3" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovArrivedVal">—</div><div class="delta" id="ovArrivedDelta">lịch hẹn đã xác nhận đến</div></div>
+        <div class="kpi k3" onclick="go('marketing')"><div class="ic">💵</div><div class="label">Doanh thu từ quảng cáo <span id="ovMonthLbl4" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsRevVal">—</div><div class="delta" id="ovAdsRevDelta">từ báo cáo Marketing</div></div>
+        <div class="kpi k4" onclick="go('calendar')"><div class="ic">🏥</div><div class="label">Khách mới đã tới <span id="ovMonthLbl3" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovArrivedVal">—</div><div class="delta" id="ovArrivedDelta">lịch hẹn đã xác nhận đến</div></div>
       </div>
 
-      <div class="row r-2-1">
+      <div class="row">
         <div class="card">
           <div class="card-head">
             <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">Từ Data Hub (Sổ thu/chi hoặc sheet doanh thu)</div></div>
@@ -587,55 +592,22 @@
           <canvas id="chartRevenue" height="110"></canvas>
           <div id="ovRevChartEmpty" style="display:none;text-align:center;color:var(--muted);padding:30px 0">Chưa có dữ liệu doanh thu — kết nối Google Sheet ở Data Hub.</div>
         </div>
-
-        <div class="card ai-card" style="color:#fff">
-          <div class="ai-icon">✨</div>
-          <h3>AI Insights hôm nay</h3>
-          <div id="ovAiInsights"><div class="ai-insight" style="opacity:.75">Chưa có đủ dữ liệu để phân tích AI.</div></div>
-        </div>
-      </div>
-
-      <div class="row r-1-2" style="margin-top:16px">
-        <div class="card">
-          <div class="card-head"><h3>Phân loại khách</h3></div>
-          <canvas id="chartGender" height="200" style="display:none"></canvas>
-          <div id="ovGenderEmpty" style="text-align:center;color:var(--muted);padding:40px 0">Chưa có dữ liệu phân loại khách (cần thêm trường giới tính/hạng ở Sổ khách hàng).</div>
-        </div>
-        <div class="card">
-          <div class="card-head">
-            <div><h3>Lịch hẹn sắp tới hôm nay</h3><div class="sub" id="ovTodaySub">đang tải…</div></div>
-            <button class="btn sm" onclick="go('calendar')">Xem tất cả</button>
-          </div>
-          <table>
-            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Giờ</th><th>KTV</th><th>Trạng thái</th></tr></thead>
-            <tbody id="todayApps"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="row r-3" style="margin-top:16px">
-        <div class="card">
-          <h3>🏆 Top dịch vụ tuần</h3>
-          <div style="display:flex;flex-direction:column;gap:11px;margin-top:14px" id="ovTopServices">
-            <div style="color:var(--muted);font-size:.85rem">Đang tải…</div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>👑 Top KTV / Tư vấn viên</h3>
-          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px" id="topStaff"></div>
-        </div>
-        <div class="card">
-          <h3>🎂 Sự kiện hôm nay</h3>
-          <div style="display:flex;flex-direction:column;gap:10px;font-size:.86rem;margin-top:14px" id="ovEvents">
-            <div style="color:var(--muted)">Chưa có dữ liệu sự kiện (sinh nhật, tái khám...) để hiển thị.</div>
-          </div>
-        </div>
       </div>
     </section>
 
     <!-- ============ CALENDAR ============ -->
     <section class="page" id="page-calendar">
       <div class="alert info" style="margin-bottom:14px"><span class="ic">📅</span><div><b>Luồng lịch hẹn:</b> Telesale tạo lịch hẹn mới → Lễ tân xác nhận khách <b>Đã đến / Chưa đến</b> → khi Đã đến, lịch tự chuyển sang <b>Tour phẫu thuật</b> để bác sĩ nhập ca.</div></div>
+
+      <div class="card" id="apptTodayCard" style="margin-bottom:16px;border:1px solid var(--gold);background:linear-gradient(135deg,#FFF8EC,#FBEFD8)">
+        <div class="card-head" style="border:0;padding:0;margin-bottom:10px">
+          <div><h2>📅 Lịch hẹn hôm nay<span class="badge" id="apptTodayBadge" style="background:var(--orange-deep);margin-left:8px">0</span></h2><div class="sub" id="apptTodaySub">Đang tải…</div></div>
+        </div>
+        <div id="apptTodayList"></div>
+      </div>
+
+      <div id="apptMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
       <div class="grid kpi-grid">
         <div class="kpi k1"><div class="ic">📅</div><div class="label">Tổng lịch hẹn</div><div class="val" id="apptK1">—</div><div class="delta">lưu thật, đồng bộ mọi thiết bị</div></div>
         <div class="kpi k2"><div class="ic">✅</div><div class="label">Đã đến</div><div class="val" id="apptK2">—</div><div class="delta" id="apptK2d">—</div></div>
@@ -708,8 +680,8 @@
 
     <!-- ============ LEAD TỪ LANDING ============ -->
     <style>
-      .lead-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
-      .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;transition:background .15s}
+      .lead-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+      .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;min-width:0;transition:background .15s}
       .lead-col.drag-over{background:var(--cream-2)}
       .lead-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.9rem;color:var(--brown-deep);cursor:pointer;gap:8px}
       .lead-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.76rem}
@@ -721,8 +693,8 @@
       .lead-card{background:#fff;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:grab;overflow:hidden;flex-shrink:0}
       .lead-card:active{cursor:grabbing}
       .lead-card.dragging{opacity:.35}
-      @media (max-width:900px){ .lead-board{grid-template-columns:1fr 1fr} }
-      @media (max-width:600px){ .lead-board{grid-template-columns:1fr} }
+      @media (max-width:1280px){ .lead-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+      @media (max-width:600px){ .lead-board{grid-template-columns:minmax(0,1fr)} }
     </style>
     <section class="page" id="page-leads">
       <div class="alert success" style="margin-bottom:14px;display:flex;align-items:center">
@@ -1080,8 +1052,9 @@
     <!-- ============ MARKETING ============ -->
     <section class="page" id="page-marketing">
       <div class="card-head" style="margin-bottom:14px">
-        <div><h2 class="serif" style="font-size:1.4rem;color:var(--brown-deep)">📢 Marketing — <span id="mktTopMonth">Tháng 6/2026</span></h2><div class="sub" style="font-size:.85rem">Tháng mới nhất ở trên · các tháng trước xem ở cuối trang</div></div>
+        <div><h2 class="serif" style="font-size:1.4rem;color:var(--brown-deep)">📢 Marketing — <span id="mktTopMonth">Tháng 6/2026</span></h2><div class="sub" style="font-size:.85rem">Bấm chọn tháng để xem báo cáo tháng đó</div></div>
       </div>
+      <div id="mktMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
       <div class="grid kpi-grid" id="mktKpiGrid">
         <div class="kpi k2"><div class="ic">💰</div><div class="label">Chi phí quảng cáo</div><div class="val">—</div><div class="delta">Kết nối Data Hub</div></div>
         <div class="kpi k1"><div class="ic">💬</div><div class="label">Mess về</div><div class="val">—</div><div class="delta">Tin nhắn từ ads</div></div>
@@ -1094,14 +1067,6 @@
       <div class="card" style="margin-top:16px">
         <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div><div class="sub" id="mktSyncStatus" style="font-size:.74rem;margin-top:2px"></div></div></div>
         <div id="mktDaily"><div class="sub" style="text-align:center;padding:24px">Đang nạp số liệu quảng cáo…</div></div>
-      </div>
-
-      <div class="card" style="margin-top:16px;border:1px solid #E8C25A;background:linear-gradient(135deg,#FFF8EC,#FBEFD8)">
-        <div class="card-head" style="border:0;padding:0;margin-bottom:0;align-items:center">
-          <div><h2 style="font-size:1.1rem">📅 Các tháng trước</h2><div class="sub" style="font-size:.82rem">Tháng 5 · 4 · 3 · 2 · 1/2026 · 12/2025 — bấm để xem hàng loạt</div></div>
-          <button class="btn" id="mktMoreBtn" onclick="loadPrevMonths()" style="white-space:nowrap">📂 Xem các tháng trước</button>
-        </div>
-        <div id="mktPrevMonths" style="margin-top:6px"></div>
       </div>
 
       <div class="row r-2-1" style="margin-top:16px">
@@ -3143,9 +3108,61 @@ async function apptLoad(force){
     if(tb) tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
   }finally{ APPTS.loading = false; }
 }
+/* ===== Tab chọn tháng cho Lịch hẹn — bấm tháng nào lọc lịch hẹn tháng đó ===== */
+function buildApptMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[{key:'all',label:'Tất cả'}];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const APPT_MONTHS = buildApptMonths();
+let apptMonthFilter = 'all';
+function renderApptMonthTabs(){
+  const el=document.getElementById('apptMonthTabs'); if(!el) return;
+  el.innerHTML = APPT_MONTHS.map(m=>`<button class="btn ${apptMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectApptMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectApptMonth(key){
+  apptMonthFilter = key;
+  renderAppointments();
+}
+window.selectApptMonth = selectApptMonth;
+/* ===== Khung "Lịch hẹn hôm nay" — luôn ưu tiên hiện ở đầu trang, không phụ thuộc tab tháng ===== */
+function renderApptToday(){
+  const box=document.getElementById('apptTodayList'); if(!box) return;
+  const p=n=>String(n).padStart(2,'0');
+  const now=new Date();
+  const todayIso=now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate());
+  const today=(APPTS.rows||[]).filter(a=>a.appt_date===todayIso).sort((a,b)=>(a.appt_time||'').localeCompare(b.appt_time||''));
+  const badge=document.getElementById('apptTodayBadge'); if(badge) badge.textContent=today.length;
+  const sub=document.getElementById('apptTodaySub'); if(sub) sub.textContent = today.length ? today.length+' lịch hôm nay' : 'Không có lịch hẹn nào hôm nay';
+  if(!today.length){ box.innerHTML='<div style="padding:14px 4px;text-align:center;color:var(--muted)">🎉 Không có lịch hẹn nào hôm nay</div>'; return; }
+  box.innerHTML = today.map(a=>{
+    const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+    return `<div class="clickable" onclick='openModal("appt-detail",${ctxJson})' style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)">
+      <b style="min-width:48px;color:var(--orange-deep)">${a.appt_time||'—'}</b>
+      <span class="avatar" style="background:var(--grad);width:34px;height:34px;font-size:.85rem;flex:none">${init}</span>
+      <div style="flex:1;min-width:0"><b style="display:block">${pgEscHtml(a.full_name)}</b><span style="font-size:.78rem;color:var(--muted)">${pgEscHtml(a.service)||'—'}${a.staff?(' · '+pgEscHtml(a.staff)):''}</span></div>
+      ${apptStatusPill(a.status)}
+      <div onclick="event.stopPropagation()" style="display:flex;gap:6px;flex:none">
+        ${a.status!=='den'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','den')">✅ Đến</button>`:''}
+        ${a.status!=='cho'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','cho')">⏳ Chưa</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderAppointments(){
   const tb=document.getElementById('apptRows'); if(!tb) return;
-  const all=APPTS.rows||[]; const note=document.getElementById('apptNote');
+  renderApptMonthTabs();
+  renderApptToday();
+  const raw=APPTS.rows||[];
+  const all = apptMonthFilter==='all' ? raw : raw.filter(a=>String(a.appt_date||'').slice(0,7)===apptMonthFilter);
+  const note=document.getElementById('apptNote');
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   const den=all.filter(a=>a.status==='den'), cho=all.filter(a=>a.status==='cho'), huy=all.filter(a=>a.status==='huy');
   set('apptK1', all.length); set('apptK2', den.length); set('apptK2d', all.length?Math.round(den.length/all.length*100)+'% lịch':'—');
@@ -3154,7 +3171,7 @@ function renderAppointments(){
   const filt=document.getElementById('apptFilter')?.value||'';
   const list=all.filter(a=> (!search || (a.full_name||'').toLowerCase().includes(search) || (a.phone&&a.phone.includes(search)) || (a.service||'').toLowerCase().includes(search))
     && (!filt || a.status===filt));
-  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Chưa có lịch hẹn nào — thêm ở form phía trên</td></tr>'; if(note) note.textContent=''; return; }
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Chưa có lịch hẹn nào'+(apptMonthFilter==='all'?' — thêm ở form phía trên':' trong tháng này')+'</td></tr>'; if(note) note.textContent=''; return; }
   tb.innerHTML=list.map(a=>{ const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
     const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
     return `<tr class="clickable" onclick='openModal("appt-detail",${ctxJson})'>
@@ -3223,27 +3240,55 @@ async function syncOverviewAppts(){
   if(!APPTS.rows) await apptLoad();
   const all=APPTS.rows||[];
   const now=new Date(); const p=x=>String(x).padStart(2,'0'); const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
-  const todayIso=iso(now); const yestIso=iso(new Date(now.getTime()-86400000));
+  const todayIso=iso(now);
+  const monthPrefix=now.getFullYear()+'-'+p(now.getMonth()+1);
   const today=all.filter(a=>a.appt_date===todayIso).length;
-  const yest=all.filter(a=>a.appt_date===yestIso).length;
+  const monthTotal=all.filter(a=>String(a.appt_date||'').slice(0,7)===monthPrefix).length;
   valEl.textContent=today;
   const delEl=document.getElementById('ovApptDelta');
-  if(delEl){ if(yest>0){ const g=Math.round((today-yest)/yest*100); delEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'% so với hôm qua'; } else delEl.textContent=all.length+' lịch trong sổ'; }
+  if(delEl) delEl.textContent = monthTotal.toLocaleString('vi-VN')+' lịch hẹn tháng '+(now.getMonth()+1)+'/'+now.getFullYear();
   const b=document.getElementById('calBadge'); if(b) b.textContent=today;
 }
 
-/* ===== KPI THEO THÁNG HIỆN TẠI trên Tổng quan =====
+/* ===== Tab chọn tháng cho các khối "theo tháng" trên Tổng quan — mặc định tháng hiện tại,
+   tự động đổi khi qua tháng mới (tính theo ngày thật lúc tải trang, không hardcode). ===== */
+function buildOverviewMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const OV_MONTHS = buildOverviewMonths();
+let ovMonthFilter = OV_MONTHS[0].key;
+function renderOvMonthTabs(){
+  const el=document.getElementById('ovMonthTabs'); if(!el) return;
+  el.innerHTML = OV_MONTHS.map(m=>`<button class="btn ${ovMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectOvMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectOvMonth(key){
+  ovMonthFilter = key;
+  renderOvMonthTabs();
+  syncOverviewMonth();
+  syncOverviewNewCustomers();
+}
+window.selectOvMonth = selectOvMonth;
+
+/* ===== KPI THEO THÁNG ĐANG CHỌN trên Tổng quan =====
    · Tổng lead      → bảng web_leads (tab Lead Mới, Supabase), lọc theo tháng
-   · Chi phí ads    → báo cáo MKT tháng hiện tại (Google Sheet)
+   · Chi phí ads    → báo cáo MKT tháng tương ứng (Google Sheet)
    · Khách mới tới  → lịch hẹn được lễ tân xác nhận "Đã đến" trong tháng   */
 async function syncOverviewMonth(){
   const g=id=>document.getElementById(id);
   if(!g('ovLeadVal')) return;
-  const now=new Date(), y=now.getFullYear(), mo=now.getMonth()+1;
-  const p=n=>String(n).padStart(2,'0');
-  const prefix=y+'-'+p(mo);                       // "2026-07"
+  renderOvMonthTabs();
+  const prefix=ovMonthFilter;                      // "2026-07"
+  const [y,mo]=prefix.split('-').map(Number);
   const lbl='Tháng '+mo+'/'+y;
-  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
+  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
   const set=(id,v)=>{ const e=g(id); if(e) e.textContent=v; };
 
   // 1) Tổng lead trong tháng
@@ -3255,13 +3300,21 @@ async function syncOverviewMonth(){
     set('ovLeadDelta', LEADS_CACHE.length.toLocaleString('vi-VN')+' lead tất cả thời gian'+(arrived?(' · '+arrived+' đã tới'):''));
   }catch(e){ console.error('ov lead', e); }
 
-  // 2) Chi phí quảng cáo trong tháng
+  // 2) Chi phí quảng cáo & doanh thu từ quảng cáo trong tháng (tab Marketing)
   try{
-    const mk=await marketingMonth(MKT_MONTHS[0].tab);
+    const mktEntry = MKT_MONTHS.find(m=>m.k===lbl) || MKT_MONTHS[0];
+    const mk=await marketingMonth(mktEntry.tab);
     if(mk.ok){
       set('ovAdsVal', VND_FULL(mk.T.spend)+'₫');
       set('ovAdsDelta', mk.days.length+' ngày'+(mk.T.khach?(' · '+VND_FULL(Math.round(mk.T.spend/mk.T.khach))+'₫/khách đến'):''));
-    } else { set('ovAdsVal','—'); set('ovAdsDelta','Chưa có số liệu '+lbl); }
+      if(mk.hasRev){
+        set('ovAdsRevVal', VND_FULL(mk.T.rev)+'₫');
+        set('ovAdsRevDelta', mk.roas?('ROAS '+mk.roas.toFixed(2)+'×'):'chưa tính được ROAS');
+      } else { set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu doanh thu QC'); }
+    } else {
+      set('ovAdsVal','—'); set('ovAdsDelta','Chưa có số liệu '+lbl);
+      set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu '+lbl);
+    }
   }catch(e){ console.error('ov ads', e); }
 
   // 3) Khách mới đã tới trong tháng
@@ -3275,30 +3328,27 @@ async function syncOverviewMonth(){
 }
 window.syncOverviewMonth=syncOverviewMonth;
 
-/* ===== Khách mới tuần này (Tổng quan) — đếm qua Supabase, không cần tải cả danh sách ===== */
+/* ===== Khách mới theo tháng đang chọn (Tổng quan) — đếm lịch hẹn đã được lễ tân xác nhận "Đã đến".
+   Trước đây đếm theo created_at của bảng khách hàng, bị lẫn khách import hàng loạt nên sai số. ===== */
 async function syncOverviewNewCustomers(){
   const g=id=>document.getElementById(id);
   if(!g('ovNewCustVal')) return;
+  if(!APPTS.rows) await apptLoad();
   const p=n=>String(n).padStart(2,'0');
-  const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
-  const now=new Date();
-  const dow=(now.getDay()+6)%7;                 // 0 = Thứ Hai
-  const thisMon=new Date(now); thisMon.setHours(0,0,0,0); thisMon.setDate(thisMon.getDate()-dow);
-  const nextMon=new Date(thisMon); nextMon.setDate(thisMon.getDate()+7);
-  const lastMon=new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
-  try{
-    const [cur, prev]=await Promise.all([
-      crmApi({action:'count_new', from:iso(thisMon), to:iso(nextMon)}),
-      crmApi({action:'count_new', from:iso(lastMon), to:iso(thisMon)})
-    ]);
-    const n=cur.count||0, prevN=prev.count||0;
-    g('ovNewCustVal').textContent=n.toLocaleString('vi-VN');
-    const d=g('ovNewCustDelta');
-    if(d){
-      if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tuần trước'; }
-      else d.textContent=n?('so với 0 tuần trước'):'Chưa có khách mới tuần này';
-    }
-  }catch(e){ console.error('ov new customers', e); }
+  const thisPrefix=ovMonthFilter;
+  const [y,mo]=thisPrefix.split('-').map(Number);
+  const lbl5=document.getElementById('ovMonthLbl5'); if(lbl5) lbl5.textContent='tháng '+mo+'/'+y;
+  const prevD=new Date(y, mo-2, 1);                // mo là 1-based; tháng liền trước tháng đang chọn
+  const prevPrefix=prevD.getFullYear()+'-'+p(prevD.getMonth()+1);
+  const all=APPTS.rows||[];
+  const countArrived=prefix=>all.filter(a=>a.status==='den' && String(a.appt_date||'').slice(0,7)===prefix).length;
+  const n=countArrived(thisPrefix), prevN=countArrived(prevPrefix);
+  g('ovNewCustVal').textContent=n.toLocaleString('vi-VN');
+  const d=g('ovNewCustDelta');
+  if(d){
+    if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tháng trước'; }
+    else d.textContent=n?('so với 0 tháng trước'):'Chưa có khách đến tháng '+mo+'/'+y;
+  }
 }
 window.syncOverviewNewCustomers=syncOverviewNewCustomers;
 
@@ -3708,6 +3758,12 @@ function syncOverviewRevenue(){
       if(M.hasBook) del.textContent = 'Lãi thật '+trShort(M.profit)+' · biên '+M.margin.toFixed(1)+'%';
       else del.textContent = M.roas?('ROAS '+M.roas.toFixed(2)+'× · '+M.days.length+' ngày'):(M.days.length+' ngày dữ liệu');
     }
+  }
+  const costLab=gel('ovCostLabel'), costVal=gel('ovCostVal'), costDel=gel('ovCostDelta');
+  if(costVal && M.cost>0){
+    if(costLab) costLab.textContent = M.hasBook?'Tổng chi vận hành':'Chi phí quảng cáo';
+    costVal.textContent = trShort(M.cost);
+    if(costDel) costDel.textContent = (M.revenue?((M.cost/M.revenue*100).toFixed(1)+'% doanh thu'):'—') + (M.hasBook?' · gồm lương/mặt bằng/QC':'');
   }
 }
 let mktChart, MKT_DAYS=null;
@@ -4887,8 +4943,21 @@ async function marketingMonth(tab){
   if(!mk) return {T:{spend:0,mess:0,sdt:0,khach:0,lead:0,rev:0},days:[],hasFunnel:false,hasLead:false,hasRev:false,roas:0,ok:false};
   return {T:{spend:mk.totSpend,mess:mk.totMess,sdt:mk.totSdt,khach:mk.totKhach,lead:mk.totLead,rev:mk.totRev},days:mk.days,hasFunnel:mk.hasFunnel,hasLead:mk.hasLead,hasRev:mk.hasRev,roas:mk.totSpend?(mk.totRev/mk.totSpend):0,ok:true};
 }
+/* ===== Tab chọn tháng cho Marketing — bấm tháng nào hiện báo cáo tháng đó ===== */
+let mktMonthFilter = MKT_MONTHS[0].tab;
+function renderMktMonthTabs(){
+  const el=document.getElementById('mktMonthTabs'); if(!el) return;
+  el.innerHTML = MKT_MONTHS.map(m=>`<button class="btn ${mktMonthFilter===m.tab?'sm':'ghost sm'}" onclick="selectMktMonth('${m.tab}')">${m.k.replace('Tháng ','Th ')}</button>`).join('');
+}
+function selectMktMonth(tab){
+  mktMonthFilter = tab;
+  renderMktMonthTabs();
+  renderMarketing();
+}
+window.selectMktMonth = selectMktMonth;
 async function renderMarketing(){
-  const cur=MKT_MONTHS[0];                 // luôn hiện tháng hiện tại trên đầu
+  renderMktMonthTabs();
+  const cur=MKT_MONTHS.find(m=>m.tab===mktMonthFilter) || MKT_MONTHS[0];
   const monthKey=cur.k;
   const topEl=document.getElementById('mktTopMonth'); if(topEl) topEl.textContent=monthKey;
   const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.tab);
@@ -4998,32 +5067,6 @@ async function syncMarketingToSupabase(monthKey, days, silent){
     if(!silent) mktSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
   }
 }
-async function loadPrevMonths(){
-  const box=document.getElementById('mktPrevMonths'), btn=document.getElementById('mktMoreBtn'); if(!box) return;
-  if(btn){ btn.disabled=true; btn.textContent='⏳ Đang tải...'; }
-  const prev=MKT_MONTHS.slice(1); // T5 trở về trước
-  const data=await Promise.all(prev.map(m=>marketingMonth(m.tab).then(d=>({m,d})).catch(()=>({m,d:null}))));
-  // Sao lưu luôn các tháng cũ vào Supabase (chạy nền, không báo trạng thái để khỏi rối)
-  data.forEach(({m,d})=>{ if(d&&d.ok) syncMarketingToSupabase(m.k, d.days, true); });
-  const chip=(label,val,color)=>`<div style="border:1px dashed var(--line);border-radius:10px;padding:8px 12px;min-width:92px"><div class="sub" style="font-size:.68rem">${label}</div><div style="font-weight:800;font-size:.96rem;color:${color||'#3B2113'}">${val}</div></div>`;
-  box.innerHTML=data.map(({m,d})=>{
-    if(!d||!d.ok){ return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:#FBF6F1"><b style="color:var(--brown-deep)">${m.k}</b> <span class="sub" style="font-size:.74rem">— chưa có dữ liệu</span></div>`; }
-    const T=d.T;
-    let chips=chip('Chi phí', T.spend?VND_FULL(T.spend)+'₫':'—','#A8231C')+chip('Mess',(T.mess||0).toLocaleString('vi-VN'));
-    if(d.hasLead) chips+=chip('Lead',(T.lead||0).toLocaleString('vi-VN'));
-    chips+=chip('SĐT',(T.sdt||0).toLocaleString('vi-VN'))+chip('Khách',(T.khach||0).toLocaleString('vi-VN'));
-    if(d.hasRev) chips+=chip('Doanh số',VND_FULL(T.rev)+'₫','#0B6E4F')+chip('ROAS',(d.roas||0).toFixed(2)+'×','#1B5E20');
-    return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:linear-gradient(135deg,#fff,#FBF6F1)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:6px">
-        <b style="color:var(--brown-deep);font-size:1.06rem">${m.k}</b>
-        <span class="sub" style="font-size:.72rem">${d.days.length} ngày${d.hasRev?'':' · định dạng cũ (Mess + Chi phí)'}</span></div>
-      <div style="display:flex;gap:9px;flex-wrap:wrap">${chips}</div>
-    </div>`;
-  }).join('');
-  if(btn){ btn.style.display='none'; }
-}
-window.loadPrevMonths=loadPrevMonths;
-
 window.addDataSource=addDataSource; window.removeDataSource=removeDataSource;
 window.refreshSource=refreshSource; window.refreshAllSheets=refreshAllSheets; window.previewSource=previewSource;
 window.renderMarketing=renderMarketing; window.renderRevenue=renderRevenue; window.setRevTarget=setRevTarget; window.syncOverviewRevenue=syncOverviewRevenue;
