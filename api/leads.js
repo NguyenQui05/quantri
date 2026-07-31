@@ -49,6 +49,20 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // Vercel Cron gọi GET 1 lần/ngày để đồng bộ lead mới từ Google Sheet "trực page" nhập.
+  // Vercel tự thêm header Authorization: Bearer $CRON_SECRET khi gọi cron — không ai khác đoán được.
+  if (req.method === 'GET' && String(req.query?.cron || '') === 'sync_sheet') {
+    const secret = process.env.CRON_SECRET;
+    const auth = req.headers.authorization || '';
+    if (!secret || auth !== `Bearer ${secret}`) return res.status(401).json({ error: 'unauthorized' });
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      return res.status(500).json({ error: 'Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_KEY trên máy chủ' });
+    }
+    try { return await syncFromSheet(res); }
+    catch (e) { console.error('sync_sheet error:', e?.message || e); return res.status(500).json({ error: String(e?.message || e) }); }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   let body;
@@ -76,6 +90,95 @@ export default async function handler(req, res) {
     console.error('leads api error:', e?.message || e);
     return res.status(500).json({ error: String(e?.message || e) });
   }
+}
+
+// ===== Đồng bộ lead từ Google Sheet "trực page" nhập (chạy 1 lần/ngày qua Vercel Cron) =====
+// Sheet: DATA TM HaNa chuẩn nhất — mỗi tháng 1 tab riêng, vd "DATA T8/2026".
+// Đổi hằng số bên dưới mỗi khi sang tháng mới (tab sheet mới do các bạn trực page tạo).
+const LEAD_SHEET_ID = '1xivkZTZ58ShcnMdwRvt9S7ZD89Lc9Ww-gS8VYa2fdcQ';
+const LEAD_SHEET_TAB = 'DATA T8/2026';
+
+const STATUS_MAP = {
+  'đã mua dịch vụ': 'arrived', 'đến nhưng ko mua': 'arrived', 'khách cũ đá ghé làm rồi': 'arrived',
+  'đã đặt lịch': 'appointment', 'bom lịch': 'appointment',
+  'sắp xếp': 'contacted', 'tham khảo': 'contacted', 'knm': 'contacted', 'hết nhu cầu': 'contacted',
+  'tỉnh xa': 'contacted', 'sai sdt': 'contacted', 'thuê bao': 'contacted'
+};
+function mapStatus(s) { return STATUS_MAP[String(s || '').trim().toLowerCase()] || 'contacted'; }
+function normPhone(raw) {
+  const d = String(raw == null ? '' : raw).replace(/\D/g, '');
+  if (!d) return '';
+  return d.length === 9 ? '0' + d : d;
+}
+// gviz trả ngày dạng "Date(2026,7,1)" — tháng đếm từ 0 (7 = tháng 8)
+function parseGvizDate(v) {
+  if (v == null) return null;
+  const m = String(v).match(/^Date\((\d+),(\d+),(\d+)/);
+  if (!m) return null;
+  const y = +m[1], mo = +m[2] + 1, d = +m[3];
+  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+async function syncFromSheet(res) {
+  const url = `https://docs.google.com/spreadsheets/d/${LEAD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(LEAD_SHEET_TAB)}`;
+  const sheetRes = await fetch(url);
+  const text = await sheetRes.text();
+  const s = text.indexOf('{'), e = text.lastIndexOf('}') + 1;
+  if (s < 0 || e <= s) return res.status(502).json({ error: 'Không đọc được Google Sheet — kiểm tra đã chia sẻ "Bất kỳ ai có link" chưa' });
+  const data = JSON.parse(text.slice(s, e));
+  if (data.status === 'error') return res.status(502).json({ error: (data.errors || []).map(x => x.detailed_message || x.message).join('; ') || 'Sheet lỗi quyền truy cập' });
+
+  const rows = data.table?.rows || [];
+  const get = (r, i) => { const c = r.c && r.c[i]; return c ? c.v : null; };
+
+  const candidates = [];
+  for (const r of rows) {
+    const name = String(get(r, 4) || '').replace(/^[,\s]+/, '').trim();
+    const phone = normPhone(get(r, 5));
+    if (!name || !phone) continue;
+    const leadDate = parseGvizDate(get(r, 0));
+    const nvAds = String(get(r, 2) || '').trim();
+    const telesale = String(get(r, 3) || '').trim();
+    const diaChi = String(get(r, 8) || '').trim();
+    const ngayHen = get(r, 10);
+    const trangThai = String(get(r, 11) || '').trim();
+    const ghiChu = String(get(r, 12) || '').trim();
+    const noteParts = [];
+    if (diaChi) noteParts.push('Địa chỉ: ' + diaChi);
+    if (telesale) noteParts.push('Telesale: ' + telesale);
+    if (nvAds) noteParts.push('NV Ads: ' + nvAds);
+    if (trangThai) noteParts.push('Trạng thái gốc: ' + trangThai);
+    if (ghiChu) noteParts.push(ghiChu);
+    candidates.push({
+      name: name.slice(0, 80), phone, service: String(get(r, 7) || '').trim().slice(0, 200),
+      age: String(get(r, 6) || '').trim().slice(0, 10) || null,
+      source: 'Facebook', status: mapStatus(trangThai),
+      note: noteParts.join(' | ').slice(0, 500),
+      slot: ngayHen ? (parseGvizDate(ngayHen) || String(ngayHen).slice(0, 60)) : null,
+      lead_date: leadDate
+    });
+  }
+  if (!candidates.length) return res.status(200).json({ ok: true, checked: 0, inserted: 0, skipped: 0 });
+
+  // Chặn nhập trùng: sheet không tự xoá dòng cũ, cron chạy mỗi ngày nên phải bỏ qua
+  // những khách (SĐT + ngày thả số) đã có sẵn trong hệ thống từ lần đồng bộ trước.
+  const existP = new URLSearchParams();
+  existP.set('select', 'phone,lead_date');
+  existP.set('phone', `in.(${candidates.map(c => `"${c.phone}"`).join(',')})`);
+  const existR = await fetch(sb(`${TABLE}?${existP.toString()}`), { headers: sbHeaders() });
+  const existRows = existR.ok ? await existR.json() : [];
+  const existSet = new Set((existRows || []).map(x => `${x.phone}|${x.lead_date}`));
+
+  const toInsert = candidates.filter(c => !existSet.has(`${c.phone}|${c.lead_date}`));
+  let inserted = 0;
+  const CHUNK = 200;
+  for (let i = 0; i < toInsert.length; i += CHUNK) {
+    const batch = toInsert.slice(i, i + CHUNK);
+    const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(batch) });
+    if (r.ok) inserted += batch.length;
+    else console.error('sync insert batch lỗi:', await r.text().catch(() => ''));
+  }
+  return res.status(200).json({ ok: true, checked: candidates.length, inserted, skipped: candidates.length - toInsert.length });
 }
 
 async function publicCreateLead(res, req, body) {

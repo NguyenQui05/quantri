@@ -115,5 +115,8 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
+  ],
+  "crons": [
+    { "path": "/api/leads?cron=sync_sheet", "schedule": "0 1 * * *" }
   ]
 }
