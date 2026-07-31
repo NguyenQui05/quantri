@@ -3635,7 +3635,9 @@ function revenueModel(){
 function renderRevenue(){
   const M=revenueModel();
   const alert=gel('revAlert'), grid=gel('revKpiGrid');
-  const hasAny = M.cost>0 || M.revenue>0;
+  // Có nguồn thật kết nối (SỔ THU/CHI hoặc sheet lợi nhuận) thì luôn coi là "có dữ liệu",
+  // dù tổng tháng hiện đang đúng bằng 0 (vd đầu tháng chưa có ca) — không hiện nhầm "chưa kết nối".
+  const hasAny = M.cost>0 || M.revenue>0 || M.hasBook || M.profitRecordedFlag;
   if(alert){
     if(!hasAny) alert.innerHTML='<div class="alert info"><span class="ic">ℹ️</span><div>Chưa có dữ liệu doanh thu/chi phí. Vào <b>Data Hub</b> kết nối Google Sheet (loại <b>💰 Doanh thu</b>, <b>📢 Quảng cáo</b>, <b>📈 Lợi nhuận</b>) rồi bấm <b>Đồng bộ</b>.</div></div>';
     else if(M.hasBook) alert.innerHTML='<div class="alert success" style="margin-bottom:14px"><span class="ic">✅</span><div>Doanh thu &amp; lợi nhuận lấy <b>trực tiếp từ SỔ THU/CHI</b> — lợi nhuận đã trừ <b>toàn bộ chi phí vận hành</b> (mặt bằng, lương, vật tư, quảng cáo…), là <b>lãi thật</b> chứ không phải số tạm tính. Tự cập nhật khi mở trang.</div></div>';
