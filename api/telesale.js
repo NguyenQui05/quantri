@@ -50,15 +50,15 @@ export default async function handler(req, res) {
     if (action === 'import')      return await importLeads(res, body);
     if (action === 'distribute')  return await distribute(res, body);
     if (action === 'update')      return await updateLead(res, body);
-    if (action === 'delete')      return await deleteLead(res, body);
-    if (action === 'clear')       return await clearAll(res, body);
+    if (action === 'delete')      return await deleteLead(res, body, sess);
+    if (action === 'clear')       return await clearAll(res, body, sess);
     if (action === 'calls')       return await listCalls(res, body);
     if (action === 'call_add')    return await addCall(res, body, sess);
     if (action === 'call_update') return await updateCall(res, body);
-    if (action === 'call_delete') return await deleteCall(res, body);
+    if (action === 'call_delete') return await deleteCall(res, body, sess);
     if (action === 'staff_list')  return await listStaff(res, body);
     if (action === 'staff_add')   return await addStaff(res, body);
-    if (action === 'staff_delete')return await deleteStaff(res, body);
+    if (action === 'staff_delete')return await deleteStaff(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('telesale api error:', e?.message || e);
@@ -239,7 +239,8 @@ async function updateLead(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteLead(res, body) {
+async function deleteLead(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
@@ -247,8 +248,9 @@ async function deleteLead(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-// Xoá toàn bộ (làm mới danh sách) — cần xác nhận từ client
-async function clearAll(res, body) {
+// Xoá toàn bộ (làm mới danh sách) — cần xác nhận từ client, và chỉ Toàn quyền kiểm soát
+async function clearAll(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   if (body.confirm !== 'XOA_TAT_CA') return res.status(400).json({ error: 'Cần xác nhận' });
   const r = await fetch(sb(`${TABLE}?id=neq.00000000-0000-0000-0000-000000000000`), {
     method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' })
@@ -318,7 +320,8 @@ async function updateCall(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteCall(res, body) {
+async function deleteCall(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${CALLS}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
@@ -350,7 +353,8 @@ async function addStaff(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteStaff(res, body) {
+async function deleteStaff(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${STAFF}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });

@@ -3691,12 +3691,18 @@ const REV_HISTORY = [
 ];
 let revMonthChart=null;
 function revMonthFmt(v){ return v>=1e9 ? (v/1e9).toFixed(2).replace('.',',')+' tỷ' : Math.round(v/1e6)+'tr'; }
+// Tháng "đang chạy" tính từ đồng hồ máy — không hardcode, để không bị đơ lại 1 tháng như trước.
+function currentMonthLabel(){ const d=new Date(); return 'T'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2); }
 function renderRevMonths(M){
   const cv=document.getElementById('chartRevMonths'); if(!cv) return;
   if(!M){ try{ M=revenueModel(); }catch(e){ M=null; } }
-  const juneRev = (M && M.hasBook && M.revenue>0) ? M.revenue : 47880000;
-  const juneProfit = (M && M.hasBook && M.profit) ? M.profit : 34534000;
-  const months = REV_HISTORY.concat([{m:'T6/26', v:juneRev, p:juneProfit, live:true}]);
+  const liveLabel = currentMonthLabel();
+  const liveRev = (M && M.hasBook) ? M.revenue : 0;
+  const liveProfit = (M && M.hasBook) ? M.profit : null;
+  // Nếu tháng hiện tại đã có sẵn trong REV_HISTORY (đã chốt sổ thủ công) thì khỏi nối thêm, tránh trùng cột.
+  const months = REV_HISTORY.some(x=>x.m===liveLabel)
+    ? REV_HISTORY
+    : REV_HISTORY.concat([{m:liveLabel, v:liveRev, p:liveProfit, live:true}]);
   const peak = Math.max.apply(null, months.map(x=>x.v));
   if(revMonthChart){ revMonthChart.destroy(); revMonthChart=null; }
   if(window.Chart){
@@ -4708,17 +4714,13 @@ function previewSource(id){
   modalBg.classList.add('show');
 }
 
-// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng và hay đổi tab lên đầu TRƯỚC khi qua tháng mới —
-// nếu đọc "tab đầu tiên" (gid:null) sẽ ăn nhầm số tháng sau khi chưa tới ngày thật.
-// Nên tra theo THÁNG THẬT (đồng hồ máy) → đúng gid, tự chuyển lúc sang tháng, không cần sửa tay giữa đêm.
-// Thêm dòng mới mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
-const REVENUE_BOOK_GID_BY_MONTH = {
-  '2026-07': '797748578',   // DOANH THU T72026
-  '2026-08': '0'            //   DOANH THU T82026
-};
-function currentRevenueBookGid(){
-  const d=new Date(), key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  return REVENUE_BOOK_GID_BY_MONTH[key] || null;   // chưa cấu hình tháng đó → fallback tab đầu (gid:null)
+// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng, tên tab luôn theo đúng khuôn "DOANH THU T<tháng><năm>"
+// (vd "DOANH THU T72026", "DOANH THU T82026") — giống hệt khuôn tên tab của Marketing.
+// Tra theo THÁNG THẬT (đồng hồ máy) ra thẳng tên tab, tự chuyển lúc sang tháng mới,
+// không cần sửa code/deploy lại mỗi tháng như cách gán gid thủ công trước đây.
+function currentRevenueBookTab(){
+  const d=new Date();
+  return 'DOANH THU T'+(d.getMonth()+1)+d.getFullYear();
 }
 const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
@@ -4729,7 +4731,7 @@ const SEED_SOURCES = [
     cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
-    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
+    cat:'doanhthu', book:'thuchi', tab:currentRevenueBookTab(), sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
   { id:'DSKH', name:'Danh sách khách hàng (tổng)',
     url:'https://docs.google.com/spreadsheets/d/1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo',
     cat:'data', tab:null, sheetId:'1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo', gid:null },
@@ -4750,7 +4752,7 @@ const SEED_SOURCES = [
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
   '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
-  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
+  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:currentRevenueBookTab(), gid:null, name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
@@ -5278,7 +5280,9 @@ function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||
 function sessSet(s){ try{localStorage.setItem('hana_session',JSON.stringify(s));}catch(e){} }
 function curRole(){ const s=sessGet(); return (s&&s.role)||'Toàn quyền kiểm soát'; }
 function canDelete(){ return curRole()==='Toàn quyền kiểm soát'; }
-function roleCanSee(section){ const role=curRole(); const allowed=ROLE_MENUS[role]||'*'; if(ROLE_OWNER_ONLY.indexOf(section)>=0 && role!=='Toàn quyền kiểm soát') return false; return allowed==='*'||allowed.indexOf(section)>=0; }
+// Vai trò không có trong ROLE_MENUS (gõ sai, hoặc tài khoản cũ còn role đã đổi tên) -> KHÔNG được xem gì
+// (an toàn hơn), thay vì mặc định cho xem hết như trước.
+function roleCanSee(section){ const role=curRole(); const allowed=ROLE_MENUS[role]||[]; if(ROLE_OWNER_ONLY.indexOf(section)>=0 && role!=='Toàn quyền kiểm soát') return false; return allowed==='*'||allowed.indexOf(section)>=0; }
 // Trang đầu tiên vai trò được phép xem — dùng làm chỗ "rớt về" thay vì ép cứng 'dashboard'
 // (có vai trò như Marketing không được xem Tổng quan, ép về đó sẽ kẹt màn hình).
 function roleFirstSection(){ const role=curRole(); const allowed=ROLE_MENUS[role]; if(!allowed||allowed==='*') return 'dashboard'; return allowed[0]||'dashboard'; }

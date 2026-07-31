@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     if (action === 'create')        return await createLead(res, body);
     if (action === 'update_status') return await updateStatus(res, body);
     if (action === 'update')        return await updateLead(res, body);
-    if (action === 'delete')        return await deleteLead(res, body);
+    if (action === 'delete')        return await deleteLead(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('leads api error:', e?.message || e);
@@ -284,7 +284,8 @@ async function updateLead(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteLead(res, body) {
+async function deleteLead(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });

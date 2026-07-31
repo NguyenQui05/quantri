@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     if (action === 'mark_status')      return await markStatus(res, body, sess);
     if (action === 'mark_consulted')   return await markConsulted(res, body, sess);
     if (action === 'mark_tour_logged') return await markTourLogged(res, body);
-    if (action === 'delete')           return await deleteAppt(res, body);
+    if (action === 'delete')           return await deleteAppt(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('appointments api error:', e?.message || e);
@@ -220,7 +220,8 @@ async function markTourLogged(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteAppt(res, body) {
+async function deleteAppt(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });

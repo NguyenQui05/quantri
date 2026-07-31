@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     if (action === 'list')       return await listEntries(res, body);
     if (action === 'create')     return await createEntry(res, body, sess);
     if (action === 'update')     return await updateEntry(res, body);
-    if (action === 'delete')     return await deleteEntry(res, body);
+    if (action === 'delete')     return await deleteEntry(res, body, sess);
     if (action === 'save_rates') return await saveRates(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
@@ -163,7 +163,8 @@ async function updateEntry(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteEntry(res, body) {
+async function deleteEntry(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
