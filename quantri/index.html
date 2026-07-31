@@ -1079,8 +1079,9 @@
     <!-- ============ MARKETING ============ -->
     <section class="page" id="page-marketing">
       <div class="card-head" style="margin-bottom:14px">
-        <div><h2 class="serif" style="font-size:1.4rem;color:var(--brown-deep)">📢 Marketing — <span id="mktTopMonth">Tháng 6/2026</span></h2><div class="sub" style="font-size:.85rem">Tháng mới nhất ở trên · các tháng trước xem ở cuối trang</div></div>
+        <div><h2 class="serif" style="font-size:1.4rem;color:var(--brown-deep)">📢 Marketing — <span id="mktTopMonth">Tháng 6/2026</span></h2><div class="sub" style="font-size:.85rem">Bấm chọn tháng để xem báo cáo tháng đó</div></div>
       </div>
+      <div id="mktMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
       <div class="grid kpi-grid" id="mktKpiGrid">
         <div class="kpi k2"><div class="ic">💰</div><div class="label">Chi phí quảng cáo</div><div class="val">—</div><div class="delta">Kết nối Data Hub</div></div>
         <div class="kpi k1"><div class="ic">💬</div><div class="label">Mess về</div><div class="val">—</div><div class="delta">Tin nhắn từ ads</div></div>
@@ -1093,14 +1094,6 @@
       <div class="card" style="margin-top:16px">
         <div class="card-head"><div><h2>📊 Báo cáo quảng cáo theo ngày</h2><div class="sub" id="mktReportSub">Số liệu thật từ Google Sheet</div><div class="sub" id="mktSyncStatus" style="font-size:.74rem;margin-top:2px"></div></div></div>
         <div id="mktDaily"><div class="sub" style="text-align:center;padding:24px">Đang nạp số liệu quảng cáo…</div></div>
-      </div>
-
-      <div class="card" style="margin-top:16px;border:1px solid #E8C25A;background:linear-gradient(135deg,#FFF8EC,#FBEFD8)">
-        <div class="card-head" style="border:0;padding:0;margin-bottom:0;align-items:center">
-          <div><h2 style="font-size:1.1rem">📅 Các tháng trước</h2><div class="sub" style="font-size:.82rem">Tháng 5 · 4 · 3 · 2 · 1/2026 · 12/2025 — bấm để xem hàng loạt</div></div>
-          <button class="btn" id="mktMoreBtn" onclick="loadPrevMonths()" style="white-space:nowrap">📂 Xem các tháng trước</button>
-        </div>
-        <div id="mktPrevMonths" style="margin-top:6px"></div>
       </div>
 
       <div class="row r-2-1" style="margin-top:16px">
@@ -4857,8 +4850,21 @@ async function marketingMonth(tab){
   if(!mk) return {T:{spend:0,mess:0,sdt:0,khach:0,lead:0,rev:0},days:[],hasFunnel:false,hasLead:false,hasRev:false,roas:0,ok:false};
   return {T:{spend:mk.totSpend,mess:mk.totMess,sdt:mk.totSdt,khach:mk.totKhach,lead:mk.totLead,rev:mk.totRev},days:mk.days,hasFunnel:mk.hasFunnel,hasLead:mk.hasLead,hasRev:mk.hasRev,roas:mk.totSpend?(mk.totRev/mk.totSpend):0,ok:true};
 }
+/* ===== Tab chọn tháng cho Marketing — bấm tháng nào hiện báo cáo tháng đó ===== */
+let mktMonthFilter = MKT_MONTHS[0].tab;
+function renderMktMonthTabs(){
+  const el=document.getElementById('mktMonthTabs'); if(!el) return;
+  el.innerHTML = MKT_MONTHS.map(m=>`<button class="btn ${mktMonthFilter===m.tab?'sm':'ghost sm'}" onclick="selectMktMonth('${m.tab}')">${m.k.replace('Tháng ','Th ')}</button>`).join('');
+}
+function selectMktMonth(tab){
+  mktMonthFilter = tab;
+  renderMktMonthTabs();
+  renderMarketing();
+}
+window.selectMktMonth = selectMktMonth;
 async function renderMarketing(){
-  const cur=MKT_MONTHS[0];                 // luôn hiện tháng hiện tại trên đầu
+  renderMktMonthTabs();
+  const cur=MKT_MONTHS.find(m=>m.tab===mktMonthFilter) || MKT_MONTHS[0];
   const monthKey=cur.k;
   const topEl=document.getElementById('mktTopMonth'); if(topEl) topEl.textContent=monthKey;
   const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.tab);
@@ -4968,32 +4974,6 @@ async function syncMarketingToSupabase(monthKey, days, silent){
     if(!silent) mktSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
   }
 }
-async function loadPrevMonths(){
-  const box=document.getElementById('mktPrevMonths'), btn=document.getElementById('mktMoreBtn'); if(!box) return;
-  if(btn){ btn.disabled=true; btn.textContent='⏳ Đang tải...'; }
-  const prev=MKT_MONTHS.slice(1); // T5 trở về trước
-  const data=await Promise.all(prev.map(m=>marketingMonth(m.tab).then(d=>({m,d})).catch(()=>({m,d:null}))));
-  // Sao lưu luôn các tháng cũ vào Supabase (chạy nền, không báo trạng thái để khỏi rối)
-  data.forEach(({m,d})=>{ if(d&&d.ok) syncMarketingToSupabase(m.k, d.days, true); });
-  const chip=(label,val,color)=>`<div style="border:1px dashed var(--line);border-radius:10px;padding:8px 12px;min-width:92px"><div class="sub" style="font-size:.68rem">${label}</div><div style="font-weight:800;font-size:.96rem;color:${color||'#3B2113'}">${val}</div></div>`;
-  box.innerHTML=data.map(({m,d})=>{
-    if(!d||!d.ok){ return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:#FBF6F1"><b style="color:var(--brown-deep)">${m.k}</b> <span class="sub" style="font-size:.74rem">— chưa có dữ liệu</span></div>`; }
-    const T=d.T;
-    let chips=chip('Chi phí', T.spend?VND_FULL(T.spend)+'₫':'—','#A8231C')+chip('Mess',(T.mess||0).toLocaleString('vi-VN'));
-    if(d.hasLead) chips+=chip('Lead',(T.lead||0).toLocaleString('vi-VN'));
-    chips+=chip('SĐT',(T.sdt||0).toLocaleString('vi-VN'))+chip('Khách',(T.khach||0).toLocaleString('vi-VN'));
-    if(d.hasRev) chips+=chip('Doanh số',VND_FULL(T.rev)+'₫','#0B6E4F')+chip('ROAS',(d.roas||0).toFixed(2)+'×','#1B5E20');
-    return `<div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:12px;background:linear-gradient(135deg,#fff,#FBF6F1)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:6px">
-        <b style="color:var(--brown-deep);font-size:1.06rem">${m.k}</b>
-        <span class="sub" style="font-size:.72rem">${d.days.length} ngày${d.hasRev?'':' · định dạng cũ (Mess + Chi phí)'}</span></div>
-      <div style="display:flex;gap:9px;flex-wrap:wrap">${chips}</div>
-    </div>`;
-  }).join('');
-  if(btn){ btn.style.display='none'; }
-}
-window.loadPrevMonths=loadPrevMonths;
-
 window.addDataSource=addDataSource; window.removeDataSource=removeDataSource;
 window.refreshSource=refreshSource; window.refreshAllSheets=refreshAllSheets; window.previewSource=previewSource;
 window.renderMarketing=renderMarketing; window.renderRevenue=renderRevenue; window.setRevTarget=setRevTarget; window.syncOverviewRevenue=syncOverviewRevenue;
