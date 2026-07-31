@@ -771,6 +771,7 @@
           <div><h2>Danh sách chờ tư vấn</h2><div class="sub">Bấm "Tư vấn chốt" để nhập dịch vụ + giá tiền, ca sẽ tự chuyển sang Tour phẫu thuật</div></div>
           <button class="btn ghost sm" onclick="renderNewCustomers()">🔄 Làm mới</button>
         </div>
+        <div id="ncMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 12px"></div>
         <table>
           <thead><tr><th>Khách</th><th>Dịch vụ dự kiến</th><th>Ngày đến</th><th>NV phụ trách</th><th>Hành động</th></tr></thead>
           <tbody id="ncRows"></tbody>
@@ -3350,26 +3351,47 @@ function tourPrefillFromAppt(a){
 window.tourPrefillFromAppt=tourPrefillFromAppt;
 
 /* ===== KHÁCH MỚI — tư vấn chốt dịch vụ + giá tiền cho khách đã đến ===== */
+let NC_ROWS_CACHE = [];
+let ncMonthFilter = (function(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); })();
+function ncRenderMonthTabs(){
+  const el=document.getElementById('ncMonthTabs'); if(!el) return;
+  el.innerHTML = LEAD_MONTHS.map(m=>`<button class="btn ${ncMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectNcMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectNcMonth(key){
+  ncMonthFilter = key;
+  ncRenderMonthTabs();
+  ncPaint();
+  syncQcRevenue();
+}
+window.selectNcMonth = selectNcMonth;
+function ncPaint(){
+  const tb=document.getElementById('ncRows'); if(!tb) return;
+  const rows = ncMonthFilter==='all' ? NC_ROWS_CACHE
+    : NC_ROWS_CACHE.filter(a=>String(a.appt_date||'').slice(0,7)===ncMonthFilter);
+  const k1=document.getElementById('ncK1'); if(k1) k1.textContent=rows.length.toLocaleString('vi-VN');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Không có khách nào đang chờ tư vấn.</td></tr>'; }
+  else tb.innerHTML=rows.map(a=>{
+    const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+    return `<tr>
+      <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(a.full_name||'?')}</b><span>${esc(a.phone||'')}</span></span></div></td>
+      <td>${esc(a.service)||'—'}</td>
+      <td>${esc(a.appt_date)||'—'} ${esc(a.appt_time)||''}</td>
+      <td>${esc(a.staff)||'—'}</td>
+      <td><button class="btn sm" onclick='openConsultModal(${ctxJson})'>📝 Tư vấn chốt</button></td>
+    </tr>`;
+  }).join('');
+}
 async function renderNewCustomers(){
   const tb=document.getElementById('ncRows'); if(!tb) return;
   tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  ncRenderMonthTabs();
   try{
     const d=await apptApi({action:'list_new'});
     const rows=d.rows||[];
+    NC_ROWS_CACHE = rows;
     const badge=document.getElementById('ncBadge'); if(badge) badge.textContent=rows.length;
-    const k1=document.getElementById('ncK1'); if(k1) k1.textContent=rows.length.toLocaleString('vi-VN');
-    if(!rows.length){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Không có khách nào đang chờ tư vấn.</td></tr>'; }
-    else tb.innerHTML=rows.map(a=>{
-      const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
-      const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
-      return `<tr>
-        <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(a.full_name||'?')}</b><span>${esc(a.phone||'')}</span></span></div></td>
-        <td>${esc(a.service)||'—'}</td>
-        <td>${esc(a.appt_date)||'—'} ${esc(a.appt_time)||''}</td>
-        <td>${esc(a.staff)||'—'}</td>
-        <td><button class="btn sm" onclick='openConsultModal(${ctxJson})'>📝 Tư vấn chốt</button></td>
-      </tr>`;
-    }).join('');
+    ncPaint();
   }catch(e){ tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
   syncQcRevenue();
 }
@@ -3405,15 +3427,23 @@ async function submitConsult(id){
 }
 async function syncQcRevenue(){
   const el=document.getElementById('ncK2'); if(!el) return;
-  const now=new Date(), p=n=>String(n).padStart(2,'0');
-  const from=now.getFullYear()+'-'+p(now.getMonth()+1)+'-01';
-  const nextM=new Date(now.getFullYear(), now.getMonth()+1, 1);
-  const to=nextM.getFullYear()+'-'+p(nextM.getMonth()+1)+'-'+p(nextM.getDate());
-  const lbl=document.getElementById('ncMonthLbl'); if(lbl) lbl.textContent='· Tháng '+(now.getMonth()+1)+'/'+now.getFullYear();
+  const p=n=>String(n).padStart(2,'0');
+  const lbl=document.getElementById('ncMonthLbl');
+  let from, to, lblTxt;
+  if(ncMonthFilter==='all'){
+    from='2025-12-01'; to='2100-01-01'; lblTxt='· Tất cả';
+  } else {
+    const [y,m]=ncMonthFilter.split('-').map(Number);
+    from=y+'-'+p(m)+'-01';
+    const nextM=new Date(y, m, 1);
+    to=nextM.getFullYear()+'-'+p(nextM.getMonth()+1)+'-'+p(nextM.getDate());
+    lblTxt='· Tháng '+m+'/'+y;
+  }
+  if(lbl) lbl.textContent=lblTxt;
   try{
     const d=await apptApi({action:'stats_qc', from, to});
     el.textContent=VND_FULL(d.total||0)+'₫';
-    const dd=document.getElementById('ncK2d'); if(dd) dd.textContent=(d.count||0)+' ca đã chốt tháng này';
+    const dd=document.getElementById('ncK2d'); if(dd) dd.textContent=(d.count||0)+' ca đã chốt'+(ncMonthFilter==='all'?'':' tháng này');
   }catch(e){ console.error('qc revenue', e); }
 }
 window.renderNewCustomers=renderNewCustomers;
