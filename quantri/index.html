@@ -565,9 +565,12 @@
       <!-- Storage info banner -->
       <div class="alert info" style="margin-bottom:14px;display:flex;align-items:center"><span class="ic">💾</span><div style="flex:1"><b>Dữ liệu lưu ở đâu?</b> <span id="storageInfo">Hiện đang lưu tại trình duyệt (localStorage) — gồm Task, KH thêm mới, ghi chú</span>. <a href="#" onclick="openModal('storage-help');return false" style="color:var(--orange-deep);font-weight:700">Tìm hiểu cách backup, export, kết nối DB ngoài →</a></div><button class="btn ghost sm" onclick="openModal('storage-help')">📖 Hướng dẫn</button></div>
 
+      <div class="sub" style="font-size:.8rem;margin-bottom:6px">📅 Xem số liệu theo tháng (áp dụng cho các khối có ghi "· Tháng")</div>
+      <div id="ovMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
       <div class="grid kpi-grid">
         <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val" id="ovApptVal">—</div><div class="delta" id="ovApptDelta">đang tải…</div><canvas id="sparkK1" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
-        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tháng này</div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới <span id="ovMonthLbl5" style="font-weight:600;color:var(--muted)">tháng này</span></div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label" id="ovRevLabel">Doanh thu</div><div class="val" id="ovRevVal">—</div><div class="delta" id="ovRevDelta">Kết nối Data Hub</div><canvas id="sparkK3" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k4" onclick="go('revenue')"><div class="ic">💳</div><div class="label" id="ovCostLabel">Tổng chi</div><div class="val" id="ovCostVal">—</div><div class="delta" id="ovCostDelta">Kết nối Data Hub</div></div>
       </div>
@@ -3246,16 +3249,43 @@ async function syncOverviewAppts(){
   const b=document.getElementById('calBadge'); if(b) b.textContent=today;
 }
 
-/* ===== KPI THEO THÁNG HIỆN TẠI trên Tổng quan =====
+/* ===== Tab chọn tháng cho các khối "theo tháng" trên Tổng quan — mặc định tháng hiện tại,
+   tự động đổi khi qua tháng mới (tính theo ngày thật lúc tải trang, không hardcode). ===== */
+function buildOverviewMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const OV_MONTHS = buildOverviewMonths();
+let ovMonthFilter = OV_MONTHS[0].key;
+function renderOvMonthTabs(){
+  const el=document.getElementById('ovMonthTabs'); if(!el) return;
+  el.innerHTML = OV_MONTHS.map(m=>`<button class="btn ${ovMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectOvMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectOvMonth(key){
+  ovMonthFilter = key;
+  renderOvMonthTabs();
+  syncOverviewMonth();
+  syncOverviewNewCustomers();
+}
+window.selectOvMonth = selectOvMonth;
+
+/* ===== KPI THEO THÁNG ĐANG CHỌN trên Tổng quan =====
    · Tổng lead      → bảng web_leads (tab Lead Mới, Supabase), lọc theo tháng
-   · Chi phí ads    → báo cáo MKT tháng hiện tại (Google Sheet)
+   · Chi phí ads    → báo cáo MKT tháng tương ứng (Google Sheet)
    · Khách mới tới  → lịch hẹn được lễ tân xác nhận "Đã đến" trong tháng   */
 async function syncOverviewMonth(){
   const g=id=>document.getElementById(id);
   if(!g('ovLeadVal')) return;
-  const now=new Date(), y=now.getFullYear(), mo=now.getMonth()+1;
-  const p=n=>String(n).padStart(2,'0');
-  const prefix=y+'-'+p(mo);                       // "2026-07"
+  renderOvMonthTabs();
+  const prefix=ovMonthFilter;                      // "2026-07"
+  const [y,mo]=prefix.split('-').map(Number);
   const lbl='Tháng '+mo+'/'+y;
   ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
   const set=(id,v)=>{ const e=g(id); if(e) e.textContent=v; };
@@ -3271,7 +3301,8 @@ async function syncOverviewMonth(){
 
   // 2) Chi phí quảng cáo & doanh thu từ quảng cáo trong tháng (tab Marketing)
   try{
-    const mk=await marketingMonth(MKT_MONTHS[0].tab);
+    const mktEntry = MKT_MONTHS.find(m=>m.k===lbl) || MKT_MONTHS[0];
+    const mk=await marketingMonth(mktEntry.tab);
     if(mk.ok){
       set('ovAdsVal', VND_FULL(mk.T.spend)+'₫');
       set('ovAdsDelta', mk.days.length+' ngày'+(mk.T.khach?(' · '+VND_FULL(Math.round(mk.T.spend/mk.T.khach))+'₫/khách đến'):''));
@@ -3296,17 +3327,18 @@ async function syncOverviewMonth(){
 }
 window.syncOverviewMonth=syncOverviewMonth;
 
-/* ===== Khách mới tháng này (Tổng quan) — đếm lịch hẹn đã được lễ tân xác nhận "Đã đến" trong tháng.
+/* ===== Khách mới theo tháng đang chọn (Tổng quan) — đếm lịch hẹn đã được lễ tân xác nhận "Đã đến".
    Trước đây đếm theo created_at của bảng khách hàng, bị lẫn khách import hàng loạt nên sai số. ===== */
 async function syncOverviewNewCustomers(){
   const g=id=>document.getElementById(id);
   if(!g('ovNewCustVal')) return;
   if(!APPTS.rows) await apptLoad();
   const p=n=>String(n).padStart(2,'0');
-  const prefixOf=d=>d.getFullYear()+'-'+p(d.getMonth()+1);
-  const now=new Date();
-  const thisPrefix=prefixOf(now);
-  const prevPrefix=prefixOf(new Date(now.getFullYear(), now.getMonth()-1, 1));
+  const thisPrefix=ovMonthFilter;
+  const [y,mo]=thisPrefix.split('-').map(Number);
+  const lbl5=document.getElementById('ovMonthLbl5'); if(lbl5) lbl5.textContent='tháng '+mo+'/'+y;
+  const prevD=new Date(y, mo-2, 1);                // mo là 1-based; tháng liền trước tháng đang chọn
+  const prevPrefix=prevD.getFullYear()+'-'+p(prevD.getMonth()+1);
   const all=APPTS.rows||[];
   const countArrived=prefix=>all.filter(a=>a.status==='den' && String(a.appt_date||'').slice(0,7)===prefix).length;
   const n=countArrived(thisPrefix), prevN=countArrived(prevPrefix);
@@ -3314,7 +3346,7 @@ async function syncOverviewNewCustomers(){
   const d=g('ovNewCustDelta');
   if(d){
     if(prevN>0){ const diff=n-prevN; d.textContent=(diff>=0?'▲ +':'▼ ')+Math.abs(diff)+' so với tháng trước'; }
-    else d.textContent=n?('so với 0 tháng trước'):'Chưa có khách đến tháng này';
+    else d.textContent=n?('so với 0 tháng trước'):'Chưa có khách đến tháng '+mo+'/'+y;
   }
 }
 window.syncOverviewNewCustomers=syncOverviewNewCustomers;
