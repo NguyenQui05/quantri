@@ -35,7 +35,7 @@ function sbHeaders(extra = {}) {
   return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...extra };
 }
 
-const VALID_ROLES = ['Toàn quyền kiểm soát', 'Lễ tân', 'Kỹ thuật viên', 'Bác sĩ', 'Phụ phẫu', 'Sale', 'Sale trực tiếp'];
+const VALID_ROLES = ['Toàn quyền kiểm soát', 'Lễ tân', 'Kỹ thuật viên', 'Bác sĩ', 'Phụ phẫu', 'Sale', 'Sale trực tiếp', 'Marketing'];
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });

@@ -1169,6 +1169,7 @@
             <option value="Phụ phẫu">🧑‍⚕️ Phụ phẫu</option>
             <option value="Sale">📈 Sale</option>
             <option value="Sale trực tiếp">🤝 Sale trực tiếp</option>
+            <option value="Marketing">📣 Marketing</option>
           </select>
           <button class="btn" onclick="acctCreate()" style="width:100%;margin-top:16px">➕ Tạo tài khoản</button>
         </div>
@@ -2477,7 +2478,7 @@ async function pgDelete(id){
 window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh; window.pgClearFilter=pgClearFilter; window.pgGoPage=pgGoPage;
 
 function go(section){
-  if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section='dashboard'; }
+  if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section=(typeof roleFirstSection==='function')?roleFirstSection():'dashboard'; }
   document.querySelectorAll('.nav a[data-section]').forEach(a=>a.classList.toggle('active', a.dataset.section===section));
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+section));
   const [t,s]=titles[section]||['',''];
@@ -5196,7 +5197,7 @@ window.billAddRow=billAddRow; window.billPreview=billPreview; window.billPrintNe
 window.billExport=function(){ const bills=billGetBills(); if(!bills.length){ toast('Chưa có hóa đơn để xuất'); return; } const rows=[['Số','Ngày','Khách','SĐT','Dịch vụ','Giảm giá','Tổng','Thanh toán']]; bills.forEach(b=>rows.push([b.code,b.at,b.name||'',b.phone||'',(b.items||[]).map(i=>i.name+': '+i.price).join(' | '),b.discount||0,b.total||0,b.method||''])); const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='hoadon-hana.csv'; a.click(); toast('⬇ Đã tải CSV hóa đơn','green'); };
 
 /* ===== TÀI KHOẢN (quản lý nội bộ) ===== */
-const ACCT_ROLES={'Toàn quyền kiểm soát':{c:'#A8231C',b:'#FBE7DA',i:'👑'},'Lễ tân':{c:'#1565C0',b:'#E3F2FD',i:'🛎️'},'Kỹ thuật viên':{c:'#2E7D32',b:'#E8F5E9',i:'💆‍♀️'},'Bác sĩ':{c:'#6A1B9A',b:'#F3E5F5',i:'🩺'},'Phụ phẫu':{c:'#3949AB',b:'#E8EAF6',i:'🧑‍⚕️'},'Sale':{c:'#E65100',b:'#FFE5CC',i:'📈'},'Sale trực tiếp':{c:'#00695C',b:'#E0F2F1',i:'🤝'}};
+const ACCT_ROLES={'Toàn quyền kiểm soát':{c:'#A8231C',b:'#FBE7DA',i:'👑'},'Lễ tân':{c:'#1565C0',b:'#E3F2FD',i:'🛎️'},'Kỹ thuật viên':{c:'#2E7D32',b:'#E8F5E9',i:'💆‍♀️'},'Bác sĩ':{c:'#6A1B9A',b:'#F3E5F5',i:'🩺'},'Phụ phẫu':{c:'#3949AB',b:'#E8EAF6',i:'🧑‍⚕️'},'Sale':{c:'#E65100',b:'#FFE5CC',i:'📈'},'Sale trực tiếp':{c:'#00695C',b:'#E0F2F1',i:'🤝'},'Marketing':{c:'#AD1457',b:'#FCE4EC',i:'📣'}};
 async function acctApi(payload){
   const r=await fetch('/api/accounts',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
   const d=await r.json().catch(()=>({}));
@@ -5264,12 +5265,13 @@ window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass
 /* ===== PHÂN QUYỀN THEO VAI TRÒ (giao diện) ===== */
 const ROLE_MENUS={
   'Toàn quyền kiểm soát':'*',
-  'Lễ tân':'*',
+  'Lễ tân':['calendar','dashboard','newcust','care','staff','tasks','tour'],
   'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
   'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
   'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
   'Sale':['dashboard','calendar','leads','phangoi','crm','care'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi']
+  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi'],
+  'Marketing':['marketing']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
@@ -5277,13 +5279,16 @@ function sessSet(s){ try{localStorage.setItem('hana_session',JSON.stringify(s));
 function curRole(){ const s=sessGet(); return (s&&s.role)||'Toàn quyền kiểm soát'; }
 function canDelete(){ return curRole()==='Toàn quyền kiểm soát'; }
 function roleCanSee(section){ const role=curRole(); const allowed=ROLE_MENUS[role]||'*'; if(ROLE_OWNER_ONLY.indexOf(section)>=0 && role!=='Toàn quyền kiểm soát') return false; return allowed==='*'||allowed.indexOf(section)>=0; }
+// Trang đầu tiên vai trò được phép xem — dùng làm chỗ "rớt về" thay vì ép cứng 'dashboard'
+// (có vai trò như Marketing không được xem Tổng quan, ép về đó sẽ kẹt màn hình).
+function roleFirstSection(){ const role=curRole(); const allowed=ROLE_MENUS[role]; if(!allowed||allowed==='*') return 'dashboard'; return allowed[0]||'dashboard'; }
 function applyRole(){
   const role=curRole();
   document.querySelectorAll('.nav a[data-section]').forEach(a=>{ a.style.display=roleCanSee(a.dataset.section)?'':'none'; });
   document.body.classList.toggle('role-nodelete', !canDelete());
   const chip=document.getElementById('roleChip'); if(chip){ chip.textContent=((ACCT_ROLES[role]&&ACCT_ROLES[role].i)||'👑')+' '+role; }
   const active=document.querySelector('.page.active'); const cur=active?active.id.replace('page-',''):'dashboard';
-  if(!roleCanSee(cur) && typeof go==='function') go('dashboard');
+  if(!roleCanSee(cur) && typeof go==='function') go(roleFirstSection());
 }
 function roleLogout(){ try{localStorage.removeItem('hana_session');}catch(e){} location.href='/api/logout'; }   // đăng xuất thật + về trang đăng nhập
 async function roleInitFromServer(){
