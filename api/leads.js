@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 // Sheet: DATA TM HaNa chuẩn nhất — mỗi tháng 1 tab riêng, vd "DATA T8/2026".
 // Đổi hằng số bên dưới mỗi khi sang tháng mới (tab sheet mới do các bạn trực page tạo).
 const LEAD_SHEET_ID = '1xivkZTZ58ShcnMdwRvt9S7ZD89Lc9Ww-gS8VYa2fdcQ';
-const LEAD_SHEET_TAB = 'DATA T8/2026';
+const LEAD_SHEET_TAB = 'DATA T7/2026 MỚI';
 
 const STATUS_MAP = {
   'đã mua dịch vụ': 'arrived', 'đến nhưng ko mua': 'arrived', 'khách cũ đá ghé làm rồi': 'arrived',
