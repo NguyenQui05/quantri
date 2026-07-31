@@ -636,6 +636,16 @@
     <!-- ============ CALENDAR ============ -->
     <section class="page" id="page-calendar">
       <div class="alert info" style="margin-bottom:14px"><span class="ic">📅</span><div><b>Luồng lịch hẹn:</b> Telesale tạo lịch hẹn mới → Lễ tân xác nhận khách <b>Đã đến / Chưa đến</b> → khi Đã đến, lịch tự chuyển sang <b>Tour phẫu thuật</b> để bác sĩ nhập ca.</div></div>
+
+      <div class="card" id="apptTodayCard" style="margin-bottom:16px;border:1px solid var(--gold);background:linear-gradient(135deg,#FFF8EC,#FBEFD8)">
+        <div class="card-head" style="border:0;padding:0;margin-bottom:10px">
+          <div><h2>📅 Lịch hẹn hôm nay<span class="badge" id="apptTodayBadge" style="background:var(--orange-deep);margin-left:8px">0</span></h2><div class="sub" id="apptTodaySub">Đang tải…</div></div>
+        </div>
+        <div id="apptTodayList"></div>
+      </div>
+
+      <div id="apptMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
       <div class="grid kpi-grid">
         <div class="kpi k1"><div class="ic">📅</div><div class="label">Tổng lịch hẹn</div><div class="val" id="apptK1">—</div><div class="delta">lưu thật, đồng bộ mọi thiết bị</div></div>
         <div class="kpi k2"><div class="ic">✅</div><div class="label">Đã đến</div><div class="val" id="apptK2">—</div><div class="delta" id="apptK2d">—</div></div>
@@ -3135,9 +3145,61 @@ async function apptLoad(force){
     if(tb) tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px">❌ ${pgEscHtml(e.message)}</td></tr>`;
   }finally{ APPTS.loading = false; }
 }
+/* ===== Tab chọn tháng cho Lịch hẹn — bấm tháng nào lọc lịch hẹn tháng đó ===== */
+function buildApptMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[{key:'all',label:'Tất cả'}];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const APPT_MONTHS = buildApptMonths();
+let apptMonthFilter = 'all';
+function renderApptMonthTabs(){
+  const el=document.getElementById('apptMonthTabs'); if(!el) return;
+  el.innerHTML = APPT_MONTHS.map(m=>`<button class="btn ${apptMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectApptMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectApptMonth(key){
+  apptMonthFilter = key;
+  renderAppointments();
+}
+window.selectApptMonth = selectApptMonth;
+/* ===== Khung "Lịch hẹn hôm nay" — luôn ưu tiên hiện ở đầu trang, không phụ thuộc tab tháng ===== */
+function renderApptToday(){
+  const box=document.getElementById('apptTodayList'); if(!box) return;
+  const p=n=>String(n).padStart(2,'0');
+  const now=new Date();
+  const todayIso=now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate());
+  const today=(APPTS.rows||[]).filter(a=>a.appt_date===todayIso).sort((a,b)=>(a.appt_time||'').localeCompare(b.appt_time||''));
+  const badge=document.getElementById('apptTodayBadge'); if(badge) badge.textContent=today.length;
+  const sub=document.getElementById('apptTodaySub'); if(sub) sub.textContent = today.length ? today.length+' lịch hôm nay' : 'Không có lịch hẹn nào hôm nay';
+  if(!today.length){ box.innerHTML='<div style="padding:14px 4px;text-align:center;color:var(--muted)">🎉 Không có lịch hẹn nào hôm nay</div>'; return; }
+  box.innerHTML = today.map(a=>{
+    const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+    const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
+    return `<div class="clickable" onclick='openModal("appt-detail",${ctxJson})' style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)">
+      <b style="min-width:48px;color:var(--orange-deep)">${a.appt_time||'—'}</b>
+      <span class="avatar" style="background:var(--grad);width:34px;height:34px;font-size:.85rem;flex:none">${init}</span>
+      <div style="flex:1;min-width:0"><b style="display:block">${pgEscHtml(a.full_name)}</b><span style="font-size:.78rem;color:var(--muted)">${pgEscHtml(a.service)||'—'}${a.staff?(' · '+pgEscHtml(a.staff)):''}</span></div>
+      ${apptStatusPill(a.status)}
+      <div onclick="event.stopPropagation()" style="display:flex;gap:6px;flex:none">
+        ${a.status!=='den'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','den')">✅ Đến</button>`:''}
+        ${a.status!=='cho'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','cho')">⏳ Chưa</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderAppointments(){
   const tb=document.getElementById('apptRows'); if(!tb) return;
-  const all=APPTS.rows||[]; const note=document.getElementById('apptNote');
+  renderApptMonthTabs();
+  renderApptToday();
+  const raw=APPTS.rows||[];
+  const all = apptMonthFilter==='all' ? raw : raw.filter(a=>String(a.appt_date||'').slice(0,7)===apptMonthFilter);
+  const note=document.getElementById('apptNote');
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   const den=all.filter(a=>a.status==='den'), cho=all.filter(a=>a.status==='cho'), huy=all.filter(a=>a.status==='huy');
   set('apptK1', all.length); set('apptK2', den.length); set('apptK2d', all.length?Math.round(den.length/all.length*100)+'% lịch':'—');
@@ -3146,7 +3208,7 @@ function renderAppointments(){
   const filt=document.getElementById('apptFilter')?.value||'';
   const list=all.filter(a=> (!search || (a.full_name||'').toLowerCase().includes(search) || (a.phone&&a.phone.includes(search)) || (a.service||'').toLowerCase().includes(search))
     && (!filt || a.status===filt));
-  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Chưa có lịch hẹn nào — thêm ở form phía trên</td></tr>'; if(note) note.textContent=''; return; }
+  if(!list.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Chưa có lịch hẹn nào'+(apptMonthFilter==='all'?' — thêm ở form phía trên':' trong tháng này')+'</td></tr>'; if(note) note.textContent=''; return; }
   tb.innerHTML=list.map(a=>{ const init=((a.full_name||'?').trim().charAt(0)||'?').toUpperCase();
     const ctxJson=JSON.stringify(a).replace(/'/g,"&#39;");
     return `<tr class="clickable" onclick='openModal("appt-detail",${ctxJson})'>
