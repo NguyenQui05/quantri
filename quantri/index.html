@@ -3277,12 +3277,13 @@ async function syncOverviewAppts(){
   if(!APPTS.rows) await apptLoad();
   const all=APPTS.rows||[];
   const now=new Date(); const p=x=>String(x).padStart(2,'0'); const iso=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
-  const todayIso=iso(now); const yestIso=iso(new Date(now.getTime()-86400000));
+  const todayIso=iso(now);
+  const monthPrefix=now.getFullYear()+'-'+p(now.getMonth()+1);
   const today=all.filter(a=>a.appt_date===todayIso).length;
-  const yest=all.filter(a=>a.appt_date===yestIso).length;
+  const monthTotal=all.filter(a=>String(a.appt_date||'').slice(0,7)===monthPrefix).length;
   valEl.textContent=today;
   const delEl=document.getElementById('ovApptDelta');
-  if(delEl){ if(yest>0){ const g=Math.round((today-yest)/yest*100); delEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'% so với hôm qua'; } else delEl.textContent=all.length+' lịch trong sổ'; }
+  if(delEl) delEl.textContent = monthTotal.toLocaleString('vi-VN')+' lịch hẹn tháng '+(now.getMonth()+1)+'/'+now.getFullYear();
   const b=document.getElementById('calBadge'); if(b) b.textContent=today;
 }
 
