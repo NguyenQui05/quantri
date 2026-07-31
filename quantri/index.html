@@ -708,8 +708,8 @@
 
     <!-- ============ LEAD TỪ LANDING ============ -->
     <style>
-      .lead-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
-      .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;transition:background .15s}
+      .lead-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+      .lead-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:160px;min-width:0;transition:background .15s}
       .lead-col.drag-over{background:var(--cream-2)}
       .lead-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.9rem;color:var(--brown-deep);cursor:pointer;gap:8px}
       .lead-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.76rem}
@@ -721,8 +721,8 @@
       .lead-card{background:#fff;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:grab;overflow:hidden;flex-shrink:0}
       .lead-card:active{cursor:grabbing}
       .lead-card.dragging{opacity:.35}
-      @media (max-width:900px){ .lead-board{grid-template-columns:1fr 1fr} }
-      @media (max-width:600px){ .lead-board{grid-template-columns:1fr} }
+      @media (max-width:1280px){ .lead-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+      @media (max-width:600px){ .lead-board{grid-template-columns:minmax(0,1fr)} }
     </style>
     <section class="page" id="page-leads">
       <div class="alert success" style="margin-bottom:14px;display:flex;align-items:center">
