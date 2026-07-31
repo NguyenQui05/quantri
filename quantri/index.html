@@ -565,10 +565,11 @@
       <!-- Storage info banner -->
       <div class="alert info" style="margin-bottom:14px;display:flex;align-items:center"><span class="ic">💾</span><div style="flex:1"><b>Dữ liệu lưu ở đâu?</b> <span id="storageInfo">Hiện đang lưu tại trình duyệt (localStorage) — gồm Task, KH thêm mới, ghi chú</span>. <a href="#" onclick="openModal('storage-help');return false" style="color:var(--orange-deep);font-weight:700">Tìm hiểu cách backup, export, kết nối DB ngoài →</a></div><button class="btn ghost sm" onclick="openModal('storage-help')">📖 Hướng dẫn</button></div>
 
-      <div class="grid kpi-grid kpi-grid-3">
+      <div class="grid kpi-grid">
         <div class="kpi k1" onclick="go('calendar')"><div class="ic">📅</div><div class="label">Lịch hẹn hôm nay</div><div class="val" id="ovApptVal">—</div><div class="delta" id="ovApptDelta">đang tải…</div><canvas id="sparkK1" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k2" onclick="go('crm')"><div class="ic">👥</div><div class="label">Khách mới tuần này</div><div class="val" id="ovNewCustVal">—</div><div class="delta" id="ovNewCustDelta">đang tải…</div><canvas id="sparkK2" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
         <div class="kpi k3" onclick="go('revenue')"><div class="ic">💰</div><div class="label" id="ovRevLabel">Doanh thu</div><div class="val" id="ovRevVal">—</div><div class="delta" id="ovRevDelta">Kết nối Data Hub</div><canvas id="sparkK3" style="width:100%;height:34px;margin-top:8px;display:block"></canvas></div>
+        <div class="kpi k4" onclick="go('revenue')"><div class="ic">💳</div><div class="label" id="ovCostLabel">Tổng chi</div><div class="val" id="ovCostVal">—</div><div class="delta" id="ovCostDelta">Kết nối Data Hub</div></div>
       </div>
 
       <!-- Số liệu tháng hiện tại -->
@@ -3699,6 +3700,12 @@ function syncOverviewRevenue(){
       if(M.hasBook) del.textContent = 'Lãi thật '+trShort(M.profit)+' · biên '+M.margin.toFixed(1)+'%';
       else del.textContent = M.roas?('ROAS '+M.roas.toFixed(2)+'× · '+M.days.length+' ngày'):(M.days.length+' ngày dữ liệu');
     }
+  }
+  const costLab=gel('ovCostLabel'), costVal=gel('ovCostVal'), costDel=gel('ovCostDelta');
+  if(costVal && M.cost>0){
+    if(costLab) costLab.textContent = M.hasBook?'Tổng chi vận hành':'Chi phí quảng cáo';
+    costVal.textContent = trShort(M.cost);
+    if(costDel) costDel.textContent = (M.revenue?((M.cost/M.revenue*100).toFixed(1)+'% doanh thu'):'—') + (M.hasBook?' · gồm lương/mặt bằng/QC':'');
   }
 }
 let mktChart, MKT_DAYS=null;
