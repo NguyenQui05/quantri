@@ -227,6 +227,7 @@ async function logUpsert(res, body, sess) {
   const row = { staff_name: staffName.slice(0, 100), log_date: logDate, updated_at: new Date().toISOString() };
   for (const f of WORK_LOG_FIELDS) row[f] = Math.max(0, parseInt(body[f], 10) || 0);
   row.note = body.note != null ? String(body.note).slice(0, 300) : null;
+  row.note2 = body.note2 != null ? String(body.note2).slice(0, 300) : null;
   row.logged_by = sess.u || '';
 
   const r = await fetch(sb(`${WORK_LOG_TABLE}?on_conflict=staff_name,log_date`), {

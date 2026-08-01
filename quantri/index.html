@@ -945,6 +945,7 @@
           <div><label class="bl">CSD (ca)</label><input id="cc-csd" class="bi" type="number" min="0" placeholder="0"></div>
         </div>
         <div style="margin-top:10px"><label class="bl">Ghi chú (không bắt buộc)</label><input id="cc-note" class="bi" placeholder="VD: nghỉ nửa buổi, hỗ trợ ca khác…"></div>
+        <div style="margin-top:10px"><label class="bl">Ghi chú thêm (không bắt buộc)</label><input id="cc-note2" class="bi" placeholder="VD: ghi chú riêng cho quản lý"></div>
         <button class="btn" style="margin-top:14px" onclick="ccSave()">💾 Lưu chấm công ngày này</button>
       </div>
 
@@ -957,7 +958,7 @@
           </div>
         </div>
         <table style="font-size:.85rem">
-          <thead><tr><th>Ngày</th><th style="text-align:right">Phụ thường</th><th style="text-align:right">Phụ căng da</th><th style="text-align:right">Làm thường</th><th style="text-align:right">Làm căng da</th><th style="text-align:right">Tiêm</th><th style="text-align:right">CSD</th><th>Ghi chú</th><th></th></tr></thead>
+          <thead><tr><th>Ngày</th><th style="text-align:right">Phụ thường</th><th style="text-align:right">Phụ căng da</th><th style="text-align:right">Làm thường</th><th style="text-align:right">Làm căng da</th><th style="text-align:right">Tiêm</th><th style="text-align:right">CSD</th><th>Ghi chú</th><th>Ghi chú thêm</th><th></th></tr></thead>
           <tbody id="cc-rows"></tbody>
         </table>
         <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">💡 Bấm "✏️ Sửa" để nạp lại 1 ngày cũ lên form phía trên rồi lưu đè.</div>
@@ -2140,7 +2141,7 @@ async function ccSave(){
   const date=document.getElementById('cc-date')?.value||'';
   if(!staff){ toast('❌ Chọn tên nhân viên','red'); return; }
   if(!date){ toast('❌ Chọn ngày','red'); return; }
-  const payload={action:'log_upsert', staff_name:staff, log_date:date, note:(document.getElementById('cc-note')?.value||'').trim()};
+  const payload={action:'log_upsert', staff_name:staff, log_date:date, note:(document.getElementById('cc-note')?.value||'').trim(), note2:(document.getElementById('cc-note2')?.value||'').trim()};
   CC_FIELDS.forEach(([f,id])=>{ payload[f]=document.getElementById(id)?.value||0; });
   try{
     await payrollApi(payload);
@@ -2156,13 +2157,13 @@ async function ccLoadHistory(){
   const month=parseInt(document.getElementById('cc-month')?.value,10)||0;
   const year=parseInt(document.getElementById('cc-year')?.value,10)||0;
   const sub=document.getElementById('cc-sub');
-  if(!staff){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Chọn tên mình ở trên để xem lịch sử</td></tr>'; if(sub) sub.textContent='Chọn tên và tháng để xem'; return; }
-  tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Đang tải…</td></tr>';
+  if(!staff){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Chọn tên mình ở trên để xem lịch sử</td></tr>'; if(sub) sub.textContent='Chọn tên và tháng để xem'; return; }
+  tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Đang tải…</td></tr>';
   try{
     const d=await payrollApi({action:'log_list', staff_name:staff, month, year});
     CC_ROWS_CACHE=d.rows||[];
     if(sub) sub.textContent=`${staff} · Tháng ${month}/${year} · ${CC_ROWS_CACHE.length} ngày đã điền`;
-    if(!CC_ROWS_CACHE.length){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Chưa có ngày nào trong tháng này</td></tr>'; return; }
+    if(!CC_ROWS_CACHE.length){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Chưa có ngày nào trong tháng này</td></tr>'; return; }
     tb.innerHTML=CC_ROWS_CACHE.map(r=>{
       const ctxJson=JSON.stringify(r).replace(/'/g,"&#39;");
       return `<tr>
@@ -2174,16 +2175,18 @@ async function ccLoadHistory(){
         <td style="text-align:right">${r.tiem_ca||0}</td>
         <td style="text-align:right">${r.csd_ca||0}</td>
         <td style="font-size:.8rem">${esc(r.note)||'—'}</td>
+        <td style="font-size:.8rem">${esc(r.note2)||'—'}</td>
         <td><button class="btn ghost sm" onclick='ccEditRow(${ctxJson})'>✏️ Sửa</button></td>
       </tr>`;
     }).join('');
-  }catch(e){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
+  }catch(e){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
 }
 window.ccLoadHistory=ccLoadHistory;
 function ccEditRow(r){
   const dt=document.getElementById('cc-date'); if(dt) dt.value=r.log_date;
   CC_FIELDS.forEach(([f,id])=>{ const el=document.getElementById(id); if(el) el.value=r[f]||0; });
   const note=document.getElementById('cc-note'); if(note) note.value=r.note||'';
+  const note2=document.getElementById('cc-note2'); if(note2) note2.value=r.note2||'';
   toast('Đã nạp ngày '+leadDateShort(r.log_date)+' lên form — sửa xong bấm Lưu','ok');
   window.scrollTo({top:0, behavior:'smooth'});
 }
