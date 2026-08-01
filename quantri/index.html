@@ -4750,13 +4750,19 @@ function previewSource(id){
   modalBg.classList.add('show');
 }
 
-// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng, tên tab luôn theo đúng khuôn "DOANH THU T<tháng><năm>"
-// (vd "DOANH THU T72026", "DOANH THU T82026") — giống hệt khuôn tên tab của Marketing.
-// Tra theo THÁNG THẬT (đồng hồ máy) ra thẳng tên tab, tự chuyển lúc sang tháng mới,
-// không cần sửa code/deploy lại mỗi tháng như cách gán gid thủ công trước đây.
-function currentRevenueBookTab(){
-  const d=new Date();
-  return 'DOANH THU T'+(d.getMonth()+1)+d.getFullYear();
+// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng. ĐÃ THỬ tra theo TÊN tab (kiểu "sheet=DOANH THU T82026")
+// giống Marketing/Lead nhưng bị Google gviz âm thầm rớt về "tab đầu tiên" trên chính file này —
+// không báo lỗi, cứ trả về sai dữ liệu (đã tự kiểm chứng nhiều lần với cả tên có/không dấu cách).
+// Marketing/Lead dùng tra tên tab vẫn ổn vì là file khác — lỗi này riêng của file Sổ thu/chi.
+// Nên bắt buộc dùng GID (đã lấy từ link sếp gửi mỗi tháng), tra theo THÁNG THẬT để tự chuyển.
+// Thêm dòng mới mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
+const REVENUE_BOOK_GID_BY_MONTH = {
+  '2026-07': '797748578',   // DOANH THU T72026
+  '2026-08': '0'            //   DOANH THU T82026
+};
+function currentRevenueBookGid(){
+  const d=new Date(), key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  return REVENUE_BOOK_GID_BY_MONTH[key] || null;   // chưa cấu hình tháng đó → fallback tab đầu (gid:null)
 }
 const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
@@ -4767,7 +4773,7 @@ const SEED_SOURCES = [
     cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
-    cat:'doanhthu', book:'thuchi', tab:currentRevenueBookTab(), sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
+    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
   { id:'DSKH', name:'Danh sách khách hàng (tổng)',
     url:'https://docs.google.com/spreadsheets/d/1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo',
     cat:'data', tab:null, sheetId:'1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo', gid:null },
@@ -4788,7 +4794,7 @@ const SEED_SOURCES = [
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
   '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
-  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:currentRevenueBookTab(), gid:null, name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
+  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
