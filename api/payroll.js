@@ -36,6 +36,9 @@ const NUM_FIELDS = [
 ];
 const BOOL_FIELDS = ['thuc_luong_override', 'phu_cap_an_override'];
 
+const WORK_LOG_TABLE = 'work_logs';
+const WORK_LOG_FIELDS = ['phu_thuong_ca', 'phu_cang_da_ca', 'lam_thuong_ca', 'lam_cang_da_ca', 'tiem_ca', 'csd_ca'];
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   const sess = verifySession(req);
@@ -55,6 +58,9 @@ export default async function handler(req, res) {
     if (action === 'update')     return await updateEntry(res, body);
     if (action === 'delete')     return await deleteEntry(res, body);
     if (action === 'save_rates') return await saveRates(res, body);
+    if (action === 'log_upsert') return await logUpsert(res, body, sess);
+    if (action === 'log_list')   return await logList(res, body);
+    if (action === 'log_sum')    return await logSum(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('payroll api error:', e?.message || e);
@@ -139,6 +145,27 @@ function buildRow(body) {
   return row;
 }
 
+// Cộng dồn chấm công của 1 nhân viên trong tháng -> ngày công (số ngày có điền) + tổng từng loại ca.
+async function workLogSum(staffName, month, year) {
+  const from = `${year}-${pad2(month)}-01`;
+  const nextY = month === 12 ? year + 1 : year;
+  const nextM = month === 12 ? 1 : month + 1;
+  const to = `${nextY}-${pad2(nextM)}-01`;
+  const params = new URLSearchParams();
+  params.set('select', WORK_LOG_FIELDS.join(',') + ',log_date');
+  params.set('staff_name', `eq.${staffName}`);
+  params.append('log_date', `gte.${from}`);
+  params.append('log_date', `lt.${to}`);
+  params.set('limit', '1000');
+  const r = await fetch(sb(`${WORK_LOG_TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  if (!r.ok) return null;
+  const rows = await r.json().catch(() => []);
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const sum = { ngay_cong: rows.length };
+  WORK_LOG_FIELDS.forEach(f => { sum[f] = rows.reduce((s, r) => s + (Number(r[f]) || 0), 0); });
+  return sum;
+}
+
 async function createEntry(res, body, sess) {
   const month = Math.max(1, Math.min(12, parseInt(body.month, 10) || 0));
   const year = Math.max(2000, parseInt(body.year, 10) || 0);
@@ -147,6 +174,12 @@ async function createEntry(res, body, sess) {
   if (!fullName) return res.status(400).json({ error: 'Thiếu tên nhân viên' });
 
   const row = { month, year, created_by: sess.u || '', ...buildRow(body) };
+  // Nhân viên đã tự chấm công tháng này -> tự điền sẵn ngày công + số ca, vẫn sửa tay được sau đó.
+  const sum = await workLogSum(fullName, month, year).catch(() => null);
+  if (sum) {
+    if (row.ngay_cong == null) row.ngay_cong = sum.ngay_cong;
+    WORK_LOG_FIELDS.forEach(f => { if (row[f] == null) row[f] = sum[f]; });
+  }
   const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi thêm nhân viên' }); }
   return res.status(200).json({ ok: true });
@@ -181,6 +214,60 @@ async function saveRates(res, body) {
   const r = await fetch(sb(`${RATES_TABLE}?id=eq.default`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi cập nhật đơn giá' }); }
   return res.status(200).json({ ok: true });
+}
+
+// ===== Chấm công hằng ngày — mỗi nhân viên tự điền số ca đã làm trong ngày =====
+async function logUpsert(res, body, sess) {
+  const staffName = String(body.staff_name || '').trim();
+  const logDate = String(body.log_date || '').trim();
+  if (!staffName) return res.status(400).json({ error: 'Thiếu tên nhân viên' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(logDate)) return res.status(400).json({ error: 'Thiếu hoặc sai ngày (YYYY-MM-DD)' });
+
+  const row = { staff_name: staffName.slice(0, 100), log_date: logDate, updated_at: new Date().toISOString() };
+  for (const f of WORK_LOG_FIELDS) row[f] = Math.max(0, parseInt(body[f], 10) || 0);
+  row.note = body.note != null ? String(body.note).slice(0, 300) : null;
+  row.logged_by = sess.u || '';
+
+  const r = await fetch(sb(`${WORK_LOG_TABLE}?on_conflict=staff_name,log_date`), {
+    method: 'POST',
+    headers: sbHeaders({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify(row)
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu chấm công' }); }
+  return res.status(200).json({ ok: true });
+}
+
+async function logList(res, body) {
+  const staffName = String(body.staff_name || '').trim();
+  if (!staffName) return res.status(400).json({ error: 'Thiếu tên nhân viên' });
+  const params = new URLSearchParams();
+  params.set('select', '*');
+  params.set('staff_name', `eq.${staffName}`);
+  const month = Math.max(0, Math.min(12, parseInt(body.month, 10) || 0));
+  const year = parseInt(body.year, 10) || 0;
+  if (month && year) {
+    const from = `${year}-${pad2(month)}-01`;
+    const nextY = month === 12 ? year + 1 : year;
+    const nextM = month === 12 ? 1 : month + 1;
+    const to = `${nextY}-${pad2(nextM)}-01`;
+    params.append('log_date', `gte.${from}`);
+    params.append('log_date', `lt.${to}`);
+  }
+  params.set('order', 'log_date.desc');
+  params.set('limit', '500');
+  const r = await fetch(sb(`${WORK_LOG_TABLE}?${params.toString()}`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  return res.status(200).json({ rows });
+}
+
+async function logSum(res, body) {
+  const staffName = String(body.staff_name || '').trim();
+  const month = Math.max(1, Math.min(12, parseInt(body.month, 10) || 0));
+  const year = Math.max(2000, parseInt(body.year, 10) || 0);
+  if (!staffName || !month || !year) return res.status(400).json({ error: 'Thiếu tên nhân viên hoặc tháng/năm' });
+  const sum = await workLogSum(staffName, month, year);
+  return res.status(200).json({ sum: sum || { ngay_cong: 0, ...Object.fromEntries(WORK_LOG_FIELDS.map(f => [f, 0])) } });
 }
 
 export const config = { runtime: 'nodejs' };

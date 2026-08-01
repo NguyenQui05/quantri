@@ -519,6 +519,7 @@
       <div class="group">Vận hành</div>
       <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
       <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
+      <a data-section="chamcong"><span class="ic">🗓️</span>Chấm công</a>
       <a data-section="luong"><span class="ic">💵</span>Bảng lương nhân viên</a>
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
@@ -924,6 +925,42 @@
       <div class="row r-3" style="margin-top:14px">
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-assign')"><div style="font-size:1.4rem">📋</div><h3 style="margin-top:6px">Giao việc hàng loạt</h3><div class="sub">AI gợi ý phân task theo skill</div></div>
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-kpi')"><div style="font-size:1.4rem">🎯</div><h3 style="margin-top:6px">Cài KPI tháng</h3><div class="sub">Tự động theo dõi tiến độ</div></div>
+      </div>
+    </section>
+
+    <!-- ============ CHẤM CÔNG HẰNG NGÀY ============ -->
+    <section class="page" id="page-chamcong">
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">🗓️</span><div><b>Chấm công mỗi ngày:</b> chọn tên mình, chọn ngày, điền số ca đã làm trong ngày hôm đó — cuối tháng <b>Bảng lương</b> tự cộng dồn thành ngày công + số ca từng loại (vẫn sửa tay được nếu sai).</div></div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2>📝 Điền công việc hôm nay</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Nhân viên</label><select id="cc-staff" class="bi" onchange="ccLoadHistory()"><option value="">— Chọn tên mình —</option></select></div>
+          <div><label class="bl">Ngày</label><input id="cc-date" type="date" class="bi"></div>
+          <div><label class="bl">Phụ thường (ca)</label><input id="cc-phuthuong" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Phụ căng da (ca)</label><input id="cc-phucangda" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Làm thường (ca)</label><input id="cc-lamthuong" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Làm căng da (ca)</label><input id="cc-lamcangda" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Tiêm (ca)</label><input id="cc-tiem" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">CSD (ca)</label><input id="cc-csd" class="bi" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div style="margin-top:10px"><label class="bl">Ghi chú (không bắt buộc)</label><input id="cc-note" class="bi" placeholder="VD: nghỉ nửa buổi, hỗ trợ ca khác…"></div>
+        <button class="btn" style="margin-top:14px" onclick="ccSave()">💾 Lưu chấm công ngày này</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Lịch sử chấm công</h2><div class="sub" id="cc-sub">Chọn tên và tháng để xem</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="cc-month" onchange="ccLoadHistory()"></select>
+            <select id="cc-year" onchange="ccLoadHistory()"></select>
+          </div>
+        </div>
+        <table style="font-size:.85rem">
+          <thead><tr><th>Ngày</th><th style="text-align:right">Phụ thường</th><th style="text-align:right">Phụ căng da</th><th style="text-align:right">Làm thường</th><th style="text-align:right">Làm căng da</th><th style="text-align:right">Tiêm</th><th style="text-align:right">CSD</th><th>Ghi chú</th><th></th></tr></thead>
+          <tbody id="cc-rows"></tbody>
+        </table>
+        <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">💡 Bấm "✏️ Sửa" để nạp lại 1 ngày cũ lên form phía trên rồi lưu đè.</div>
       </div>
     </section>
 
@@ -1554,6 +1591,7 @@ function openModal(type, ctx){
         ${num({id:'pr-ed-lamcangda',label:'Làm căng da (ca)'}, e.lam_cang_da_ca)}
         ${num({id:'pr-ed-tiem',label:'Tiêm (ca)'}, e.tiem_ca)}
       </div>
+      <div style="margin-bottom:6px"><button class="btn ghost sm" onclick='payrollPullFromCC(${JSON.stringify(e.full_name)})'>🔄 Lấy lại ngày công &amp; số ca từ Chấm công</button></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
         ${num({id:'pr-ed-csd',label:'CSD (ca)'}, e.csd_ca)}
         ${(()=>{ const u=payrollUpsale(e);
@@ -2042,6 +2080,20 @@ async function payrollSaveRates(){
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.payrollSaveRates=payrollSaveRates;
+async function payrollPullFromCC(fullName){
+  if(!PAYROLL.month||!PAYROLL.year){ toast('❌ Chưa chọn tháng','red'); return; }
+  try{
+    const d=await payrollApi({action:'log_sum', staff_name:fullName, month:PAYROLL.month, year:PAYROLL.year});
+    const s=d.sum||{};
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||0; };
+    set('pr-ed-ngaycong', s.ngay_cong);
+    set('pr-ed-phuthuong', s.phu_thuong_ca); set('pr-ed-phucangda', s.phu_cang_da_ca);
+    set('pr-ed-lamthuong', s.lam_thuong_ca); set('pr-ed-lamcangda', s.lam_cang_da_ca);
+    set('pr-ed-tiem', s.tiem_ca); set('pr-ed-csd', s.csd_ca);
+    toast(s.ngay_cong?`✓ Đã lấy ${s.ngay_cong} ngày công từ Chấm công — bấm Lưu để áp dụng`:'Nhân viên này chưa chấm công tháng này','ok');
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lấy dữ liệu'),'red'); }
+}
+window.payrollPullFromCC=payrollPullFromCC;
 function payrollExportCSV(){
   const rows=PAYROLL.rows||[]; if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
   const header=['Nhân viên','Chức vụ','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','Nguồn up sale','Ca tour','Ca chia đôi','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
@@ -2057,6 +2109,83 @@ function payrollExportCSV(){
   toast('⬇ Đã tải CSV lương','green');
 }
 window.payrollExportCSV=payrollExportCSV;
+
+/* ===== CHẤM CÔNG HẰNG NGÀY — mỗi nhân viên tự điền, cộng dồn vào Bảng lương cuối tháng ===== */
+const CC_FIELDS = [['phu_thuong_ca','cc-phuthuong'],['phu_cang_da_ca','cc-phucangda'],['lam_thuong_ca','cc-lamthuong'],['lam_cang_da_ca','cc-lamcangda'],['tiem_ca','cc-tiem'],['csd_ca','cc-csd']];
+function ccFillStaffSelect(){
+  const sel=document.getElementById('cc-staff'); if(!sel) return;
+  const cur=sel.value;
+  const rows=STAFF_ROWS||[];
+  sel.innerHTML='<option value="">— Chọn tên mình —</option>'+rows.map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
+  if(cur){ sel.value=cur; if(sel.value!==cur) sel.value=''; }
+}
+function ccFillSelectors(){
+  const now=new Date();
+  const dt=document.getElementById('cc-date'); if(dt && !dt.value) dt.value=now.toISOString().slice(0,10);
+  const selM=document.getElementById('cc-month'), selY=document.getElementById('cc-year');
+  if(selM && !selM.options.length){ selM.innerHTML=Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}">Tháng ${m}</option>`).join(''); selM.value=String(now.getMonth()+1); }
+  if(selY && !selY.options.length){ const y=now.getFullYear(); selY.innerHTML=[y-1,y,y+1].map(v=>`<option value="${v}">${v}</option>`).join(''); selY.value=String(y); }
+}
+async function ccInit(){
+  ccFillSelectors();
+  if(!STAFF_ROWS){ await staffLoad(); }
+  ccFillStaffSelect();
+  ccLoadHistory();
+}
+async function ccSave(){
+  const staff=(document.getElementById('cc-staff')?.value||'').trim();
+  const date=document.getElementById('cc-date')?.value||'';
+  if(!staff){ toast('❌ Chọn tên nhân viên','red'); return; }
+  if(!date){ toast('❌ Chọn ngày','red'); return; }
+  const payload={action:'log_upsert', staff_name:staff, log_date:date, note:(document.getElementById('cc-note')?.value||'').trim()};
+  CC_FIELDS.forEach(([f,id])=>{ payload[f]=document.getElementById(id)?.value||0; });
+  try{
+    await payrollApi(payload);
+    toast('✓ Đã lưu chấm công ngày '+date,'green');
+    ccLoadHistory();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
+}
+window.ccSave=ccSave;
+let CC_ROWS_CACHE=[];
+async function ccLoadHistory(){
+  const tb=document.getElementById('cc-rows'); if(!tb) return;
+  const staff=(document.getElementById('cc-staff')?.value||'').trim();
+  const month=parseInt(document.getElementById('cc-month')?.value,10)||0;
+  const year=parseInt(document.getElementById('cc-year')?.value,10)||0;
+  const sub=document.getElementById('cc-sub');
+  if(!staff){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Chọn tên mình ở trên để xem lịch sử</td></tr>'; if(sub) sub.textContent='Chọn tên và tháng để xem'; return; }
+  tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Đang tải…</td></tr>';
+  try{
+    const d=await payrollApi({action:'log_list', staff_name:staff, month, year});
+    CC_ROWS_CACHE=d.rows||[];
+    if(sub) sub.textContent=`${staff} · Tháng ${month}/${year} · ${CC_ROWS_CACHE.length} ngày đã điền`;
+    if(!CC_ROWS_CACHE.length){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Chưa có ngày nào trong tháng này</td></tr>'; return; }
+    tb.innerHTML=CC_ROWS_CACHE.map(r=>{
+      const ctxJson=JSON.stringify(r).replace(/'/g,"&#39;");
+      return `<tr>
+        <td><b>${leadDateShort(r.log_date)}</b></td>
+        <td style="text-align:right">${r.phu_thuong_ca||0}</td>
+        <td style="text-align:right">${r.phu_cang_da_ca||0}</td>
+        <td style="text-align:right">${r.lam_thuong_ca||0}</td>
+        <td style="text-align:right">${r.lam_cang_da_ca||0}</td>
+        <td style="text-align:right">${r.tiem_ca||0}</td>
+        <td style="text-align:right">${r.csd_ca||0}</td>
+        <td style="font-size:.8rem">${esc(r.note)||'—'}</td>
+        <td><button class="btn ghost sm" onclick='ccEditRow(${ctxJson})'>✏️ Sửa</button></td>
+      </tr>`;
+    }).join('');
+  }catch(e){ tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
+}
+window.ccLoadHistory=ccLoadHistory;
+function ccEditRow(r){
+  const dt=document.getElementById('cc-date'); if(dt) dt.value=r.log_date;
+  CC_FIELDS.forEach(([f,id])=>{ const el=document.getElementById(id); if(el) el.value=r[f]||0; });
+  const note=document.getElementById('cc-note'); if(note) note.value=r.note||'';
+  toast('Đã nạp ngày '+leadDateShort(r.log_date)+' lên form — sửa xong bấm Lưu','ok');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+window.ccEditRow=ccEditRow;
+
 /* ===== TOUR PHẪU ===== */
 async function tourApi(payload){
   const r=await fetch('/api/tour',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
@@ -2222,6 +2351,7 @@ const titles = {
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
+  chamcong:['🗓️ Chấm công','Điền công việc mỗi ngày — cuối tháng tự cộng vào Bảng lương'],
   luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   revenue:['Doanh thu','Tháng 5/2026 · Q2'],
@@ -2495,6 +2625,7 @@ function go(section){
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
   if(section==='luong') payrollLoad();
+  if(section==='chamcong') ccInit();
   if(section==='tour'){ tourLoad(); tourLoadPending(); staffLoad(); }   // staffLoad để đổ tên vào 2 ô chọn Bác sĩ/Phụ phẫu
   if(section==='phangoi') phangoiLoad();
   if(section==='newcust') renderNewCustomers();
@@ -5218,11 +5349,11 @@ window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass
 const ROLE_MENUS={
   'Toàn quyền kiểm soát':'*',
   'Lễ tân':'*',
-  'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
-  'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm'],
-  'Sale':['dashboard','calendar','leads','phangoi','crm','care'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi']
+  'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care','chamcong'],
+  'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm','chamcong'],
+  'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm','chamcong'],
+  'Sale':['dashboard','calendar','leads','phangoi','crm','care','chamcong'],
+  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi','chamcong']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
