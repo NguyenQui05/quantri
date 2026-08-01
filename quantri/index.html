@@ -1010,6 +1010,8 @@
     <section class="page" id="page-tour">
       <div class="alert info" style="margin-bottom:14px"><span class="ic">🩻</span><div><b>Tour phẫu thuật.</b> Bác sĩ / phụ tá tự nhập ca ngay sau khi làm xong — lưu thật, đồng bộ mọi thiết bị. Bấm dòng khách để xem chi tiết.</div></div>
 
+      <div id="tourMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
       <div class="grid kpi-grid" style="margin-bottom:14px">
         <div class="kpi k1"><div class="ic">📅</div><div class="label">Ngày có ca</div><div class="val" id="tour-kpi-ngay">—</div><div class="delta">đã ghi nhận</div></div>
         <div class="kpi k2"><div class="ic">👥</div><div class="label">Tổng ca khách</div><div class="val" id="tour-kpi-kh">—</div><div class="delta" id="tour-kpi-kh-sub">&nbsp;</div></div>
@@ -1065,7 +1067,7 @@
         <div class="kpi k4"><div class="ic">🎯</div><div class="label">ROAS</div><div class="val">—</div><div class="delta">—</div></div>
       </div>
       <div class="card" style="margin-top:16px">
-        <div class="card-head"><div><h3>📊 Doanh thu theo tháng</h3><div class="sub" id="revMonthSub">7 tháng gần nhất · từ SỔ THU/CHI</div></div><span class="pill" id="revMonthTrend" style="white-space:nowrap"></span></div>
+        <div class="card-head"><div><h3>📊 Doanh thu theo tháng</h3><div class="sub" id="revMonthSub">7 tháng gần nhất · từ SỔ THU/CHI</div><div class="sub" id="revSyncStatus" style="font-size:.74rem;margin-top:2px"></div></div><span class="pill" id="revMonthTrend" style="white-space:nowrap"></span></div>
         <canvas id="chartRevMonths" height="92"></canvas>
         <div id="revMonthCards" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
         <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">📈 Cột đỏ = doanh thu · đường xanh = lợi nhuận (cột LỢI NHUẬN trong sổ). <b>T5 đang để "chờ rà"</b> vì cột chi tháng 5 lẫn tiền chuyển khoản nội bộ — chị xác nhận giúp em. T3 đã gộp khoản ghi nhầm năm.</div>
@@ -1204,8 +1206,9 @@
             <option value="Kỹ thuật viên">💆‍♀️ Kỹ thuật viên</option>
             <option value="Bác sĩ">🩺 Bác sĩ</option>
             <option value="Phụ phẫu">🧑‍⚕️ Phụ phẫu</option>
-            <option value="Sale">📈 Sale</option>
+            <option value="Telesale">📈 Telesale</option>
             <option value="Sale trực tiếp">🤝 Sale trực tiếp</option>
+            <option value="Marketing">📣 Marketing</option>
           </select>
           <button class="btn" onclick="acctCreate()" style="width:100%;margin-top:16px">➕ Tạo tài khoản</button>
         </div>
@@ -1217,7 +1220,7 @@
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>💆‍♀️ Kỹ thuật viên</b> — lịch hẹn, hồ sơ y khoa, chăm sóc</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🩺 Bác sĩ</b> — hồ sơ y khoa, tour phẫu, lịch</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🧑‍⚕️ Phụ phẫu</b> — như bác sĩ: hồ sơ y khoa, tour phẫu, lịch, khách</div>
-            <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>📈 Sale</b> — lead, telesale, chăm sóc</div>
+            <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>📈 Telesale</b> — lịch hẹn, lead mới</div>
             <div style="padding:9px 12px;border-radius:9px;background:var(--cream)"><b>🤝 Sale trực tiếp</b> — khách, hóa đơn, chốt tại quầy</div>
           </div>
         </div>
@@ -2193,14 +2196,47 @@ async function tourApi(payload){
   if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
   return d;
 }
+/* ===== Tab chọn tháng cho Tour phẫu thuật — bấm tháng nào lấy đúng ca tháng đó từ server ===== */
+function buildTourMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[{key:'all',label:'Tất cả'}];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const TOUR_MONTHS = buildTourMonths();
+let tourMonthFilter = 'all';
+function tourMonthRange(key){
+  if(key==='all') return {from:null, to:null};
+  const [y,m] = key.split('-').map(Number);
+  const from = key+'-01';
+  const to = key+'-'+String(new Date(y, m, 0).getDate()).padStart(2,'0');
+  return {from, to};
+}
+function renderTourMonthTabs(){
+  const el=document.getElementById('tourMonthTabs'); if(!el) return;
+  el.innerHTML = TOUR_MONTHS.map(m=>`<button class="btn ${tourMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectTourMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectTourMonth(key){
+  tourMonthFilter = key;
+  renderTourMonthTabs();
+  tourLoad(true);
+}
+window.selectTourMonth = selectTourMonth;
 async function tourLoad(force){
   if (TOUR.loading) return;
   if (TOUR.rows && !force) { tourRender(); return; }
   TOUR.loading = true;
+  renderTourMonthTabs();
   const root=document.getElementById('tour-days');
   if(root) root.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">Đang tải…</div>';
   try{
-    const d = await tourApi({action:'list'});
+    const {from,to} = tourMonthRange(tourMonthFilter);
+    const d = await tourApi({action:'list', from, to});
     TOUR.rows = d.rows||[]; TOUR.stats = d.stats||{};
     tourRender();
   }catch(e){
@@ -2217,6 +2253,7 @@ function tourGroupByDay(rows){
 }
 function tourRender(){
   const root = document.getElementById('tour-days'); if (!root) return;
+  renderTourMonthTabs();
   const rows = TOUR.rows||[];
   const q = (document.getElementById('tourSearch')?.value || '').toLowerCase().trim();
   const filteredRows = !q ? rows : rows.filter(k =>
@@ -2354,7 +2391,7 @@ const titles = {
   chamcong:['🗓️ Chấm công','Điền công việc mỗi ngày — cuối tháng tự cộng vào Bảng lương'],
   luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
-  revenue:['Doanh thu','Tháng 5/2026 · Q2'],
+  revenue:['Doanh thu','Doanh thu & lợi nhuận thật từ SỔ THU/CHI'],
   marketing:['Marketing & Loyalty','4 campaign đang chạy'],
   billing:['🧾 Hóa đơn','Tạo & in bill 80mm cho khách tại quầy'],
   accounts:['👤 Tài khoản','Tạo & phân quyền tài khoản nhân viên'],
@@ -2607,7 +2644,7 @@ async function pgDelete(id){
 window.pgImport=pgImport; window.pgDistribute=pgDistribute; window.pgSave=pgSave; window.pgDelete=pgDelete; window.pgRefresh=pgRefresh; window.pgClearFilter=pgClearFilter; window.pgGoPage=pgGoPage;
 
 function go(section){
-  if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section='dashboard'; }
+  if(typeof roleCanSee==='function' && !roleCanSee(section)){ if(typeof toast==='function') toast('🔒 Vai trò của bạn không xem được mục này','red'); section=(typeof roleFirstSection==='function')?roleFirstSection():'dashboard'; }
   document.querySelectorAll('.nav a[data-section]').forEach(a=>a.classList.toggle('active', a.dataset.section===section));
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+section));
   const [t,s]=titles[section]||['',''];
@@ -3746,8 +3783,10 @@ function revenueModel(){
   let profitSheet=0, hasProfitSheet=false;
   srcs.filter(s=>s.cat==='loinhuan'&&DS_CACHE[s.id]).forEach(s=>{ profitSheet+=(+s.sumAmount||0); hasProfitSheet=true; });
   const revAds=AG.T.rev||0, adCost=AG.T.spend||0;
-  const revenue = revRecorded>0?revRecorded:revAds;
-  const revFromAds = revRecorded<=0;
+  // Có SỔ THU/CHI (hasBook) thì LUÔN dùng số thật, kể cả khi = 0 (vd đầu tháng chưa có ca) —
+  // không được lặng lẽ thay bằng doanh số quảng cáo, kẻo hiện nhầm số trong khi lợi nhuận/chi vẫn đúng là 0.
+  const revenue = hasBook ? revRecorded : (revRecorded>0?revRecorded:revAds);
+  const revFromAds = !hasBook && revRecorded<=0;
   // Lợi nhuận: sổ thu/chi > sheet lợi nhuận > tạm tính (doanh thu − chi QC)
   let profit, profitSource;
   if(hasBook){ profit=bookProfit; profitSource='book'; }
@@ -3758,13 +3797,15 @@ function revenueModel(){
   const cost = hasBook?chiVH:adCost;                 // "tổng chi" hiển thị: vận hành nếu có sổ, else chi QC
   const roas = adCost?(revAds/adCost):0;
   const margin = revenue?(profit/revenue*100):0;
-  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
+  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,iso:d.iso,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
   return {AG,revenue,revRecorded,revAds,revFromAds,cost,profit,profitRecordedFlag,roas,margin,days,hasRev:AG.hasRev,adCost,chiVH,hasBook,profitSource};
 }
 function renderRevenue(){
   const M=revenueModel();
   const alert=gel('revAlert'), grid=gel('revKpiGrid');
-  const hasAny = M.cost>0 || M.revenue>0;
+  // Có nguồn thật kết nối (SỔ THU/CHI hoặc sheet lợi nhuận) thì luôn coi là "có dữ liệu",
+  // dù tổng tháng hiện đang đúng bằng 0 (vd đầu tháng chưa có ca) — không hiện nhầm "chưa kết nối".
+  const hasAny = M.cost>0 || M.revenue>0 || M.hasBook || M.profitRecordedFlag;
   if(alert){
     if(!hasAny) alert.innerHTML='<div class="alert info"><span class="ic">ℹ️</span><div>Chưa có dữ liệu doanh thu/chi phí. Vào <b>Data Hub</b> kết nối Google Sheet (loại <b>💰 Doanh thu</b>, <b>📢 Quảng cáo</b>, <b>📈 Lợi nhuận</b>) rồi bấm <b>Đồng bộ</b>.</div></div>';
     else if(M.hasBook) alert.innerHTML='<div class="alert success" style="margin-bottom:14px"><span class="ic">✅</span><div>Doanh thu &amp; lợi nhuận lấy <b>trực tiếp từ SỔ THU/CHI</b> — lợi nhuận đã trừ <b>toàn bộ chi phí vận hành</b> (mặt bằng, lương, vật tư, quảng cáo…), là <b>lãi thật</b> chứ không phải số tạm tính. Tự cập nhật khi mở trang.</div></div>';
@@ -3804,6 +3845,7 @@ function renderRevenue(){
   const sh=gel('revSvcHead'); if(sh) sh.textContent = M.hasBook?'Cơ cấu: tổng chi vs lợi nhuận thật':'Cơ cấu: chi phí vs lợi nhuận';
   renderRevTarget(M);
   renderRevMonths(M);
+  if(M.hasBook) syncRevenueToSupabase(M.days);   // sao lưu nền, không chặn giao diện
 }
 // ===== Doanh thu theo tháng (lịch sử từ SỔ THU/CHI — đơn vị: đồng) =====
 const REV_HISTORY = [
@@ -3816,12 +3858,18 @@ const REV_HISTORY = [
 ];
 let revMonthChart=null;
 function revMonthFmt(v){ return v>=1e9 ? (v/1e9).toFixed(2).replace('.',',')+' tỷ' : Math.round(v/1e6)+'tr'; }
+// Tháng "đang chạy" tính từ đồng hồ máy — không hardcode, để không bị đơ lại 1 tháng như trước.
+function currentMonthLabel(){ const d=new Date(); return 'T'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2); }
 function renderRevMonths(M){
   const cv=document.getElementById('chartRevMonths'); if(!cv) return;
   if(!M){ try{ M=revenueModel(); }catch(e){ M=null; } }
-  const juneRev = (M && M.hasBook && M.revenue>0) ? M.revenue : 47880000;
-  const juneProfit = (M && M.hasBook && M.profit) ? M.profit : 34534000;
-  const months = REV_HISTORY.concat([{m:'T6/26', v:juneRev, p:juneProfit, live:true}]);
+  const liveLabel = currentMonthLabel();
+  const liveRev = (M && M.hasBook) ? M.revenue : 0;
+  const liveProfit = (M && M.hasBook) ? M.profit : null;
+  // Nếu tháng hiện tại đã có sẵn trong REV_HISTORY (đã chốt sổ thủ công) thì khỏi nối thêm, tránh trùng cột.
+  const months = REV_HISTORY.some(x=>x.m===liveLabel)
+    ? REV_HISTORY
+    : REV_HISTORY.concat([{m:liveLabel, v:liveRev, p:liveProfit, live:true}]);
   const peak = Math.max.apply(null, months.map(x=>x.v));
   if(revMonthChart){ revMonthChart.destroy(); revMonthChart=null; }
   if(window.Chart){
@@ -4833,6 +4881,20 @@ function previewSource(id){
   modalBg.classList.add('show');
 }
 
+// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng. ĐÃ THỬ tra theo TÊN tab (kiểu "sheet=DOANH THU T82026")
+// giống Marketing/Lead nhưng bị Google gviz âm thầm rớt về "tab đầu tiên" trên chính file này —
+// không báo lỗi, cứ trả về sai dữ liệu (đã tự kiểm chứng nhiều lần với cả tên có/không dấu cách).
+// Marketing/Lead dùng tra tên tab vẫn ổn vì là file khác — lỗi này riêng của file Sổ thu/chi.
+// Nên bắt buộc dùng GID (đã lấy từ link sếp gửi mỗi tháng), tra theo THÁNG THẬT để tự chuyển.
+// Thêm dòng mới mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
+const REVENUE_BOOK_GID_BY_MONTH = {
+  '2026-07': '797748578',   // DOANH THU T72026
+  '2026-08': '0'            //   DOANH THU T82026
+};
+function currentRevenueBookGid(){
+  const d=new Date(), key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  return REVENUE_BOOK_GID_BY_MONTH[key] || null;   // chưa cấu hình tháng đó → fallback tab đầu (gid:null)
+}
 const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
     url:'https://docs.google.com/spreadsheets/d/1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg',
@@ -4842,7 +4904,7 @@ const SEED_SOURCES = [
     cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
-    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
+    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
   { id:'DSKH', name:'Danh sách khách hàng (tổng)',
     url:'https://docs.google.com/spreadsheets/d/1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo',
     cat:'data', tab:null, sheetId:'1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo', gid:null },
@@ -4862,7 +4924,8 @@ const SEED_SOURCES = [
 // Migration: repoint nguồn báo cáo MKT sang đúng file/tab (tránh dính sheetId cũ đã lưu localStorage).
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
-  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' }
+  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
+  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
@@ -4978,13 +5041,17 @@ function parseRevenueBook(cache){
   let totThu=0,totChi=0,totLoi=0; const days=[];
   rows.forEach(r=>{
     const dRaw=String(r[iDate]==null?'':r[iDate]).trim();
-    const m=dRaw.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})(?:\s*[\/.\-]\s*\d{2,4})?$/);
+    const m=dRaw.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})(?:\s*[\/.\-]\s*(\d{2,4}))?$/);
     if(!m) return;
     const thu=iThu>=0?parseSignedMoney(r[iThu]):0;
     const chi=iChi>=0?parseSignedMoney(r[iChi]):0;
     const loi=iLoi>=0?parseSignedMoney(r[iLoi]):(thu-chi);
     const _o=parseInt(m[2],10)*100+parseInt(m[1],10);
-    days.push({date:parseInt(m[1],10)+'/'+parseInt(m[2],10),thu,chi,loinhuan:loi,_o});
+    const dd=parseInt(m[1],10), mo=parseInt(m[2],10);
+    let yy=m[3]?parseInt(m[3],10):new Date().getFullYear();
+    if(m[3]&&m[3].length===2) yy=2000+yy;
+    const iso=yy+'-'+String(mo).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+    days.push({date:dd+'/'+mo,iso,thu,chi,loinhuan:loi,_o});
     totThu+=thu; totChi+=chi; totLoi+=loi;
   });
   days.sort((a,b)=>a._o-b._o);
@@ -5198,6 +5265,31 @@ async function syncMarketingToSupabase(monthKey, days, silent){
     if(!silent) mktSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
   }
 }
+
+/* ===== Sao lưu SỔ THU/CHI (Doanh thu) sang Supabase — cùng cơ chế với Marketing ở trên ===== */
+let _revSynced = null;   // chữ ký dữ liệu đã lưu, tránh ghi lại khi không đổi
+function revSyncNote(txt, color){
+  const el=gel('revSyncStatus'); if(!el) return;
+  el.textContent = txt; el.style.color = color || 'var(--muted)';
+}
+async function syncRevenueToSupabase(days, silent){
+  const rows = (days||[]).filter(d=>d.iso).map(d=>({report_date:d.iso, thu:Math.round(d.rev||0), chi:Math.round(d.spend||0), loinhuan:Math.round(d.loinhuan||0)}));
+  if(!rows.length) return;
+  const sig = JSON.stringify(rows);
+  if(_revSynced === sig) return;
+  if(!silent) revSyncNote('⏳ Đang lưu Supabase…');
+  try{
+    const r = await fetch('/api/marketing',{method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync_revenue',rows})});
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d?.error||'Lỗi lưu Supabase');
+    _revSynced = sig;
+    if(!silent) revSyncNote('☁️ Đã lưu Supabase '+d.saved+' ngày · '+new Date().toLocaleTimeString('vi-VN'), 'var(--green)');
+  }catch(e){
+    console.error('sync revenue', e);
+    if(!silent) revSyncNote('⚠️ Chưa lưu được Supabase: '+(e.message||e), 'var(--red)');
+  }
+}
 window.addDataSource=addDataSource; window.removeDataSource=removeDataSource;
 window.refreshSource=refreshSource; window.refreshAllSheets=refreshAllSheets; window.previewSource=previewSource;
 window.renderMarketing=renderMarketing; window.renderRevenue=renderRevenue; window.setRevTarget=setRevTarget; window.syncOverviewRevenue=syncOverviewRevenue;
@@ -5280,7 +5372,7 @@ window.billAddRow=billAddRow; window.billPreview=billPreview; window.billPrintNe
 window.billExport=function(){ const bills=billGetBills(); if(!bills.length){ toast('Chưa có hóa đơn để xuất'); return; } const rows=[['Số','Ngày','Khách','SĐT','Dịch vụ','Giảm giá','Tổng','Thanh toán']]; bills.forEach(b=>rows.push([b.code,b.at,b.name||'',b.phone||'',(b.items||[]).map(i=>i.name+': '+i.price).join(' | '),b.discount||0,b.total||0,b.method||''])); const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='hoadon-hana.csv'; a.click(); toast('⬇ Đã tải CSV hóa đơn','green'); };
 
 /* ===== TÀI KHOẢN (quản lý nội bộ) ===== */
-const ACCT_ROLES={'Toàn quyền kiểm soát':{c:'#A8231C',b:'#FBE7DA',i:'👑'},'Lễ tân':{c:'#1565C0',b:'#E3F2FD',i:'🛎️'},'Kỹ thuật viên':{c:'#2E7D32',b:'#E8F5E9',i:'💆‍♀️'},'Bác sĩ':{c:'#6A1B9A',b:'#F3E5F5',i:'🩺'},'Phụ phẫu':{c:'#3949AB',b:'#E8EAF6',i:'🧑‍⚕️'},'Sale':{c:'#E65100',b:'#FFE5CC',i:'📈'},'Sale trực tiếp':{c:'#00695C',b:'#E0F2F1',i:'🤝'}};
+const ACCT_ROLES={'Toàn quyền kiểm soát':{c:'#A8231C',b:'#FBE7DA',i:'👑'},'Lễ tân':{c:'#1565C0',b:'#E3F2FD',i:'🛎️'},'Kỹ thuật viên':{c:'#2E7D32',b:'#E8F5E9',i:'💆‍♀️'},'Bác sĩ':{c:'#6A1B9A',b:'#F3E5F5',i:'🩺'},'Phụ phẫu':{c:'#3949AB',b:'#E8EAF6',i:'🧑‍⚕️'},'Telesale':{c:'#E65100',b:'#FFE5CC',i:'📈'},'Sale trực tiếp':{c:'#00695C',b:'#E0F2F1',i:'🤝'},'Marketing':{c:'#AD1457',b:'#FCE4EC',i:'📣'}};
 async function acctApi(payload){
   const r=await fetch('/api/accounts',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
   const d=await r.json().catch(()=>({}));
@@ -5348,26 +5440,32 @@ window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass
 /* ===== PHÂN QUYỀN THEO VAI TRÒ (giao diện) ===== */
 const ROLE_MENUS={
   'Toàn quyền kiểm soát':'*',
-  'Lễ tân':'*',
+  'Lễ tân':['calendar','dashboard','newcust','care','staff','tasks','tour','chamcong'],
   'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care','chamcong'],
-  'Bác sĩ':['dashboard','calendar','medical','tour','gallery','crm','chamcong'],
-  'Phụ phẫu':['dashboard','calendar','medical','tour','gallery','crm','chamcong'],
-  'Sale':['dashboard','calendar','leads','phangoi','crm','care','chamcong'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi','chamcong']
+  'Bác sĩ':['tour','chamcong'],
+  'Phụ phẫu':['tour','chamcong'],
+  'Telesale':['calendar','leads','chamcong'],
+  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi','chamcong'],
+  'Marketing':['marketing','chamcong']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
 function sessSet(s){ try{localStorage.setItem('hana_session',JSON.stringify(s));}catch(e){} }
 function curRole(){ const s=sessGet(); return (s&&s.role)||'Toàn quyền kiểm soát'; }
 function canDelete(){ return curRole()==='Toàn quyền kiểm soát'; }
-function roleCanSee(section){ const role=curRole(); const allowed=ROLE_MENUS[role]||'*'; if(ROLE_OWNER_ONLY.indexOf(section)>=0 && role!=='Toàn quyền kiểm soát') return false; return allowed==='*'||allowed.indexOf(section)>=0; }
+// Vai trò không có trong ROLE_MENUS (gõ sai, hoặc tài khoản cũ còn role đã đổi tên) -> KHÔNG được xem gì
+// (an toàn hơn), thay vì mặc định cho xem hết như trước.
+function roleCanSee(section){ const role=curRole(); const allowed=ROLE_MENUS[role]||[]; if(ROLE_OWNER_ONLY.indexOf(section)>=0 && role!=='Toàn quyền kiểm soát') return false; return allowed==='*'||allowed.indexOf(section)>=0; }
+// Trang đầu tiên vai trò được phép xem — dùng làm chỗ "rớt về" thay vì ép cứng 'dashboard'
+// (có vai trò như Marketing không được xem Tổng quan, ép về đó sẽ kẹt màn hình).
+function roleFirstSection(){ const role=curRole(); const allowed=ROLE_MENUS[role]; if(!allowed||allowed==='*') return 'dashboard'; return allowed[0]||'dashboard'; }
 function applyRole(){
   const role=curRole();
   document.querySelectorAll('.nav a[data-section]').forEach(a=>{ a.style.display=roleCanSee(a.dataset.section)?'':'none'; });
   document.body.classList.toggle('role-nodelete', !canDelete());
   const chip=document.getElementById('roleChip'); if(chip){ chip.textContent=((ACCT_ROLES[role]&&ACCT_ROLES[role].i)||'👑')+' '+role; }
   const active=document.querySelector('.page.active'); const cur=active?active.id.replace('page-',''):'dashboard';
-  if(!roleCanSee(cur) && typeof go==='function') go('dashboard');
+  if(!roleCanSee(cur) && typeof go==='function') go(roleFirstSection());
 }
 function roleLogout(){ try{localStorage.removeItem('hana_session');}catch(e){} location.href='/api/logout'; }   // đăng xuất thật + về trang đăng nhập
 async function roleInitFromServer(){
@@ -5394,6 +5492,13 @@ setTimeout(refreshAllOverview, 800);
 // Tự động cập nhật Marketing/Doanh thu mỗi 30 phút — chỉ chạy khi trình duyệt còn mở tab này
 setInterval(refreshAllOverview, 30*60*1000);
 try{ const _g='Xin chào chị Phương · '+vnToday(); if(typeof titles!=='undefined'&&titles.dashboard) titles.dashboard[1]=_g; const _s=document.getElementById('page-sub'); if(_s && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) _s.innerHTML=_g; }catch(e){}
+try{
+  const _now=new Date(), _m=_now.getMonth()+1, _q=Math.ceil(_m/3);
+  const _rg='Tháng '+_m+'/'+_now.getFullYear()+' · Q'+_q;
+  if(typeof titles!=='undefined'&&titles.revenue) titles.revenue[1]=_rg;
+  const _rs=document.getElementById('page-sub');
+  if(_rs && document.getElementById('page-revenue') && document.getElementById('page-revenue').classList.contains('active')) _rs.innerHTML=_rg;
+}catch(e){}
 try{ roleInitFromServer(); }catch(e){}
 initDashboardCharts();
 setTimeout(initSparklines, 200);

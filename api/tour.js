@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     if (action === 'list')           return await listCases(res, body);
     if (action === 'create')         return await createCase(res, body, sess);
     if (action === 'update')         return await updateCase(res, body);
-    if (action === 'delete')         return await deleteCase(res, body);
+    if (action === 'delete')         return await deleteCase(res, body, sess);
     if (action === 'list_care')      return await listCare(res);
     if (action === 'mark_care_done') return await markCareDone(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
@@ -122,7 +122,8 @@ async function updateCase(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteCase(res, body) {
+async function deleteCase(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });

@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     if (action === 'list')   return await listStaff(res);
     if (action === 'create') return await createStaff(res, body, sess);
     if (action === 'update') return await updateStaff(res, body);
-    if (action === 'delete') return await deleteStaff(res, body);
+    if (action === 'delete') return await deleteStaff(res, body, sess);
     // Công việc giao cho nhân viên (gộp vào đây vì gói Vercel Hobby giới hạn 12 function)
     if (action === 'task_list')   return await listTasks(res);
     if (action === 'task_create') return await createTask(res, body, sess);
@@ -105,7 +105,8 @@ async function updateStaff(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteStaff(res, body) {
+async function deleteStaff(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });

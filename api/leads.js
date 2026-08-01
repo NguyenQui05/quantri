@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     if (action === 'create')        return await createLead(res, body);
     if (action === 'update_status') return await updateStatus(res, body);
     if (action === 'update')        return await updateLead(res, body);
-    if (action === 'delete')        return await deleteLead(res, body);
+    if (action === 'delete')        return await deleteLead(res, body, sess);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('leads api error:', e?.message || e);
@@ -93,10 +93,19 @@ export default async function handler(req, res) {
 }
 
 // ===== Đồng bộ lead từ Google Sheet "trực page" nhập (chạy 1 lần/ngày qua Vercel Cron) =====
-// Sheet: DATA TM HaNa chuẩn nhất — mỗi tháng 1 tab riêng, vd "DATA T8/2026".
-// Đổi hằng số bên dưới mỗi khi sang tháng mới (tab sheet mới do các bạn trực page tạo).
+// Sheet: DATA TM HaNa chuẩn nhất — mỗi tháng 1 tab riêng, thường tên "DATA T<tháng>/<năm>"
+// nhưng đôi khi các bạn trực page thêm chữ (vd tháng 7/2026 là "DATA T7/2026 MỚI").
+// Tự tính đúng tab theo THÁNG THẬT (đồng hồ máy); nếu tháng nào tên tab lệch khuôn thường
+// thì thêm 1 dòng vào LEAD_SHEET_TAB_OVERRIDE bên dưới (không cần cho mọi tháng).
 const LEAD_SHEET_ID = '1xivkZTZ58ShcnMdwRvt9S7ZD89Lc9Ww-gS8VYa2fdcQ';
-const LEAD_SHEET_TAB = 'DATA T8/2026';
+const LEAD_SHEET_TAB_OVERRIDE = {
+  '2026-07': 'DATA T7/2026 MỚI'
+};
+function currentLeadSheetTab() {
+  const d = new Date();
+  const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  return LEAD_SHEET_TAB_OVERRIDE[key] || ('DATA T' + (d.getMonth() + 1) + '/' + d.getFullYear());
+}
 
 const STATUS_MAP = {
   'đã mua dịch vụ': 'arrived', 'đến nhưng ko mua': 'arrived', 'khách cũ đá ghé làm rồi': 'arrived',
@@ -120,7 +129,7 @@ function parseGvizDate(v) {
 }
 
 async function syncFromSheet(res) {
-  const url = `https://docs.google.com/spreadsheets/d/${LEAD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(LEAD_SHEET_TAB)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${LEAD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(currentLeadSheetTab())}`;
   const sheetRes = await fetch(url);
   const text = await sheetRes.text();
   const s = text.indexOf('{'), e = text.lastIndexOf('}') + 1;
@@ -158,7 +167,7 @@ async function syncFromSheet(res) {
       lead_date: leadDate
     });
   }
-  if (!candidates.length) return res.status(200).json({ ok: true, checked: 0, inserted: 0, skipped: 0 });
+  if (!candidates.length) return res.status(200).json({ ok: true, tab: currentLeadSheetTab(), checked: 0, inserted: 0, skipped: 0 });
 
   // Chặn nhập trùng: sheet không tự xoá dòng cũ, cron chạy mỗi ngày nên phải bỏ qua
   // những khách (SĐT + ngày thả số) đã có sẵn trong hệ thống từ lần đồng bộ trước.
@@ -178,7 +187,7 @@ async function syncFromSheet(res) {
     if (r.ok) inserted += batch.length;
     else console.error('sync insert batch lỗi:', await r.text().catch(() => ''));
   }
-  return res.status(200).json({ ok: true, checked: candidates.length, inserted, skipped: candidates.length - toInsert.length });
+  return res.status(200).json({ ok: true, tab: currentLeadSheetTab(), checked: candidates.length, inserted, skipped: candidates.length - toInsert.length });
 }
 
 async function publicCreateLead(res, req, body) {
@@ -284,7 +293,8 @@ async function updateLead(res, body) {
   return res.status(200).json({ ok: true });
 }
 
-async function deleteLead(res, body) {
+async function deleteLead(res, body, sess) {
+  if (sess.role !== 'Toàn quyền kiểm soát') return res.status(403).json({ error: 'Chỉ Toàn quyền kiểm soát mới được xoá' });
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
   const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
