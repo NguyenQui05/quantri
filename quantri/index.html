@@ -973,6 +973,8 @@
     <section class="page" id="page-tour">
       <div class="alert info" style="margin-bottom:14px"><span class="ic">🩻</span><div><b>Tour phẫu thuật.</b> Bác sĩ / phụ tá tự nhập ca ngay sau khi làm xong — lưu thật, đồng bộ mọi thiết bị. Bấm dòng khách để xem chi tiết.</div></div>
 
+      <div id="tourMonthTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+
       <div class="grid kpi-grid" style="margin-bottom:14px">
         <div class="kpi k1"><div class="ic">📅</div><div class="label">Ngày có ca</div><div class="val" id="tour-kpi-ngay">—</div><div class="delta">đã ghi nhận</div></div>
         <div class="kpi k2"><div class="ic">👥</div><div class="label">Tổng ca khách</div><div class="val" id="tour-kpi-kh">—</div><div class="delta" id="tour-kpi-kh-sub">&nbsp;</div></div>
@@ -2065,14 +2067,47 @@ async function tourApi(payload){
   if(!r.ok) throw new Error(d.error||('Lỗi máy chủ '+r.status));
   return d;
 }
+/* ===== Tab chọn tháng cho Tour phẫu thuật — bấm tháng nào lấy đúng ca tháng đó từ server ===== */
+function buildTourMonths(){
+  const now=new Date();
+  let y=now.getFullYear(), m=now.getMonth()+1;
+  const START_Y=2025, START_M=12;
+  const out=[{key:'all',label:'Tất cả'}];
+  while(y>START_Y || (y===START_Y && m>=START_M)){
+    out.push({key:y+'-'+String(m).padStart(2,'0'), label:'Th '+m+'/'+y});
+    m--; if(m<1){ m=12; y--; }
+  }
+  return out;
+}
+const TOUR_MONTHS = buildTourMonths();
+let tourMonthFilter = 'all';
+function tourMonthRange(key){
+  if(key==='all') return {from:null, to:null};
+  const [y,m] = key.split('-').map(Number);
+  const from = key+'-01';
+  const to = key+'-'+String(new Date(y, m, 0).getDate()).padStart(2,'0');
+  return {from, to};
+}
+function renderTourMonthTabs(){
+  const el=document.getElementById('tourMonthTabs'); if(!el) return;
+  el.innerHTML = TOUR_MONTHS.map(m=>`<button class="btn ${tourMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectTourMonth('${m.key}')">${m.label}</button>`).join('');
+}
+function selectTourMonth(key){
+  tourMonthFilter = key;
+  renderTourMonthTabs();
+  tourLoad(true);
+}
+window.selectTourMonth = selectTourMonth;
 async function tourLoad(force){
   if (TOUR.loading) return;
   if (TOUR.rows && !force) { tourRender(); return; }
   TOUR.loading = true;
+  renderTourMonthTabs();
   const root=document.getElementById('tour-days');
   if(root) root.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">Đang tải…</div>';
   try{
-    const d = await tourApi({action:'list'});
+    const {from,to} = tourMonthRange(tourMonthFilter);
+    const d = await tourApi({action:'list', from, to});
     TOUR.rows = d.rows||[]; TOUR.stats = d.stats||{};
     tourRender();
   }catch(e){
@@ -2089,6 +2124,7 @@ function tourGroupByDay(rows){
 }
 function tourRender(){
   const root = document.getElementById('tour-days'); if (!root) return;
+  renderTourMonthTabs();
   const rows = TOUR.rows||[];
   const q = (document.getElementById('tourSearch')?.value || '').toLowerCase().trim();
   const filteredRows = !q ? rows : rows.filter(k =>
