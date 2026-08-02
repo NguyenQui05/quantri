@@ -2212,7 +2212,7 @@ function buildTourMonths(){
   return out;
 }
 const TOUR_MONTHS = buildTourMonths();
-let tourMonthFilter = 'all';
+let tourMonthFilter = TOUR_MONTHS[1] ? TOUR_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function tourMonthRange(key){
   if(key==='all') return {from:null, to:null};
   const [y,m] = key.split('-').map(Number);
@@ -3292,7 +3292,7 @@ function buildApptMonths(){
   return out;
 }
 const APPT_MONTHS = buildApptMonths();
-let apptMonthFilter = 'all';
+let apptMonthFilter = APPT_MONTHS[1] ? APPT_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function renderApptMonthTabs(){
   const el=document.getElementById('apptMonthTabs'); if(!el) return;
   el.innerHTML = APPT_MONTHS.map(m=>`<button class="btn ${apptMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectApptMonth('${m.key}')">${m.label}</button>`).join('');
@@ -4165,7 +4165,7 @@ function buildLeadMonths(){
   return out;
 }
 const LEAD_MONTHS = buildLeadMonths();
-let leadMonthFilter = 'all';
+let leadMonthFilter = LEAD_MONTHS[1] ? LEAD_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function renderLeadMonthTabs(){
   const el=document.getElementById('leadMonthTabs'); if(!el) return;
   el.innerHTML = LEAD_MONTHS.map(m=>`<button class="btn ${leadMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectLeadMonth('${m.key}')">${m.label}</button>`).join('');
