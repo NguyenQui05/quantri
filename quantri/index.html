@@ -579,6 +579,7 @@
       <!-- Số liệu tháng hiện tại -->
       <div class="grid kpi-grid" style="margin-top:16px">
         <div class="kpi k1" onclick="go('leads')"><div class="ic">🧲</div><div class="label">Tổng lead <span id="ovMonthLbl1" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovLeadVal">—</div><div class="delta" id="ovLeadDelta">từ tab Lead Mới</div></div>
+        <div class="kpi k2" onclick="go('marketing')"><div class="ic">📞</div><div class="label">SĐT từ QC <span id="ovMonthLbl6" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovSdtVal">—</div><div class="delta" id="ovSdtDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k2" onclick="go('marketing')"><div class="ic">📢</div><div class="label">Chi phí quảng cáo <span id="ovMonthLbl2" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsVal">—</div><div class="delta" id="ovAdsDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k3" onclick="go('marketing')"><div class="ic">💵</div><div class="label">Doanh thu từ quảng cáo <span id="ovMonthLbl4" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsRevVal">—</div><div class="delta" id="ovAdsRevDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k4" onclick="go('calendar')"><div class="ic">🏥</div><div class="label">Khách mới đã tới <span id="ovMonthLbl3" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovArrivedVal">—</div><div class="delta" id="ovArrivedDelta">lịch hẹn đã xác nhận đến</div></div>
@@ -3459,7 +3460,7 @@ async function syncOverviewMonth(){
   const prefix=ovMonthFilter;                      // "2026-07"
   const [y,mo]=prefix.split('-').map(Number);
   const lbl='Tháng '+mo+'/'+y;
-  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
+  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4','ovMonthLbl6'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
   const set=(id,v)=>{ const e=g(id); if(e) e.textContent=v; };
 
   // 1) Tổng lead trong tháng
@@ -3478,12 +3479,15 @@ async function syncOverviewMonth(){
     if(mk.ok){
       set('ovAdsVal', VND_FULL(mk.T.spend)+'₫');
       set('ovAdsDelta', mk.days.length+' ngày'+(mk.T.khach?(' · '+VND_FULL(Math.round(mk.T.spend/mk.T.khach))+'₫/khách đến'):''));
+      set('ovSdtVal', (mk.T.sdt||0).toLocaleString('vi-VN'));
+      set('ovSdtDelta', mk.T.sdt?(VND_FULL(Math.round(mk.T.spend/mk.T.sdt))+'₫/SĐT'):'chưa có SĐT');
       if(mk.hasRev){
         set('ovAdsRevVal', VND_FULL(mk.T.rev)+'₫');
         set('ovAdsRevDelta', mk.roas?('ROAS '+mk.roas.toFixed(2)+'×'):'chưa tính được ROAS');
       } else { set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu doanh thu QC'); }
     } else {
       set('ovAdsVal','—'); set('ovAdsDelta','Chưa có số liệu '+lbl);
+      set('ovSdtVal','—'); set('ovSdtDelta','Chưa có số liệu '+lbl);
       set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu '+lbl);
     }
   }catch(e){ console.error('ov ads', e); }
