@@ -519,6 +519,7 @@
       <div class="group">Vận hành</div>
       <a data-section="tasks"><span class="ic">📋</span>Công việc<span class="badge">14</span></a>
       <a data-section="staff"><span class="ic">👩‍⚕️</span>Nhân viên</a>
+      <a data-section="chamcong"><span class="ic">🗓️</span>Chấm công</a>
       <a data-section="luong"><span class="ic">💵</span>Bảng lương nhân viên</a>
       <a data-section="tour"><span class="ic">🩻</span>Tour phẫu thuật</a>
       <a data-section="billing"><span class="ic">🧾</span>Hóa đơn</a>
@@ -578,6 +579,7 @@
       <!-- Số liệu tháng hiện tại -->
       <div class="grid kpi-grid" style="margin-top:16px">
         <div class="kpi k1" onclick="go('leads')"><div class="ic">🧲</div><div class="label">Tổng lead <span id="ovMonthLbl1" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovLeadVal">—</div><div class="delta" id="ovLeadDelta">từ tab Lead Mới</div></div>
+        <div class="kpi k2" onclick="go('marketing')"><div class="ic">📞</div><div class="label">SĐT từ QC <span id="ovMonthLbl6" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovSdtVal">—</div><div class="delta" id="ovSdtDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k2" onclick="go('marketing')"><div class="ic">📢</div><div class="label">Chi phí quảng cáo <span id="ovMonthLbl2" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsVal">—</div><div class="delta" id="ovAdsDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k3" onclick="go('marketing')"><div class="ic">💵</div><div class="label">Doanh thu từ quảng cáo <span id="ovMonthLbl4" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovAdsRevVal">—</div><div class="delta" id="ovAdsRevDelta">từ báo cáo Marketing</div></div>
         <div class="kpi k4" onclick="go('calendar')"><div class="ic">🏥</div><div class="label">Khách mới đã tới <span id="ovMonthLbl3" style="font-weight:600;color:var(--muted)"></span></div><div class="val" id="ovArrivedVal">—</div><div class="delta" id="ovArrivedDelta">lịch hẹn đã xác nhận đến</div></div>
@@ -924,6 +926,43 @@
       <div class="row r-3" style="margin-top:14px">
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-assign')"><div style="font-size:1.4rem">📋</div><h3 style="margin-top:6px">Giao việc hàng loạt</h3><div class="sub">AI gợi ý phân task theo skill</div></div>
         <div class="card" style="cursor:pointer" onclick="aiAction('staff-kpi')"><div style="font-size:1.4rem">🎯</div><h3 style="margin-top:6px">Cài KPI tháng</h3><div class="sub">Tự động theo dõi tiến độ</div></div>
+      </div>
+    </section>
+
+    <!-- ============ CHẤM CÔNG HẰNG NGÀY ============ -->
+    <section class="page" id="page-chamcong">
+      <div class="alert info" style="margin-bottom:14px"><span class="ic">🗓️</span><div><b>Chấm công mỗi ngày:</b> chọn tên mình, chọn ngày, điền số ca đã làm trong ngày hôm đó — cuối tháng <b>Bảng lương</b> tự cộng dồn thành ngày công + số ca từng loại (vẫn sửa tay được nếu sai).</div></div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h2>📝 Điền công việc hôm nay</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div><label class="bl">Nhân viên</label><select id="cc-staff" class="bi" onchange="ccLoadHistory()"><option value="">— Chọn tên mình —</option></select></div>
+          <div><label class="bl">Ngày</label><input id="cc-date" type="date" class="bi"></div>
+          <div><label class="bl">Phụ thường (ca)</label><input id="cc-phuthuong" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Phụ căng da (ca)</label><input id="cc-phucangda" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Làm thường (ca)</label><input id="cc-lamthuong" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Làm căng da (ca)</label><input id="cc-lamcangda" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">Tiêm (ca)</label><input id="cc-tiem" class="bi" type="number" min="0" placeholder="0"></div>
+          <div><label class="bl">CSD (ca)</label><input id="cc-csd" class="bi" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div style="margin-top:10px"><label class="bl">Ghi chú (không bắt buộc)</label><input id="cc-note" class="bi" placeholder="VD: nghỉ nửa buổi, hỗ trợ ca khác…"></div>
+        <div style="margin-top:10px"><label class="bl">Ghi chú thêm (không bắt buộc)</label><input id="cc-note2" class="bi" placeholder="VD: ghi chú riêng cho quản lý"></div>
+        <button class="btn" style="margin-top:14px" onclick="ccSave()">💾 Lưu chấm công ngày này</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Lịch sử chấm công</h2><div class="sub" id="cc-sub">Chọn tên và tháng để xem</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="cc-month" onchange="ccLoadHistory()"></select>
+            <select id="cc-year" onchange="ccLoadHistory()"></select>
+          </div>
+        </div>
+        <table style="font-size:.85rem">
+          <thead><tr><th>Ngày</th><th style="text-align:right">Phụ thường</th><th style="text-align:right">Phụ căng da</th><th style="text-align:right">Làm thường</th><th style="text-align:right">Làm căng da</th><th style="text-align:right">Tiêm</th><th style="text-align:right">CSD</th><th>Ghi chú</th><th>Ghi chú thêm</th><th></th></tr></thead>
+          <tbody id="cc-rows"></tbody>
+        </table>
+        <div class="sub" style="font-size:.74rem;margin-top:10px;color:var(--muted)">💡 Bấm "✏️ Sửa" để nạp lại 1 ngày cũ lên form phía trên rồi lưu đè.</div>
       </div>
     </section>
 
@@ -1557,6 +1596,7 @@ function openModal(type, ctx){
         ${num({id:'pr-ed-lamcangda',label:'Làm căng da (ca)'}, e.lam_cang_da_ca)}
         ${num({id:'pr-ed-tiem',label:'Tiêm (ca)'}, e.tiem_ca)}
       </div>
+      <div style="margin-bottom:6px"><button class="btn ghost sm" onclick='payrollPullFromCC(${JSON.stringify(e.full_name)})'>🔄 Lấy lại ngày công &amp; số ca từ Chấm công</button></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px">
         ${num({id:'pr-ed-csd',label:'CSD (ca)'}, e.csd_ca)}
         ${(()=>{ const u=payrollUpsale(e);
@@ -2045,6 +2085,20 @@ async function payrollSaveRates(){
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.payrollSaveRates=payrollSaveRates;
+async function payrollPullFromCC(fullName){
+  if(!PAYROLL.month||!PAYROLL.year){ toast('❌ Chưa chọn tháng','red'); return; }
+  try{
+    const d=await payrollApi({action:'log_sum', staff_name:fullName, month:PAYROLL.month, year:PAYROLL.year});
+    const s=d.sum||{};
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||0; };
+    set('pr-ed-ngaycong', s.ngay_cong);
+    set('pr-ed-phuthuong', s.phu_thuong_ca); set('pr-ed-phucangda', s.phu_cang_da_ca);
+    set('pr-ed-lamthuong', s.lam_thuong_ca); set('pr-ed-lamcangda', s.lam_cang_da_ca);
+    set('pr-ed-tiem', s.tiem_ca); set('pr-ed-csd', s.csd_ca);
+    toast(s.ngay_cong?`✓ Đã lấy ${s.ngay_cong} ngày công từ Chấm công — bấm Lưu để áp dụng`:'Nhân viên này chưa chấm công tháng này','ok');
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lấy dữ liệu'),'red'); }
+}
+window.payrollPullFromCC=payrollPullFromCC;
 function payrollExportCSV(){
   const rows=PAYROLL.rows||[]; if(!rows.length){ toast('Chưa có dữ liệu để xuất','dark'); return; }
   const header=['Nhân viên','Chức vụ','Lương cứng','Ngày công','Thực lương','Phụ cấp ăn','Gửi xe','Tiền phụ thường','Tiền phụ căng da','Tiền làm thường','Tiền làm căng da','Tiền tiêm','CSD','Up sale','Nguồn up sale','Ca tour','Ca chia đôi','% hoa hồng','Tổng up','Gọi phẫu','Gọi da','Phụ cấp khác','Tổng hoa hồng','Ứng lương','TỔNG LƯƠNG'];
@@ -2060,6 +2114,85 @@ function payrollExportCSV(){
   toast('⬇ Đã tải CSV lương','green');
 }
 window.payrollExportCSV=payrollExportCSV;
+
+/* ===== CHẤM CÔNG HẰNG NGÀY — mỗi nhân viên tự điền, cộng dồn vào Bảng lương cuối tháng ===== */
+const CC_FIELDS = [['phu_thuong_ca','cc-phuthuong'],['phu_cang_da_ca','cc-phucangda'],['lam_thuong_ca','cc-lamthuong'],['lam_cang_da_ca','cc-lamcangda'],['tiem_ca','cc-tiem'],['csd_ca','cc-csd']];
+function ccFillStaffSelect(){
+  const sel=document.getElementById('cc-staff'); if(!sel) return;
+  const cur=sel.value;
+  const rows=STAFF_ROWS||[];
+  sel.innerHTML='<option value="">— Chọn tên mình —</option>'+rows.map(s=>`<option value="${pgEscAttr(s.full_name||'')}">${pgEscHtml(s.full_name)}${s.role?(' — '+pgEscHtml(s.role)):''}</option>`).join('');
+  if(cur){ sel.value=cur; if(sel.value!==cur) sel.value=''; }
+}
+function ccFillSelectors(){
+  const now=new Date();
+  const dt=document.getElementById('cc-date'); if(dt && !dt.value) dt.value=now.toISOString().slice(0,10);
+  const selM=document.getElementById('cc-month'), selY=document.getElementById('cc-year');
+  if(selM && !selM.options.length){ selM.innerHTML=Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}">Tháng ${m}</option>`).join(''); selM.value=String(now.getMonth()+1); }
+  if(selY && !selY.options.length){ const y=now.getFullYear(); selY.innerHTML=[y-1,y,y+1].map(v=>`<option value="${v}">${v}</option>`).join(''); selY.value=String(y); }
+}
+async function ccInit(){
+  ccFillSelectors();
+  if(!STAFF_ROWS){ await staffLoad(); }
+  ccFillStaffSelect();
+  ccLoadHistory();
+}
+async function ccSave(){
+  const staff=(document.getElementById('cc-staff')?.value||'').trim();
+  const date=document.getElementById('cc-date')?.value||'';
+  if(!staff){ toast('❌ Chọn tên nhân viên','red'); return; }
+  if(!date){ toast('❌ Chọn ngày','red'); return; }
+  const payload={action:'log_upsert', staff_name:staff, log_date:date, note:(document.getElementById('cc-note')?.value||'').trim(), note2:(document.getElementById('cc-note2')?.value||'').trim()};
+  CC_FIELDS.forEach(([f,id])=>{ payload[f]=document.getElementById(id)?.value||0; });
+  try{
+    await payrollApi(payload);
+    toast('✓ Đã lưu chấm công ngày '+date,'green');
+    ccLoadHistory();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
+}
+window.ccSave=ccSave;
+let CC_ROWS_CACHE=[];
+async function ccLoadHistory(){
+  const tb=document.getElementById('cc-rows'); if(!tb) return;
+  const staff=(document.getElementById('cc-staff')?.value||'').trim();
+  const month=parseInt(document.getElementById('cc-month')?.value,10)||0;
+  const year=parseInt(document.getElementById('cc-year')?.value,10)||0;
+  const sub=document.getElementById('cc-sub');
+  if(!staff){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Chọn tên mình ở trên để xem lịch sử</td></tr>'; if(sub) sub.textContent='Chọn tên và tháng để xem'; return; }
+  tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Đang tải…</td></tr>';
+  try{
+    const d=await payrollApi({action:'log_list', staff_name:staff, month, year});
+    CC_ROWS_CACHE=d.rows||[];
+    if(sub) sub.textContent=`${staff} · Tháng ${month}/${year} · ${CC_ROWS_CACHE.length} ngày đã điền`;
+    if(!CC_ROWS_CACHE.length){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">Chưa có ngày nào trong tháng này</td></tr>'; return; }
+    tb.innerHTML=CC_ROWS_CACHE.map(r=>{
+      const ctxJson=JSON.stringify(r).replace(/'/g,"&#39;");
+      return `<tr>
+        <td><b>${leadDateShort(r.log_date)}</b></td>
+        <td style="text-align:right">${r.phu_thuong_ca||0}</td>
+        <td style="text-align:right">${r.phu_cang_da_ca||0}</td>
+        <td style="text-align:right">${r.lam_thuong_ca||0}</td>
+        <td style="text-align:right">${r.lam_cang_da_ca||0}</td>
+        <td style="text-align:right">${r.tiem_ca||0}</td>
+        <td style="text-align:right">${r.csd_ca||0}</td>
+        <td style="font-size:.8rem">${esc(r.note)||'—'}</td>
+        <td style="font-size:.8rem">${esc(r.note2)||'—'}</td>
+        <td><button class="btn ghost sm" onclick='ccEditRow(${ctxJson})'>✏️ Sửa</button></td>
+      </tr>`;
+    }).join('');
+  }catch(e){ tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--red)">❌ '+esc(e.message)+'</td></tr>'; }
+}
+window.ccLoadHistory=ccLoadHistory;
+function ccEditRow(r){
+  const dt=document.getElementById('cc-date'); if(dt) dt.value=r.log_date;
+  CC_FIELDS.forEach(([f,id])=>{ const el=document.getElementById(id); if(el) el.value=r[f]||0; });
+  const note=document.getElementById('cc-note'); if(note) note.value=r.note||'';
+  const note2=document.getElementById('cc-note2'); if(note2) note2.value=r.note2||'';
+  toast('Đã nạp ngày '+leadDateShort(r.log_date)+' lên form — sửa xong bấm Lưu','ok');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+window.ccEditRow=ccEditRow;
+
 /* ===== TOUR PHẪU ===== */
 async function tourApi(payload){
   const r=await fetch('/api/tour',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});
@@ -2080,7 +2213,7 @@ function buildTourMonths(){
   return out;
 }
 const TOUR_MONTHS = buildTourMonths();
-let tourMonthFilter = 'all';
+let tourMonthFilter = TOUR_MONTHS[1] ? TOUR_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function tourMonthRange(key){
   if(key==='all') return {from:null, to:null};
   const [y,m] = key.split('-').map(Number);
@@ -2259,6 +2392,7 @@ const titles = {
   phangoi:['📲 Phân gọi khách','Nhập SĐT → tự chia đều cho nhân viên gọi · lưu Supabase realtime'],
   tasks:['Công việc','14 task hôm nay · 6 đã xong'],
   staff:['Nhân viên','12 nhân sự — hiệu suất realtime'],
+  chamcong:['🗓️ Chấm công','Điền công việc mỗi ngày — cuối tháng tự cộng vào Bảng lương'],
   luong:['💵 Bảng lương nhân viên','Lương toàn bộ nhân viên theo tháng · lưu thật, đồng bộ mọi thiết bị'],
   tour:['🩻 Tour phẫu thuật','Lịch ca phẫu thuật theo ngày · doanh thu UP · phân ca bác sĩ – phụ tá'],
   revenue:['Doanh thu','Doanh thu & lợi nhuận thật từ SỔ THU/CHI'],
@@ -2532,6 +2666,7 @@ function go(section){
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
   if(section==='luong') payrollLoad();
+  if(section==='chamcong') ccInit();
   if(section==='tour'){ tourLoad(); tourLoadPending(); staffLoad(); }   // staffLoad để đổ tên vào 2 ô chọn Bác sĩ/Phụ phẫu
   if(section==='phangoi') phangoiLoad();
   if(section==='newcust') renderNewCustomers();
@@ -3158,7 +3293,7 @@ function buildApptMonths(){
   return out;
 }
 const APPT_MONTHS = buildApptMonths();
-let apptMonthFilter = 'all';
+let apptMonthFilter = APPT_MONTHS[1] ? APPT_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function renderApptMonthTabs(){
   const el=document.getElementById('apptMonthTabs'); if(!el) return;
   el.innerHTML = APPT_MONTHS.map(m=>`<button class="btn ${apptMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectApptMonth('${m.key}')">${m.label}</button>`).join('');
@@ -3325,7 +3460,7 @@ async function syncOverviewMonth(){
   const prefix=ovMonthFilter;                      // "2026-07"
   const [y,mo]=prefix.split('-').map(Number);
   const lbl='Tháng '+mo+'/'+y;
-  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
+  ['ovMonthLbl1','ovMonthLbl2','ovMonthLbl3','ovMonthLbl4','ovMonthLbl6'].forEach(id=>{ const e=g(id); if(e) e.textContent='· '+lbl; });
   const set=(id,v)=>{ const e=g(id); if(e) e.textContent=v; };
 
   // 1) Tổng lead trong tháng
@@ -3344,12 +3479,15 @@ async function syncOverviewMonth(){
     if(mk.ok){
       set('ovAdsVal', VND_FULL(mk.T.spend)+'₫');
       set('ovAdsDelta', mk.days.length+' ngày'+(mk.T.khach?(' · '+VND_FULL(Math.round(mk.T.spend/mk.T.khach))+'₫/khách đến'):''));
+      set('ovSdtVal', (mk.T.sdt||0).toLocaleString('vi-VN'));
+      set('ovSdtDelta', mk.T.sdt?(VND_FULL(Math.round(mk.T.spend/mk.T.sdt))+'₫/SĐT'):'chưa có SĐT');
       if(mk.hasRev){
         set('ovAdsRevVal', VND_FULL(mk.T.rev)+'₫');
         set('ovAdsRevDelta', mk.roas?('ROAS '+mk.roas.toFixed(2)+'×'):'chưa tính được ROAS');
       } else { set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu doanh thu QC'); }
     } else {
       set('ovAdsVal','—'); set('ovAdsDelta','Chưa có số liệu '+lbl);
+      set('ovSdtVal','—'); set('ovSdtDelta','Chưa có số liệu '+lbl);
       set('ovAdsRevVal','—'); set('ovAdsRevDelta','Chưa có số liệu '+lbl);
     }
   }catch(e){ console.error('ov ads', e); }
@@ -4031,7 +4169,7 @@ function buildLeadMonths(){
   return out;
 }
 const LEAD_MONTHS = buildLeadMonths();
-let leadMonthFilter = 'all';
+let leadMonthFilter = LEAD_MONTHS[1] ? LEAD_MONTHS[1].key : 'all';   // mặc định tháng hiện tại, không phải "Tất cả"
 function renderLeadMonthTabs(){
   const el=document.getElementById('leadMonthTabs'); if(!el) return;
   el.innerHTML = LEAD_MONTHS.map(m=>`<button class="btn ${leadMonthFilter===m.key?'sm':'ghost sm'}" onclick="selectLeadMonth('${m.key}')">${m.label}</button>`).join('');
@@ -4750,13 +4888,19 @@ function previewSource(id){
   modalBg.classList.add('show');
 }
 
-// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng, tên tab luôn theo đúng khuôn "DOANH THU T<tháng><năm>"
-// (vd "DOANH THU T72026", "DOANH THU T82026") — giống hệt khuôn tên tab của Marketing.
-// Tra theo THÁNG THẬT (đồng hồ máy) ra thẳng tên tab, tự chuyển lúc sang tháng mới,
-// không cần sửa code/deploy lại mỗi tháng như cách gán gid thủ công trước đây.
-function currentRevenueBookTab(){
-  const d=new Date();
-  return 'DOANH THU T'+(d.getMonth()+1)+d.getFullYear();
+// SỔ THU/CHI: sếp tạo tab riêng mỗi tháng. ĐÃ THỬ tra theo TÊN tab (kiểu "sheet=DOANH THU T82026")
+// giống Marketing/Lead nhưng bị Google gviz âm thầm rớt về "tab đầu tiên" trên chính file này —
+// không báo lỗi, cứ trả về sai dữ liệu (đã tự kiểm chứng nhiều lần với cả tên có/không dấu cách).
+// Marketing/Lead dùng tra tên tab vẫn ổn vì là file khác — lỗi này riêng của file Sổ thu/chi.
+// Nên bắt buộc dùng GID (đã lấy từ link sếp gửi mỗi tháng), tra theo THÁNG THẬT để tự chuyển.
+// Thêm dòng mới mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
+const REVENUE_BOOK_GID_BY_MONTH = {
+  '2026-07': '797748578',   // DOANH THU T72026
+  '2026-08': '0'            //   DOANH THU T82026
+};
+function currentRevenueBookGid(){
+  const d=new Date(), key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  return REVENUE_BOOK_GID_BY_MONTH[key] || null;   // chưa cấu hình tháng đó → fallback tab đầu (gid:null)
 }
 const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
@@ -4767,7 +4911,7 @@ const SEED_SOURCES = [
     cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
-    cat:'doanhthu', book:'thuchi', tab:currentRevenueBookTab(), sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:null },
+    cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
   { id:'DSKH', name:'Danh sách khách hàng (tổng)',
     url:'https://docs.google.com/spreadsheets/d/1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo',
     cat:'data', tab:null, sheetId:'1C2B6ZopaZZ7l0uIv6VFkb4Saw2ZnQ9Hgmo1FoOV6qMo', gid:null },
@@ -4788,7 +4932,7 @@ const SEED_SOURCES = [
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
   '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
-  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:currentRevenueBookTab(), gid:null, name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
+  '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
   let sources=loadData('data_sources', null);
@@ -5303,13 +5447,13 @@ window.acctCreate=acctCreate; window.acctDelete=acctDelete; window.acctResetPass
 /* ===== PHÂN QUYỀN THEO VAI TRÒ (giao diện) ===== */
 const ROLE_MENUS={
   'Toàn quyền kiểm soát':'*',
-  'Lễ tân':['calendar','dashboard','newcust','care','staff','tasks','tour'],
-  'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care'],
-  'Bác sĩ':['tour'],
-  'Phụ phẫu':['tour'],
-  'Telesale':['calendar','leads'],
-  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi'],
-  'Marketing':['marketing']
+  'Lễ tân':['calendar','dashboard','newcust','care','staff','tasks','tour','chamcong'],
+  'Kỹ thuật viên':['dashboard','calendar','medical','gallery','care','chamcong'],
+  'Bác sĩ':['tour','chamcong'],
+  'Phụ phẫu':['tour','chamcong'],
+  'Telesale':['calendar','leads','chamcong'],
+  'Sale trực tiếp':['dashboard','crm','billing','leads','newcust','services','phangoi','chamcong'],
+  'Marketing':['marketing','chamcong']
 };
 const ROLE_OWNER_ONLY=['accounts','settings','luong']; // chỉ Toàn quyền (kể cả Lễ tân không vào) — gồm Bảng lương vì nhạy cảm
 function sessGet(){ try{return JSON.parse(localStorage.getItem('hana_session')||'null');}catch(e){return null;} }
