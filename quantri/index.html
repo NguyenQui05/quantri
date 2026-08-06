@@ -4652,7 +4652,7 @@ async function refreshAllSheets(silent){
   let ok=0; for(const s of sources){ await refreshSource(s.id); }
   loadDataSources().forEach(s=>{ if(s.status==='ok') ok++; });
   if(btn){ btn.disabled=false; btn.textContent='🔄 Đồng bộ tất cả'; }
-  renderMarketing(); renderRevenue(); syncOverviewRevenue();
+  renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); renderDataSources();
   if(!silent) toast('✓ Đồng bộ xong '+ok+'/'+sources.length+' nguồn', ok?'green':'red');
 }
 
@@ -5349,6 +5349,7 @@ function refreshAllOverview(){
   return (loadDataSources().length ? refreshAllSheets(true) : Promise.resolve()).then(()=>{
     renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts();
     syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines();
+    renderDataSources(); // vẽ lại Tổng hợp dữ liệu + Phân tích Lead với số vừa đồng bộ
   });
 }
 setTimeout(refreshAllOverview, 800);
