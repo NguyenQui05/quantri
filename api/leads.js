@@ -119,26 +119,92 @@ function normPhone(raw) {
   if (!d) return '';
   return d.length === 9 ? '0' + d : d;
 }
-// gviz trả ngày dạng "Date(2026,7,1)" — tháng đếm từ 0 (7 = tháng 8)
+// Đọc ngày từ 2 nguồn: gviz trả "Date(2026,7,1)" (tháng đếm từ 0);
+// Sheets API (Service Account) trả chuỗi hiển thị "1/7/2026" hoặc "2026-07-01".
 function parseGvizDate(v) {
   if (v == null) return null;
-  const m = String(v).match(/^Date\((\d+),(\d+),(\d+)/);
-  if (!m) return null;
-  const y = +m[1], mo = +m[2] + 1, d = +m[3];
-  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const s = String(v).trim();
+  if (!s) return null;
+  const g = s.match(/^Date\((\d+),(\d+),(\d+)/);
+  if (g) {
+    const y = +g[1], mo = +g[2] + 1, d = +g[3];
+    return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+  const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (iso) return `${iso[1]}-${String(+iso[2]).padStart(2, '0')}-${String(+iso[3]).padStart(2, '0')}`;
+  // dd/mm/yyyy (kiểu Việt Nam)
+  const vn = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+  if (vn) {
+    let y = +vn[3]; if (y < 100) y += 2000;
+    return `${y}-${String(+vn[2]).padStart(2, '0')}-${String(+vn[1]).padStart(2, '0')}`;
+  }
+  return null;
+}
+
+// ===== Đọc Sheet RIÊNG TƯ bằng Service Account (không cần chia sẻ công khai) =====
+// Cần 2 biến môi trường trên Vercel: GOOGLE_SA_EMAIL và GOOGLE_SA_PRIVATE_KEY.
+// Sheet chỉ cần chia sẻ (quyền Người xem) cho đúng email của service account.
+function hasServiceAccount() {
+  return !!(process.env.GOOGLE_SA_EMAIL && process.env.GOOGLE_SA_PRIVATE_KEY);
+}
+async function getGoogleAccessToken() {
+  const email = process.env.GOOGLE_SA_EMAIL;
+  const key = String(process.env.GOOGLE_SA_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  const now = Math.floor(Date.now() / 1000);
+  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const head = b64({ alg: 'RS256', typ: 'JWT' });
+  const claim = b64({
+    iss: email,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600, iat: now
+  });
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(`${head}.${claim}`);
+  const assertion = `${head}.${claim}.${signer.sign(key).toString('base64url')}`;
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion })
+  });
+  const d = await r.json();
+  if (!r.ok || !d.access_token) throw new Error('Không lấy được token Google: ' + (d.error_description || d.error || r.status));
+  return d.access_token;
+}
+// Trả về mảng dòng (mỗi dòng là mảng ô, dạng chuỗi hiển thị) — giống thứ tự cột trên sheet
+async function readSheetRows(spreadsheetId, tabName) {
+  const token = await getGoogleAccessToken();
+  const range = `'${String(tabName).replace(/'/g, "''")}'`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d?.error?.message || ('Sheets API lỗi ' + r.status));
+  return d.values || [];
 }
 
 async function syncFromSheet(res) {
-  const url = `https://docs.google.com/spreadsheets/d/${LEAD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(currentLeadSheetTab())}`;
-  const sheetRes = await fetch(url);
-  const text = await sheetRes.text();
-  const s = text.indexOf('{'), e = text.lastIndexOf('}') + 1;
-  if (s < 0 || e <= s) return res.status(502).json({ error: 'Không đọc được Google Sheet — kiểm tra đã chia sẻ "Bất kỳ ai có link" chưa' });
-  const data = JSON.parse(text.slice(s, e));
-  if (data.status === 'error') return res.status(502).json({ error: (data.errors || []).map(x => x.detailed_message || x.message).join('; ') || 'Sheet lỗi quyền truy cập' });
+  const tab = currentLeadSheetTab();
+  let rows, get;
 
-  const rows = data.table?.rows || [];
-  const get = (r, i) => { const c = r.c && r.c[i]; return c ? c.v : null; };
+  if (hasServiceAccount()) {
+    // Cách bảo mật: sheet để riêng tư, đọc bằng chìa khoá máy chủ
+    let values;
+    try { values = await readSheetRows(LEAD_SHEET_ID, tab); }
+    catch (e) { return res.status(502).json({ error: 'Không đọc được Sheet (Service Account): ' + (e?.message || e) + ' — kiểm tra đã chia sẻ sheet cho ' + process.env.GOOGLE_SA_EMAIL + ' và tên tab "' + tab + '" có đúng không' }); }
+    rows = values;
+    get = (r, i) => (r && r[i] != null ? r[i] : null);
+  } else {
+    // Dự phòng: đọc qua link công khai (kém an toàn — chỉ dùng khi chưa cấu hình Service Account)
+    const url = `https://docs.google.com/spreadsheets/d/${LEAD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+    const sheetRes = await fetch(url);
+    const text = await sheetRes.text();
+    const s = text.indexOf('{'), e = text.lastIndexOf('}') + 1;
+    if (s < 0 || e <= s) return res.status(502).json({ error: 'Không đọc được Google Sheet — sheet đang riêng tư. Hãy cấu hình GOOGLE_SA_EMAIL / GOOGLE_SA_PRIVATE_KEY để đọc an toàn.' });
+    const data = JSON.parse(text.slice(s, e));
+    if (data.status === 'error') return res.status(502).json({ error: (data.errors || []).map(x => x.detailed_message || x.message).join('; ') || 'Sheet lỗi quyền truy cập' });
+    rows = data.table?.rows || [];
+    get = (r, i) => { const c = r.c && r.c[i]; return c ? c.v : null; };
+  }
 
   const candidates = [];
   for (const r of rows) {
