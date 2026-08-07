@@ -194,11 +194,16 @@ async function markStatus(res, body, sess) {
   // tự chuyển lead đó sang cột "Khách đã tới" (không chặn kết quả API dù bước này lỗi).
   if (status === 'den') {
     try {
-      const g = await fetch(sb(`${TABLE}?id=eq.${id}&select=lead_id`), { headers: sbHeaders() });
+      const g = await fetch(sb(`${TABLE}?id=eq.${id}&select=lead_id,phone`), { headers: sbHeaders() });
       const rows = await g.json();
       const leadId = rows?.[0]?.lead_id;
-      if (leadId) {
-        await fetch(`${process.env.SUPABASE_URL}/rest/v1/web_leads?id=eq.${leadId}`, {
+      const phone = String(rows?.[0]?.phone || '').replace(/\D/g, '');
+      // Lịch hẹn tạo thẳng ở tab Lịch hẹn không có lead_id -> dò lead theo SĐT (bỏ số 0 đầu vì lead từ Sheet hay thiếu).
+      const filter = leadId ? `id=eq.${leadId}`
+        : phone ? `phone=in.(${phone},${phone.replace(/^0+/, '')},0${phone.replace(/^0+/, '')})&status=neq.arrived`
+        : null;
+      if (filter) {
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/web_leads?${filter}`, {
           method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
           body: JSON.stringify({ status: 'arrived', updated_at: new Date().toISOString() })
         });

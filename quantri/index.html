@@ -2662,6 +2662,7 @@ function go(section){
   if(section==='revenue')renderRevenue();
   if(section==='crm')renderCRM();
   if(section==='calendar')apptLoad();
+  if(section==='leads')renderLeads();
   if(section==='billing')billInit();
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
@@ -3384,6 +3385,8 @@ async function apptMarkStatus(id,status){
     syncOverviewAppts(); syncOverviewMonth(); renderTodayApps(); syncOverviewTopServices();
     if(typeof renderNewCustomers==='function') renderNewCustomers();
     if(status==='den' && typeof tourLoadPending==='function') tourLoadPending();
+    // Máy chủ đã tự đẩy lead gắn với lịch hẹn này sang "Khách đã tới" — tải lại để bảng Lead Mới hiện đúng ngay.
+    if(status==='den' && typeof renderLeads==='function') renderLeads();
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.apptMarkStatus=apptMarkStatus;
