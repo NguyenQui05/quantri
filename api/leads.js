@@ -3,6 +3,9 @@
 //  - Không có "action" trong body -> webhook công khai (landing page gọi, không cần đăng nhập, có CORS)
 //  - Có "action" -> API quản trị cho dashboard /quantri#leads (yêu cầu session hợp lệ)
 import crypto from 'node:crypto';
+// Đọc Sheet RIÊNG TƯ bằng Service Account (cần env GOOGLE_SA_EMAIL + GOOGLE_SA_PRIVATE_KEY);
+// sheet chỉ cần chia sẻ quyền "Người xem" cho email service account.
+import { hasServiceAccount, readSheetValues } from './_google.js';
 
 const ALLOWED_ORIGINS = [
   'https://phammaiphuong.vn', 'https://www.phammaiphuong.vn',
@@ -141,47 +144,6 @@ function parseGvizDate(v) {
   return null;
 }
 
-// ===== Đọc Sheet RIÊNG TƯ bằng Service Account (không cần chia sẻ công khai) =====
-// Cần 2 biến môi trường trên Vercel: GOOGLE_SA_EMAIL và GOOGLE_SA_PRIVATE_KEY.
-// Sheet chỉ cần chia sẻ (quyền Người xem) cho đúng email của service account.
-function hasServiceAccount() {
-  return !!(process.env.GOOGLE_SA_EMAIL && process.env.GOOGLE_SA_PRIVATE_KEY);
-}
-async function getGoogleAccessToken() {
-  const email = process.env.GOOGLE_SA_EMAIL;
-  const key = String(process.env.GOOGLE_SA_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-  const now = Math.floor(Date.now() / 1000);
-  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
-  const head = b64({ alg: 'RS256', typ: 'JWT' });
-  const claim = b64({
-    iss: email,
-    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600, iat: now
-  });
-  const signer = crypto.createSign('RSA-SHA256');
-  signer.update(`${head}.${claim}`);
-  const assertion = `${head}.${claim}.${signer.sign(key).toString('base64url')}`;
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion })
-  });
-  const d = await r.json();
-  if (!r.ok || !d.access_token) throw new Error('Không lấy được token Google: ' + (d.error_description || d.error || r.status));
-  return d.access_token;
-}
-// Trả về mảng dòng (mỗi dòng là mảng ô, dạng chuỗi hiển thị) — giống thứ tự cột trên sheet
-async function readSheetRows(spreadsheetId, tabName) {
-  const token = await getGoogleAccessToken();
-  const range = `'${String(tabName).replace(/'/g, "''")}'`;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE`;
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d?.error?.message || ('Sheets API lỗi ' + r.status));
-  return d.values || [];
-}
-
 async function syncFromSheet(res) {
   const tab = currentLeadSheetTab();
   let rows, get;
@@ -189,7 +151,7 @@ async function syncFromSheet(res) {
   if (hasServiceAccount()) {
     // Cách bảo mật: sheet để riêng tư, đọc bằng chìa khoá máy chủ
     let values;
-    try { values = await readSheetRows(LEAD_SHEET_ID, tab); }
+    try { values = await readSheetValues(LEAD_SHEET_ID, tab); }
     catch (e) { return res.status(502).json({ error: 'Không đọc được Sheet (Service Account): ' + (e?.message || e) + ' — kiểm tra đã chia sẻ sheet cho ' + process.env.GOOGLE_SA_EMAIL + ' và tên tab "' + tab + '" có đúng không' }); }
     rows = values;
     get = (r, i) => (r && r[i] != null ? r[i] : null);

@@ -4664,23 +4664,18 @@ function parseSheetUrl(url){
   return {id:m[1], gid};
 }
 
+// Đọc sheet QUA MÁY CHỦ (/api/marketing action read_sheet) thay vì gọi thẳng Google từ trình duyệt.
+// Nhờ vậy sheet khách hàng / marketing không phải chia sẻ công khai nữa —
+// máy chủ dùng Service Account đọc hộ, chỉ nhân viên đã đăng nhập mới gọi được.
 async function fetchSheet(id, {gid, tab}={}){
-  let u = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`;
-  if(tab) u += '&sheet='+encodeURIComponent(tab);
-  else if(gid) u += '&gid='+encodeURIComponent(gid);
-  const res = await fetch(u);
-  const txt = await res.text();
-  const s = txt.indexOf('{'), e = txt.lastIndexOf('}')+1;
-  if(s<0||e<=s) throw new Error('Không đọc được — sheet chưa chia sẻ "Bất kỳ ai có link → Người xem"?');
-  const json = JSON.parse(txt.slice(s,e));
-  if(json.status==='error') throw new Error((json.errors||[]).map(x=>x.detailed_message||x.message).join('; ') || 'Sheet trả về lỗi quyền truy cập');
-  const t = json.table || {};
-  const noLabel = (t.cols||[]).every(c=>!c.label);
-  let cols = (t.cols||[]).map(c=>c.label||'');
-  let disp = (t.rows||[]).map(r => (r.c||[]).map(c => c==null?'':(c.f!=null?c.f:(c.v!=null?c.v:''))));
-  let raw  = (t.rows||[]).map(r => (r.c||[]).map(c => c==null?null:c.v));
-  if(noLabel && disp.length){ cols = disp[0].map(x=>String(x)); disp = disp.slice(1); raw = raw.slice(1); }
-  return {cols, rows:disp, raw};
+  const res = await fetch('/api/marketing',{
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'read_sheet', id, tab: tab||'', gid: gid||''})
+  });
+  const d = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(d?.error || ('Không đọc được sheet (lỗi '+res.status+')'));
+  return {cols: d.cols||[], rows: d.rows||[], raw: d.raw||[]};
 }
 
 const MONEY_EXCLUDE = /sđt|sdt|phone|điện thoại|^ngày|date|time|thời gian|^id$|^mã|^stt$|tuổi|năm sinh|\bnăm\b|age|%|tỷ lệ|ty le|roas|cpc|ctr|cpm|frequency|impression|hiển thị|click|lượt/i;
