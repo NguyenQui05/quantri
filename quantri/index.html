@@ -588,7 +588,7 @@
       <div class="row">
         <div class="card">
           <div class="card-head">
-            <div><h3>Doanh thu 14 ngày qua</h3><div class="sub">Từ Data Hub (Sổ thu/chi hoặc sheet doanh thu)</div></div>
+            <div><h3>Doanh thu <span id="ovRevChartTitle">tháng này</span></h3><div class="sub">Từ Data Hub (Sổ thu/chi hoặc sheet doanh thu)</div></div>
             <span class="pill" id="ovRevGrowthPill" style="display:none"></span>
           </div>
           <canvas id="chartRevenue" height="110"></canvas>
@@ -3449,6 +3449,7 @@ function selectOvMonth(key){
   renderOvMonthTabs();
   syncOverviewMonth();
   syncOverviewNewCustomers();
+  syncOverviewRevenueChart();   // biểu đồ doanh thu cũng chạy theo tháng đang chọn
 }
 window.selectOvMonth = selectOvMonth;
 
@@ -3743,14 +3744,25 @@ if(window.Chart){
 }
 let dashCharts={};
 function initDashboardCharts(){ syncOverviewRevenueChart(); }
-// Vẽ lại "Doanh thu 14 ngày qua" bằng dữ liệu thật từ revenueModel() (Data Hub).
+// Vẽ lại biểu đồ doanh thu bằng dữ liệu thật từ revenueModel() (Data Hub).
+// Hiện TRỌN tháng đang chọn ở tab tháng phía trên, không phải "14 dòng cuối" của sổ —
+// sổ thu/chi thường tạo sẵn cả tháng nên lấy 14 dòng cuối sẽ rơi vào những ngày chưa tới.
 // Không có dữ liệu → ẩn chart, hiện thông báo thay vì bịa số.
 function syncOverviewRevenueChart(){
   const canvas=document.getElementById('chartRevenue');
   if(!canvas) return;
   const emptyEl=document.getElementById('ovRevChartEmpty'), pillEl=document.getElementById('ovRevGrowthPill');
+  const titleEl=document.getElementById('ovRevChartTitle');
   const M=revenueModel();
-  const days=(M.days||[]).filter(d=>d && d.date).slice(-14);
+  const all=(M.days||[]).filter(d=>d && d.date);
+  const [fy,fm]=String(ovMonthFilter||'').split('-');
+  if(titleEl) titleEl.textContent = (fy&&fm) ? ('tháng '+parseInt(fm,10)+'/'+fy) : 'tháng này';
+  // Sổ cũ lưu trong localStorage có thể chưa có "iso" -> lần theo _o (=tháng*100+ngày).
+  const days = (fy&&fm) ? all.filter(d=>{
+    if(d.iso) return String(d.iso).slice(0,7)===ovMonthFilter;
+    if(d._o!=null) return Math.floor(d._o/100)===parseInt(fm,10);
+    return false;
+  }) : all.slice(-14);
   if(!days.length){
     if(dashCharts.revenue){ dashCharts.revenue.destroy(); dashCharts.revenue=null; }
     canvas.style.display='none';
@@ -3761,15 +3773,23 @@ function syncOverviewRevenueChart(){
   canvas.style.display='';
   if(emptyEl) emptyEl.style.display='none';
   if(dashCharts.revenue){ dashCharts.revenue.destroy(); }
+  // Trục hoành giữ trọn tháng, nhưng ngày CHƯA TỚI để trống (null) — nếu vẽ 0 thì
+  // đường biểu đồ tụt đáy, nhìn như mất doanh thu chứ không phải "chưa tới ngày".
+  const p=n=>String(n).padStart(2,'0');
+  const now=new Date();
+  const todayIso=now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate());
+  const past=d=>!d.iso || d.iso<=todayIso;
   dashCharts.revenue=new Chart(canvas,{type:'line',data:{
     labels:days.map(d=>d.date),
-    datasets:[{label:'Doanh thu',data:days.map(d=>Math.round((d.rev||0)/1e6)),borderColor:'#A8231C',backgroundColor:'rgba(168,35,28,.1)',fill:true,tension:.4,borderWidth:3,pointBackgroundColor:'#A8231C',pointRadius:4}]
+    datasets:[{label:'Doanh thu',data:days.map(d=>past(d)?Math.round((d.rev||0)/1e6):null),spanGaps:false,borderColor:'#A8231C',backgroundColor:'rgba(168,35,28,.1)',fill:true,tension:.4,borderWidth:3,pointBackgroundColor:'#A8231C',pointRadius:4}]
   },options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'tr'}}}}});
   if(pillEl){
-    if(days.length>=4){
-      const half=Math.floor(days.length/2);
+    // Chỉ so trên những ngày đã qua, nếu không nửa cuối tháng toàn 0 sẽ luôn báo giảm 100%.
+    const done=days.filter(past);
+    if(done.length>=4){
+      const half=Math.floor(done.length/2);
       const sum=arr=>arr.reduce((s,d)=>s+(d.rev||0),0);
-      const prevSum=sum(days.slice(0,half)), curSum=sum(days.slice(half));
+      const prevSum=sum(done.slice(0,half)), curSum=sum(done.slice(half));
       if(prevSum>0){ const g=Math.round((curSum-prevSum)/prevSum*100); pillEl.textContent=(g>=0?'▲ +':'▼ ')+Math.abs(g)+'%'; pillEl.style.display=''; }
       else pillEl.style.display='none';
     } else pillEl.style.display='none';
@@ -3807,7 +3827,7 @@ function revenueModel(){
   const cost = hasBook?chiVH:adCost;                 // "tổng chi" hiển thị: vận hành nếu có sổ, else chi QC
   const roas = adCost?(revAds/adCost):0;
   const margin = revenue?(profit/revenue*100):0;
-  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,iso:d.iso,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
+  const days = (hasBook&&bookDays) ? bookDays.map(d=>({date:d.date,iso:d.iso,_o:d._o,rev:d.thu,spend:d.chi,loinhuan:d.loinhuan})) : AG.days;
   return {AG,revenue,revRecorded,revAds,revFromAds,cost,profit,profitRecordedFlag,roas,margin,days,hasRev:AG.hasRev,adCost,chiVH,hasBook,profitSource};
 }
 function renderRevenue(){
