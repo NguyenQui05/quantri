@@ -2662,7 +2662,7 @@ function go(section){
   if(section==='revenue')renderRevenue();
   if(section==='crm')renderCRM();
   if(section==='calendar')apptLoad();
-  if(section==='leads')renderLeads();
+  if(section==='leads'){renderLeads();autoSyncLeadSheet();}
   if(section==='billing')billInit();
   if(section==='accounts')acctInit();
   if(section==='marketing')renderMarketing();
@@ -4245,6 +4245,30 @@ function paintLeads(){
   });
 }
 async function renderLeads(){ await fetchLeads(); paintLeads(); syncOverviewMonth(); }
+
+/* ===== Tự kéo lead mới từ Google Sheet mỗi khi mở dashboard/tab Lead Mới =====
+   Vercel Cron (/api/leads?cron=sync_sheet) đã chạy 1 lần/ngày lúc 5h sáng UTC, nhưng đó là lớp
+   phòng hờ cuối — không có phản hồi ngay nếu lỗi âm thầm (vd sai tên tab tháng). Lớp này chạy NGAY
+   mỗi khi có người mở app/tab Lead Mới (thường nhiều lần/ngày), nên lead mới từ sheet vào tới nơi
+   gần như tức thì thay vì phải chờ tới 5h sáng hôm sau, và lễ tân thấy toast báo ngay khi có lead mới.
+   Rate-limit 60s giữa các lần gọi để không spam API khi chuyển tab liên tục. */
+let _autoSyncLeadRunning = false, _autoSyncLeadAt = 0;
+async function autoSyncLeadSheet(){
+  const now = Date.now();
+  if(_autoSyncLeadRunning || now - _autoSyncLeadAt < 60000) return;
+  _autoSyncLeadRunning = true; _autoSyncLeadAt = now;
+  try{
+    const r = await fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
+      body:JSON.stringify({action:'sync_sheet'})});
+    const d = await r.json().catch(()=>({}));
+    if(r.ok && d.inserted){
+      await fetchLeads(); paintLeads(); syncOverviewMonth();
+      if(typeof toast==='function') toast('✓ Tự kéo về '+d.inserted+' lead mới từ '+d.tab,'green');
+    }
+  }catch(e){ /* ngầm, không làm phiền ai nếu mạng chập chờn — cron 5h sáng vẫn chạy dự phòng */ }
+  finally{ _autoSyncLeadRunning = false; }
+}
+window.autoSyncLeadSheet = autoSyncLeadSheet;
 let leadDragId = null;
 function leadDragStart(ev,id){
   leadDragId = id;
@@ -4924,9 +4948,11 @@ const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
     url:'https://docs.google.com/spreadsheets/d/1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg',
     cat:'data', tab:'Lead HANA', sheetId:'1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg', gid:null },
-  { id:'DSMKT', name:'Báo cáo MKT T7 (nguồn quảng cáo)',
-    url:'https://docs.google.com/spreadsheets/d/1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI/edit',
-    cat:'quangcao', tab:null, sheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', gid:'1145768311' },
+  { id:'DSMKT', name:'Báo cáo MKT (nguồn quảng cáo)',
+    url:'https://docs.google.com/spreadsheets/d/10u879zKozZIvRNXMsn7TrkdjRBHbUal_/edit',
+    // tab lấy theo tháng hiện tại (giống MKT_SHEET_ID) thay vì gid cố định — trước đây gid neo cứng vào tab T7
+    // nên sang T8/T9 vẫn đọc nhầm data cũ; buildMktMonths() hoisted nên gọi được dù khai báo bên dưới.
+    cat:'quangcao', tab:buildMktMonths()[0].tab, sheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', gid:null },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
     cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
@@ -4949,7 +4975,9 @@ const SEED_SOURCES = [
 // Migration: repoint nguồn báo cáo MKT sang đúng file/tab (tránh dính sheetId cũ đã lưu localStorage).
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
-  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI', tab:null, gid:'1145768311', name:'Báo cáo MKT T7 (nguồn quảng cáo)' },
+  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:null, name:'Báo cáo MKT (nguồn quảng cáo)' },
+  // File MKT cũ (đã dùng tới hết T8) ngừng được cập nhật, NV chuyển qua ghi ở file mới từ T9 — 2026-09.
+  '1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:null, name:'Báo cáo MKT (nguồn quảng cáo)' },
   '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
@@ -5144,7 +5172,8 @@ function aggregateMarketing(){
   const roas=T.spend?(T.rev/T.spend):0;
   return {srcs,T,days,names,hasFunnel,hasLead,hasRev,roas};
 }
-const MKT_SHEET_ID='1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI';
+// 2026-09: đổi sang file sheet MKT mới (NV chuyển qua ghi ở đây, file cũ ngừng cập nhật từ T9).
+const MKT_SHEET_ID='10u879zKozZIvRNXMsn7TrkdjRBHbUal_';
 // Tab trong Sheet đặt tên dạng "BÁO CÁO MKT T<số tháng>" (VD: BÁO CÁO MKT T7).
 // Tự sinh danh sách tháng từ tháng HIỆN TẠI lùi về T12/2025 → khỏi sửa code mỗi tháng.
 function buildMktMonths(){
@@ -5512,6 +5541,9 @@ function refreshAllOverview(){
     renderMarketing(); renderRevenue(); syncOverviewRevenue(); renderCRM(); syncOverviewAppts();
     syncOverviewMonth(); syncOverviewNewCustomers(); syncOverviewRevenueChart(); initSparklines();
     renderDataSources(); // vẽ lại Tổng hợp dữ liệu + Phân tích Lead với số vừa đồng bộ
+    // Kéo lead mới từ sheet cùng nhịp — để lễ tân/telesale luôn thấy lead mới dù đang ở tab khác,
+    // không phải đợi mở tab Lead Mới hay chờ tới cron 5h sáng.
+    if(typeof roleCanSee!=='function' || roleCanSee('leads')) autoSyncLeadSheet();
   });
 }
 setTimeout(refreshAllOverview, 800);
