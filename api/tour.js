@@ -48,6 +48,8 @@ export default async function handler(req, res) {
     if (action === 'delete')         return await deleteCase(res, body, sess);
     if (action === 'list_care')      return await listCare(res);
     if (action === 'mark_care_done') return await markCareDone(res, body, sess);
+    if (action === 'upload_photo')   return await uploadPhoto(res, body);
+    if (action === 'get_photos')     return await getPhotos(res, body);
     return res.status(400).json({ error: 'action không hợp lệ' });
   } catch (e) {
     console.error('tour api error:', e?.message || e);
@@ -114,6 +116,10 @@ async function updateCase(res, body) {
   for (const f of ['revenue_initial', 'revenue_up', 'debt']) {
     if (body[f] != null) patch[f] = Math.max(0, parseInt(body[f], 10) || 0);
   }
+  if (body.age != null) {
+    const a = parseInt(body.age, 10);
+    if (!isNaN(a) && a >= 0 && a <= 120) patch.age = a;
+  }
   if (body.case_date != null && /^\d{4}-\d{2}-\d{2}$/.test(body.case_date)) patch.case_date = body.case_date;
   if (!Object.keys(patch).length) return res.status(400).json({ error: 'Không có gì để cập nhật' });
   patch.updated_at = new Date().toISOString();
@@ -139,7 +145,7 @@ const CARE_WINDOW_DAYS = 120;   // ngoài 120 ngày coi như hết vòng chăm s
 async function listCare(res) {
   const from = new Date(Date.now() - CARE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
   const params = new URLSearchParams();
-  params.set('select', 'id,case_date,full_name,phone,service_initial,service_up,doctor,assistant,care_done');
+  params.set('select', 'id,case_date,full_name,phone,age,service_initial,service_up,doctor,assistant,care_done');
   params.append('case_date', `gte.${from}`);
   params.set('order', 'case_date.desc');
   params.set('limit', '2000');
@@ -171,6 +177,69 @@ async function markCareDone(res, body, sess) {
   });
   if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu' }); }
   return res.status(200).json({ ok: true });
+}
+
+/* ===== ẢNH BEFORE/AFTER — lưu Supabase Storage bucket RIÊNG TƯ, chỉ tạo link xem tạm (1 giờ)
+   khi lễ tân mở chi tiết ca, không bao giờ trả về link vĩnh viễn/công khai. ===== */
+const PHOTO_BUCKET = 'case-photos';
+let _bucketEnsured = false;
+async function ensureBucket() {
+  if (_bucketEnsured) return;
+  const r = await fetch(`${process.env.SUPABASE_URL}/storage/v1/bucket`, {
+    method: 'POST', headers: sbHeaders(),
+    body: JSON.stringify({ id: PHOTO_BUCKET, name: PHOTO_BUCKET, public: false })
+  });
+  if (r.ok || r.status === 400 || r.status === 409) _bucketEnsured = true;   // 400/409 = bucket đã có sẵn
+}
+
+async function signUrl(path) {
+  const r = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/sign/${PHOTO_BUCKET}/${encodeURIComponent(path).replace(/%2F/g, '/')}`, {
+    method: 'POST', headers: sbHeaders(), body: JSON.stringify({ expiresIn: 3600 })
+  });
+  if (!r.ok) return null;
+  const d = await r.json().catch(() => ({}));
+  return d.signedURL ? `${process.env.SUPABASE_URL}/storage/v1${d.signedURL}` : null;
+}
+
+async function uploadPhoto(res, body) {
+  const id = String(body.id || '');
+  const kind = String(body.kind || '');
+  if (!id || (kind !== 'before' && kind !== 'after')) return res.status(400).json({ error: 'Thiếu id hoặc loại ảnh không hợp lệ' });
+  const dataUrl = String(body.dataUrl || '');
+  const m = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (!m) return res.status(400).json({ error: 'Ảnh không hợp lệ (chỉ nhận jpeg/png/webp)' });
+  const mime = m[1];
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length > 6 * 1024 * 1024) return res.status(400).json({ error: 'Ảnh quá lớn (tối đa 6MB)' });
+
+  await ensureBucket();
+  const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+  const path = `${id}/${kind}.${ext}`;
+  const up = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+    method: 'POST', headers: sbHeaders({ 'Content-Type': mime, 'x-upsert': 'true' }), body: buf
+  });
+  if (!up.ok) { const e = await up.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi tải ảnh lên' }); }
+
+  const patch = { updated_at: new Date().toISOString() };
+  patch[kind === 'before' ? 'photo_before' : 'photo_after'] = path;
+  const pr = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
+  if (!pr.ok) { const e = await pr.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi lưu đường dẫn ảnh' }); }
+
+  return res.status(200).json({ ok: true, url: await signUrl(path) });
+}
+
+async function getPhotos(res, body) {
+  const id = String(body.id || '');
+  if (!id) return res.status(400).json({ error: 'Thiếu id' });
+  const r = await fetch(sb(`${TABLE}?id=eq.${id}&select=photo_before,photo_after`), { headers: sbHeaders() });
+  const rows = await r.json();
+  if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
+  if (!rows.length) return res.status(404).json({ error: 'Không tìm thấy ca' });
+  const [before, after] = await Promise.all([
+    rows[0].photo_before ? signUrl(rows[0].photo_before) : null,
+    rows[0].photo_after ? signUrl(rows[0].photo_after) : null
+  ]);
+  return res.status(200).json({ before, after });
 }
 
 export const config = { runtime: 'nodejs' };

@@ -3011,13 +3011,13 @@ async function renderCare(){
       const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
       const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
       const phone=(c.phone||'').replace(/\s/g,'');
-      return `<div class="care-card${overdue>1?' overdue':''}">
+      return `<div class="care-card${overdue>1?' overdue':''}" onclick="openCareDetail('${c.id}')" style="cursor:pointer">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
           <span class="avatar" style="background:var(--grad);width:28px;height:28px;font-size:.76rem;flex:none">${init}</span>
           <div style="min-width:0;flex:1"><b style="display:block;font-size:.84rem;color:var(--brown-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.full_name||'?')}</b><span style="font-size:.7rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(svc)} · D${daysSince}</span></div>
         </div>
         ${overdue>1?`<div style="font-size:.7rem;color:var(--red);margin-bottom:6px">⚠️ trễ ${overdue} ngày</div>`:''}
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
           ${phone?`<a href="tel:${phone}" class="btn ghost sm" title="Gọi">📞</a><a href="https://zalo.me/${phone}" target="_blank" class="btn ghost sm" title="Zalo">💬</a>`:''}
           <button class="btn sm" style="margin-left:auto" onclick="careMarkDone('${c.id}',${sop.day})">✓ Xong</button>
         </div>
@@ -3032,8 +3032,100 @@ async function careMarkDone(id, day){
     renderCare();
   }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
 }
+
+/* ===== Chi tiết 1 ca hậu chăm sóc — tên/tuổi/ngày làm/dịch vụ + ảnh Before-After ===== */
+function openCareDetail(id){
+  const rec = CARE_ROWS.find(x=>x.c.id===id); if(!rec) return;
+  const {c, daysSince, sop, overdue} = rec;
+  const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
+  modalEl.classList.add('lg');
+  t.textContent='🛎️ '+(c.full_name||'Khách hàng');
+  const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
+  const phone=(c.phone||'').replace(/\s/g,'');
+  const row=(label,html)=>`<tr><td style="padding:6px 10px;color:var(--muted);white-space:nowrap;vertical-align:top">${label}</td><td style="padding:6px 10px;font-weight:600;color:#3B2113">${html}</td></tr>`;
+  const photoBox=(kind,label)=>`<div>
+      <label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:6px">📷 Ảnh ${label}</label>
+      <div id="cdPhoto-${kind}" style="aspect-ratio:1;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.76rem;overflow:hidden;background:var(--cream)">Đang tải…</div>
+      <label class="btn ghost sm" style="width:100%;margin-top:6px;text-align:center;cursor:pointer">⬆ Tải ảnh<input type="file" accept="image/*" style="display:none" onchange="careUploadPhoto('${id}','${kind}',this.files[0])"></label>
+    </div>`;
+  b.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${phone?`<a href="tel:${phone}" class="btn sm green" style="flex:1;text-align:center">📞 Gọi ${esc(c.phone||'')}</a>
+      <a href="https://zalo.me/${phone}" target="_blank" class="btn sm" style="flex:1;text-align:center;background:linear-gradient(135deg,#0068ff,#00a2ff);color:#fff">💬 Zalo</a>`:''}
+    </div>
+    <table style="width:100%;font-size:.86rem;border-collapse:collapse">
+      ${row('Dịch vụ', esc(svc))}
+      ${row('Ngày làm', esc(c.case_date||'')+' · D'+daysSince)}
+      ${row('Giai đoạn hiện tại', esc(sop.stage)+(overdue>1?` <span style="color:var(--red)">(trễ ${overdue} ngày)</span>`:''))}
+    </table>
+    <div style="margin-top:12px">
+      <label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Tuổi</label>
+      <input id="cdAge" type="number" min="0" max="120" value="${c.age??''}" style="width:100%" placeholder="Nhập tuổi khách">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+      ${photoBox('before','Before')}
+      ${photoBox('after','After')}
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
+      <button class="btn sm" onclick="saveCareAge('${id}')">💾 Lưu tuổi</button>
+    </div>`;
+  modalBg.classList.add('show');
+  loadCarePhotos(id);
+}
+async function loadCarePhotos(id){
+  const set=(kind,html)=>{ const el=gel('cdPhoto-'+kind); if(el) el.innerHTML=html; };
+  try{
+    const d = await tourApi({action:'get_photos', id});
+    set('before', d.before?`<img src="${d.before}" style="width:100%;height:100%;object-fit:cover">`:'Chưa có ảnh');
+    set('after', d.after?`<img src="${d.after}" style="width:100%;height:100%;object-fit:cover">`:'Chưa có ảnh');
+  }catch(e){ set('before','Lỗi tải ảnh'); set('after','Lỗi tải ảnh'); }
+}
+function careResizeImage(file, maxDim=1440, quality=0.82){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let {width,height}=img;
+      if(width>height){ if(width>maxDim){ height=Math.round(height*maxDim/width); width=maxDim; } }
+      else if(height>maxDim){ width=Math.round(width*maxDim/height); height=maxDim; }
+      const cv=document.createElement('canvas'); cv.width=width; cv.height=height;
+      cv.getContext('2d').drawImage(img,0,0,width,height);
+      resolve(cv.toDataURL('image/jpeg', quality));
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('Không đọc được ảnh')); };
+    img.src=url;
+  });
+}
+async function careUploadPhoto(id, kind, file){
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('❌ Chỉ nhận file ảnh','red'); return; }
+  const el=gel('cdPhoto-'+kind); if(el) el.innerHTML='Đang tải lên…';
+  try{
+    const dataUrl = await careResizeImage(file);
+    const d = await tourApi({action:'upload_photo', id, kind, dataUrl});
+    if(el) el.innerHTML = d.url?`<img src="${d.url}" style="width:100%;height:100%;object-fit:cover">`:'Đã lưu';
+    toast('✓ Đã lưu ảnh','green');
+  }catch(e){
+    if(el) el.textContent='Lỗi tải ảnh';
+    toast('❌ '+(e.message||'Lỗi tải ảnh lên'),'red');
+  }
+}
+async function saveCareAge(id){
+  const inp=gel('cdAge');
+  const age = inp && inp.value!=='' ? parseInt(inp.value,10) : null;
+  if(age==null){ closeModal(); return; }
+  try{
+    await tourApi({action:'update', id, age});
+    const rec=CARE_ROWS.find(x=>x.c.id===id); if(rec) rec.c.age=age;
+    toast('✓ Đã lưu','green'); closeModal();
+  }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
+}
 window.renderCare=renderCare;
 window.careMarkDone=careMarkDone;
+window.openCareDetail=openCareDetail;
+window.careUploadPhoto=careUploadPhoto;
+window.saveCareAge=saveCareAge;
 /* ===== CÔNG VIỆC — lưu Supabase, chỉ Toàn quyền kiểm soát được giao/xoá việc ===== */
 let TASK_ROWS=[], TASKS_LOADED=false;
 const canManageTasks = () => curRole()==='Toàn quyền kiểm soát';
