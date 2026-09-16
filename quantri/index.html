@@ -754,6 +754,16 @@
     </section>
 
     <!-- ============ HẬU CHĂM SÓC ============ -->
+    <style>
+      .care-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:2px}
+      .care-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-width:0}
+      .care-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.8rem;color:var(--brown-deep);gap:8px}
+      .care-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.74rem;flex:none}
+      .care-col-head span:first-child{flex:1}
+      .care-col-body{display:flex;flex-direction:column;gap:6px;min-height:60px;max-height:52vh;overflow-y:auto;padding:2px}
+      .care-card{background:#fff;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:9px 10px}
+      .care-card.overdue{border-color:var(--red)}
+    </style>
     <section class="page" id="page-care">
       <div class="grid kpi-grid">
         <div class="kpi k1"><div class="ic">🛎️</div><div class="label">Khách cần follow-up hôm nay</div><div class="val" id="careK1">—</div><div class="delta" id="careK1d">theo SOP sau ca tour</div></div>
@@ -767,10 +777,32 @@
       <div class="row r-2-1" style="margin-top:16px">
         <div class="card">
           <div class="card-head"><h2>📋 Danh sách hậu chăm sóc hôm nay</h2><button class="btn ghost sm" onclick="renderCare()">🔄 Làm mới</button></div>
-          <table>
-            <thead><tr><th>Khách</th><th>Dịch vụ</th><th>Ngày làm</th><th>Giai đoạn</th><th>Hành động</th><th></th></tr></thead>
-            <tbody id="careRows"></tbody>
-          </table>
+          <div class="care-board" id="careBoard">
+            <div class="care-col" data-day="1">
+              <div class="care-col-head" style="border-top:4px solid var(--red)"><span>📞 Ngày 1 — Hỏi thăm</span><span class="badge" id="careColBadge-1">0</span></div>
+              <div class="care-col-body" id="careCol-1"></div>
+            </div>
+            <div class="care-col" data-day="3">
+              <div class="care-col-head" style="border-top:4px solid var(--gold-deep)"><span>💌 Ngày 3 — Hướng dẫn</span><span class="badge" id="careColBadge-3">0</span></div>
+              <div class="care-col-body" id="careCol-3"></div>
+            </div>
+            <div class="care-col" data-day="7">
+              <div class="care-col-head" style="border-top:4px solid var(--blue)"><span>📅 Ngày 7 — Tái khám 1</span><span class="badge" id="careColBadge-7">0</span></div>
+              <div class="care-col-body" id="careCol-7"></div>
+            </div>
+            <div class="care-col" data-day="14">
+              <div class="care-col-head" style="border-top:4px solid var(--blue)"><span>📅 Ngày 14 — Tái khám 2</span><span class="badge" id="careColBadge-14">0</span></div>
+              <div class="care-col-body" id="careCol-14"></div>
+            </div>
+            <div class="care-col" data-day="30">
+              <div class="care-col-head" style="border-top:4px solid var(--green)"><span>🎁 Ngày 30 — Tri ân</span><span class="badge" id="careColBadge-30">0</span></div>
+              <div class="care-col-body" id="careCol-30"></div>
+            </div>
+            <div class="care-col" data-day="90">
+              <div class="care-col-head" style="border-top:4px solid var(--green)"><span>📞 Ngày 90 — Win-back</span><span class="badge" id="careColBadge-90">0</span></div>
+              <div class="care-col-body" id="careCol-90"></div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -2944,12 +2976,13 @@ function carePending(c, daysSince){
   return CARE_SOP.find(s=>daysSince>=s.day && done.indexOf(s.day)<0) || null;
 }
 async function renderCare(){
-  const tb=document.getElementById('careRows'); if(!tb) return;
-  tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Đang tải…</td></tr>';
+  const board=document.getElementById('careBoard'); if(!board) return;
+  const setColMsg=(html)=>CARE_SOP.forEach(s=>{ const el=document.getElementById('careCol-'+s.day); if(el) el.innerHTML=html; });
+  setColMsg('<div style="text-align:center;color:var(--muted);padding:16px 8px;font-size:.8rem">Đang tải…</div>');
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
   let rows=[];
   try{ const d=await tourApi({action:'list_care'}); rows=d.rows||[]; }
-  catch(e){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px">❌ '+esc(e.message)+'</td></tr>'; return; }
+  catch(e){ setColMsg('<div style="text-align:center;color:var(--red);padding:16px 8px;font-size:.8rem">❌ '+esc(e.message)+'</div>'); return; }
 
   const today=new Date(); today.setHours(0,0,0,0);
   const due=[];
@@ -2972,27 +3005,32 @@ async function renderCare(){
   set('careK4', due.filter(x=>x.overdue>1).length.toLocaleString('vi-VN'));
   const b=document.getElementById('careBadge'); if(b) b.textContent=due.length;
 
-  if(!due.length){
-    tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">'+
-      (rows.length?'Không có khách nào cần chăm sóc hôm nay 🎉':'Chưa có ca nào — khách sẽ tự vào đây sau khi bác sĩ nhập ca ở Tour phẫu thuật')+'</td></tr>';
-    return;
-  }
-  tb.innerHTML=due.map(({c,daysSince,sop,overdue})=>{
-    const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
-    const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
-    const phone=(c.phone||'').replace(/\s/g,'');
-    return `<tr>
-      <td><div class="with-av"><span class="avatar" style="background:var(--grad)">${init}</span><span><b>${esc(c.full_name||'?')}</b><span>${esc(c.phone||'')}</span></span></div></td>
-      <td style="font-size:.84rem">${esc(svc)}</td>
-      <td style="white-space:nowrap">D${daysSince}<div style="font-size:.72rem;color:var(--muted)">${esc(c.case_date||'')}</div></td>
-      <td><span class="pill ${overdue>1?'red':'blue'}">${esc(sop.stage)}</span>${overdue>1?`<div style="font-size:.7rem;color:var(--red);margin-top:2px">trễ ${overdue} ngày</div>`:''}</td>
-      <td style="font-size:.84rem">${esc(sop.action)}</td>
-      <td style="white-space:nowrap">
-        ${phone?`<a href="tel:${phone}" class="btn ghost sm" title="Gọi">📞</a> <a href="https://zalo.me/${phone}" target="_blank" class="btn ghost sm" title="Zalo">💬</a> `:''}
-        <button class="btn sm" onclick="careMarkDone('${c.id}',${sop.day})">✓ Xong</button>
-      </td>
-    </tr>`;
-  }).join('');
+  const emptyMsg = rows.length?'Không có khách':'Chưa có ca — khách sẽ tự vào sau khi bác sĩ nhập ca ở Tour phẫu thuật';
+  CARE_SOP.forEach(s=>{
+    const root=document.getElementById('careCol-'+s.day); if(!root) return;
+    const items=due.filter(x=>x.sop.day===s.day);
+    set('careColBadge-'+s.day, items.length);
+    if(!items.length){
+      root.innerHTML=`<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.78rem">${emptyMsg}</div>`;
+      return;
+    }
+    root.innerHTML=items.map(({c,daysSince,sop,overdue})=>{
+      const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+      const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
+      const phone=(c.phone||'').replace(/\s/g,'');
+      return `<div class="care-card${overdue>1?' overdue':''}">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span class="avatar" style="background:var(--grad);width:28px;height:28px;font-size:.76rem;flex:none">${init}</span>
+          <div style="min-width:0;flex:1"><b style="display:block;font-size:.84rem;color:var(--brown-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.full_name||'?')}</b><span style="font-size:.7rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(svc)} · D${daysSince}</span></div>
+        </div>
+        ${overdue>1?`<div style="font-size:.7rem;color:var(--red);margin-bottom:6px">⚠️ trễ ${overdue} ngày</div>`:''}
+        <div style="display:flex;gap:6px;align-items:center">
+          ${phone?`<a href="tel:${phone}" class="btn ghost sm" title="Gọi">📞</a><a href="https://zalo.me/${phone}" target="_blank" class="btn ghost sm" title="Zalo">💬</a>`:''}
+          <button class="btn sm" style="margin-left:auto" onclick="careMarkDone('${c.id}',${sop.day})">✓ Xong</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
 }
 async function careMarkDone(id, day){
   try{
