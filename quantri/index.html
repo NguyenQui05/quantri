@@ -755,19 +755,21 @@
 
     <!-- ============ HẬU CHĂM SÓC ============ -->
     <style>
-      .care-board{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:2px}
-      .care-col{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-width:0}
-      .care-col.red{border-top:4px solid var(--red)}
-      .care-col.green{border-top:4px solid var(--green)}
-      .care-col-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 12px;font-weight:700;font-size:.88rem;color:var(--brown-deep);gap:8px}
-      .care-col-head .badge{background:var(--brown-deep);color:#fff;border-radius:99px;padding:2px 9px;font-size:.76rem;flex:none}
-      .care-col-head span:first-child{flex:1}
-      .care-col-body{display:flex;flex-direction:column;gap:6px;min-height:80px;max-height:64vh;overflow-y:auto;padding:2px}
-      .care-card{background:#fff;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow-sm);padding:9px 10px}
-      .care-card.overdue{border-color:var(--red)}
-      .care-card.done{border-color:var(--green)}
-      @media (max-width:700px){ .care-board{grid-template-columns:1fr} }
-      /* Thu nhỏ KPI + banner SOP phía trên trang này để nhường chỗ cho board bên dưới */
+      .care-table-wrap{overflow-x:auto}
+      table.care-table{width:100%;border-collapse:collapse;font-size:.86rem}
+      table.care-table th{text-align:center;padding:8px 6px;color:var(--muted);font-weight:700;font-size:.76rem;white-space:nowrap;border-bottom:2px solid var(--line)}
+      table.care-table th:first-child{text-align:left;padding-left:4px}
+      table.care-table td{padding:6px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+      table.care-table td.care-name{text-align:left;cursor:pointer;padding-left:4px}
+      table.care-table td.care-name:hover .care-name-text{text-decoration:underline}
+      .care-name-text{font-weight:700;color:var(--brown-deep)}
+      .care-name-sub{font-size:.72rem;color:var(--muted);display:block}
+      .care-cell{width:38px;height:32px;border-radius:8px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--muted)}
+      .care-cell.due{background:#fff;border:2px solid var(--red);cursor:pointer;color:var(--red);font-weight:800}
+      .care-cell.due:hover{background:var(--red);color:#fff}
+      .care-cell.done{background:#F5C518;color:#3B2113;font-weight:800}
+      .care-cell.future{color:var(--line)}
+      /* Thu nhỏ KPI + banner SOP phía trên trang này để nhường chỗ cho bảng bên dưới */
       #page-care .kpi-grid{gap:10px}
       #page-care .kpi{padding:11px}
       #page-care .kpi .ic{width:32px;height:32px;font-size:1rem;margin-bottom:6px;border-radius:10px}
@@ -787,16 +789,13 @@
       <div class="alert info"><span class="ic">📋</span><div><b>SOP hậu chăm sóc HANA:</b> Khách tự vào đây sau khi bác sĩ nhập ca ở <b>Tour phẫu thuật</b> — Ngày 1 gọi hỏi thăm · Ngày 3 hướng dẫn chăm sóc · Ngày 7 kiểm tra phục hồi · Ngày 14 tái khám · Ngày 30 tri ân + voucher · Ngày 90 win-back.</div></div>
 
       <div class="card" style="margin-top:10px">
-          <div class="card-head"><h2>📋 Danh sách hậu chăm sóc hôm nay</h2><button class="btn ghost sm" onclick="renderCare()">🔄 Làm mới</button></div>
-          <div class="care-board" id="careBoard">
-            <div class="care-col red">
-              <div class="care-col-head"><span>🔴 Chưa chăm sóc</span><span class="badge" id="careColBadge-todo">0</span></div>
-              <div class="care-col-body" id="careCol-todo"></div>
-            </div>
-            <div class="care-col green">
-              <div class="care-col-head"><span>🟢 Đã chăm sóc (tuần này)</span><span class="badge" id="careColBadge-done">0</span></div>
-              <div class="care-col-body" id="careCol-done"></div>
-            </div>
+          <div class="card-head"><h2>📋 Danh sách hậu chăm sóc</h2><button class="btn ghost sm" onclick="renderCare()">🔄 Làm mới</button></div>
+          <p class="sub" style="padding:0 16px 8px;margin:0">Bấm <b>tên khách</b> để xem/sửa thẻ khách (tuổi, ảnh before/after, ghi chú). Bấm ô mốc ngày (viền đỏ) để đánh dấu đã chăm sóc — ô vàng là đã xong.</p>
+          <div class="care-table-wrap">
+            <table class="care-table">
+              <thead><tr id="careTableHead"></tr></thead>
+              <tbody id="careTableBody"></tbody>
+            </table>
           </div>
       </div>
     </section>
@@ -2956,18 +2955,23 @@ function carePending(c, daysSince){
   const done=Array.isArray(c.care_done)?c.care_done.map(d=>Number(d&&d.day)):[];
   return CARE_SOP.find(s=>daysSince>=s.day && done.indexOf(s.day)<0) || null;
 }
+function careTableHead(){
+  return '<th>Khách hàng</th>' + CARE_SOP.map(s=>`<th title="${esc(s.stage)}">Ngày ${s.day}</th>`).join('');
+}
 async function renderCare(){
-  const todoEl=document.getElementById('careCol-todo'), doneEl=document.getElementById('careCol-done');
-  if(!todoEl || !doneEl) return;
-  const loadingMsg='<div style="text-align:center;color:var(--muted);padding:16px 8px;font-size:.8rem">Đang tải…</div>';
-  todoEl.innerHTML=loadingMsg; doneEl.innerHTML=loadingMsg;
+  const headEl=document.getElementById('careTableHead'), bodyEl=document.getElementById('careTableBody');
+  if(!headEl || !bodyEl) return;
+  headEl.innerHTML = careTableHead();
+  bodyEl.innerHTML = `<tr><td colspan="${CARE_SOP.length+1}" style="text-align:center;color:var(--muted);padding:20px">Đang tải…</td></tr>`;
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
   let rows=[];
   try{ const d=await tourApi({action:'list_care'}); rows=d.rows||[]; }
   catch(e){
-    const errHtml='<div style="text-align:center;color:var(--red);padding:16px 8px;font-size:.8rem">❌ '+esc(e.message)+'</div>';
-    todoEl.innerHTML=errHtml; doneEl.innerHTML=errHtml; return;
+    bodyEl.innerHTML = `<tr><td colspan="${CARE_SOP.length+1}" style="text-align:center;color:var(--red);padding:20px">❌ ${esc(e.message)}</td></tr>`;
+    return;
   }
+  // Khách mới lên (ngày làm gần nhất) hiện trước.
+  rows.sort((a,b)=> new Date(b.case_date||0) - new Date(a.case_date||0));
   CARE_ALL=rows;
 
   const today=new Date(); today.setHours(0,0,0,0);
@@ -2986,8 +2990,6 @@ async function renderCare(){
     const p=carePending(c, daysSince);
     if(p) due.push({c, daysSince, sop:p, overdue:daysSince-p.day});
   });
-  due.sort((a,b)=>b.overdue-a.overdue);
-  doneList.sort((a,b)=>new Date(b.at)-new Date(a.at));
   CARE_ROWS=due;
 
   set('careK1', due.length.toLocaleString('vi-VN'));
@@ -2995,36 +2997,29 @@ async function renderCare(){
   set('careK3', rows.length.toLocaleString('vi-VN'));
   set('careK4', due.filter(x=>x.overdue>1).length.toLocaleString('vi-VN'));
   const b=document.getElementById('careBadge'); if(b) b.textContent=due.length;
-  set('careColBadge-todo', due.length);
-  set('careColBadge-done', doneList.length);
 
-  todoEl.innerHTML = due.length ? due.map(({c,daysSince,sop,overdue})=>{
-    const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
+  if(!rows.length){
+    bodyEl.innerHTML = `<tr><td colspan="${CARE_SOP.length+1}" style="text-align:center;color:var(--muted);padding:20px">Chưa có ca nào — khách sẽ tự vào sau khi bác sĩ nhập ca ở Tour phẫu thuật</td></tr>`;
+    return;
+  }
+  bodyEl.innerHTML = rows.map(c=>{
+    const cd=new Date(c.case_date+'T00:00:00');
+    const daysSince = isNaN(cd) ? null : Math.floor((today-cd)/86400000);
+    const done=Array.isArray(c.care_done)?c.care_done.map(d=>Number(d&&d.day)):[];
     const svc=[c.service_initial,c.service_up].filter(Boolean).join(' + ')||'—';
-    const phone=(c.phone||'').replace(/\s/g,'');
-    return `<div class="care-card${overdue>1?' overdue':''}" onclick="openCareDetail('${c.id}')" style="cursor:pointer">
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-        <span class="avatar" style="background:var(--grad);width:28px;height:28px;font-size:.76rem;flex:none">${init}</span>
-        <div style="min-width:0;flex:1"><b style="display:block;font-size:.84rem;color:var(--brown-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.full_name||'?')}</b><span style="font-size:.7rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(svc)} · ${esc(sop.stage)}</span></div>
-      </div>
-      ${overdue>1?`<div style="font-size:.7rem;color:var(--red);margin-bottom:6px">⚠️ trễ ${overdue} ngày</div>`:''}
-      <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
-        ${phone?`<a href="tel:${phone}" class="btn ghost sm" title="Gọi">📞</a><a href="https://zalo.me/${phone}" target="_blank" class="btn ghost sm" title="Zalo">💬</a>`:''}
-        <button class="btn sm" style="margin-left:auto" onclick="careMarkDone('${c.id}',${sop.day})">✓ Xong</button>
-      </div>
-    </div>`;
-  }).join('') : '<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.8rem">🎉 Không còn ai cần chăm sóc</div>';
-
-  doneEl.innerHTML = doneList.length ? doneList.map(({c,stage,at})=>{
-    const init=((c.full_name||'?').trim().charAt(0)||'?').toUpperCase();
-    const time=new Date(at).toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-    return `<div class="care-card done" onclick="openCareDetail('${c.id}')" style="cursor:pointer">
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="avatar" style="background:var(--green);width:28px;height:28px;font-size:.76rem;flex:none">${init}</span>
-        <div style="min-width:0;flex:1"><b style="display:block;font-size:.84rem;color:var(--brown-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.full_name||'?')}</b><span style="font-size:.7rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">✓ ${esc(stage)} · ${time}</span></div>
-      </div>
-    </div>`;
-  }).join('') : '<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.8rem">Chưa có ca nào tuần này</div>';
+    const cells = CARE_SOP.map(s=>{
+      if(done.indexOf(s.day)>=0) return `<td><div class="care-cell done" title="Đã chăm sóc">✓</div></td>`;
+      if(daysSince!=null && daysSince>=s.day) return `<td><div class="care-cell due" title="Bấm để đánh dấu đã chăm sóc" onclick="careMarkDone('${c.id}',${s.day})">●</div></td>`;
+      return `<td><div class="care-cell future">—</div></td>`;
+    }).join('');
+    return `<tr>
+      <td class="care-name" onclick="openCareDetail('${c.id}')">
+        <span class="care-name-text">${esc(c.full_name||'?')}</span>
+        <span class="care-name-sub">${esc(svc)}${c.age?' · '+c.age+' tuổi':''} · ${esc(c.case_date||'')}</span>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
 }
 async function careMarkDone(id, day){
   try{
@@ -3043,7 +3038,9 @@ function openCareDetail(id){
     c = CARE_ALL.find(x=>x.id===id); if(!c) return;
     const cd=new Date(c.case_date+'T00:00:00');
     daysSince = isNaN(cd) ? 0 : Math.floor((new Date().setHours(0,0,0,0)-cd)/86400000);
-    sop = {stage:'✅ Đã hoàn tất mọi mốc chăm sóc', day:0};
+    const doneDays=Array.isArray(c.care_done)?c.care_done.map(d=>Number(d&&d.day)):[];
+    const allDone = CARE_SOP.every(s=>doneDays.indexOf(s.day)>=0);
+    sop = {stage: allDone?'✅ Đã hoàn tất mọi mốc chăm sóc':'⏳ Chưa tới mốc chăm sóc tiếp theo', day:0};
     overdue = 0;
   }
   const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return;
@@ -3075,9 +3072,13 @@ function openCareDetail(id){
       ${photoBox('before','Before')}
       ${photoBox('after','After')}
     </div>
+    <div style="margin-top:12px">
+      <label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">Ghi chú</label>
+      <textarea id="cdNote" rows="3" style="width:100%" placeholder="Ghi chú tình trạng, dặn dò riêng...">${esc(c.note||'')}</textarea>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button class="btn ghost sm" onclick="closeModal()">Đóng</button>
-      <button class="btn sm" onclick="saveCareAge('${id}')">💾 Lưu tuổi</button>
+      <button class="btn sm" onclick="saveCareDetail('${id}')">💾 Lưu</button>
     </div>`;
   modalBg.classList.add('show');
   loadCarePhotos(id);
@@ -3120,21 +3121,25 @@ async function careUploadPhoto(id, kind, file){
     toast('❌ '+(e.message||'Lỗi tải ảnh lên'),'red');
   }
 }
-async function saveCareAge(id){
-  const inp=gel('cdAge');
-  const age = inp && inp.value!=='' ? parseInt(inp.value,10) : null;
-  if(age==null){ closeModal(); return; }
+async function saveCareDetail(id){
+  const ageInp=gel('cdAge'), noteInp=gel('cdNote');
+  const age = ageInp && ageInp.value!=='' ? parseInt(ageInp.value,10) : null;
+  const note = noteInp ? noteInp.value : '';
+  const payload={action:'update', id};
+  if(age!=null) payload.age=age;
+  payload.note=note;
   try{
-    await tourApi({action:'update', id, age});
-    const rec=CARE_ROWS.find(x=>x.c.id===id); if(rec) rec.c.age=age;
+    await tourApi(payload);
+    const c=CARE_ALL.find(x=>x.id===id); if(c){ if(age!=null) c.age=age; c.note=note; }
     toast('✓ Đã lưu','green'); closeModal();
+    renderCare();
   }catch(e){ toast('❌ '+(e.message||'Lỗi lưu'),'red'); }
 }
 window.renderCare=renderCare;
 window.careMarkDone=careMarkDone;
 window.openCareDetail=openCareDetail;
 window.careUploadPhoto=careUploadPhoto;
-window.saveCareAge=saveCareAge;
+window.saveCareDetail=saveCareDetail;
 /* ===== CÔNG VIỆC — lưu Supabase, chỉ Toàn quyền kiểm soát được giao/xoá việc ===== */
 let TASK_ROWS=[], TASKS_LOADED=false;
 const canManageTasks = () => curRole()==='Toàn quyền kiểm soát';
