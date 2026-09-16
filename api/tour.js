@@ -106,6 +106,11 @@ async function createCase(res, body, sess) {
   return res.status(200).json({ ok: true });
 }
 
+// Cột "does not exist" -> chưa chạy migration thêm cột (age/photo_before/photo_after/note) trên
+// Supabase. Thay vì lỗi cả trang, tự bỏ field lạ đó rồi thử lại — tính năng liên quan coi như tạm
+// chưa có, chứ không kéo sập cả Hậu chăm sóc.
+const MISSING_COLUMN_RE = /column .*\.?"?(\w+)"? does not exist/i;
+
 async function updateCase(res, body) {
   const id = String(body.id || '');
   if (!id) return res.status(400).json({ error: 'Thiếu id' });
@@ -120,11 +125,22 @@ async function updateCase(res, body) {
     const a = parseInt(body.age, 10);
     if (!isNaN(a) && a >= 0 && a <= 120) patch.age = a;
   }
+  if (body.note != null) patch.note = String(body.note).slice(0, 2000);
   if (body.case_date != null && /^\d{4}-\d{2}-\d{2}$/.test(body.case_date)) patch.case_date = body.case_date;
   if (!Object.keys(patch).length) return res.status(400).json({ error: 'Không có gì để cập nhật' });
   patch.updated_at = new Date().toISOString();
-  const r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
-  if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(500).json({ error: e?.message || 'Lỗi cập nhật' }); }
+
+  let r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    const m = MISSING_COLUMN_RE.exec(e?.message || '');
+    if (m && patch[m[1]] !== undefined) {
+      delete patch[m[1]];
+      r = await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
+      if (r.ok) return res.status(200).json({ ok: true, skipped: m[1] });
+    }
+    return res.status(500).json({ error: e?.message || 'Lỗi cập nhật' });
+  }
   return res.status(200).json({ ok: true });
 }
 
@@ -142,15 +158,30 @@ const CARE_DAYS = [1, 3, 7, 14, 30, 90];
 const CARE_WINDOW_DAYS = 120;   // ngoài 120 ngày coi như hết vòng chăm sóc
 
 // Trả về các ca trong vòng chăm sóc; client tự tính mốc nào đang tới hạn.
+// Cột age/photo_before/photo_after/note chỉ có sau khi chạy tour_cases_photos_setup.sql trên
+// Supabase — nếu chưa chạy, tự bỏ bớt rồi đọc lại (KHÔNG để lỗi cả trang Hậu chăm sóc).
 async function listCare(res) {
   const from = new Date(Date.now() - CARE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
-  const params = new URLSearchParams();
-  params.set('select', 'id,case_date,full_name,phone,age,service_initial,service_up,doctor,assistant,care_done');
-  params.append('case_date', `gte.${from}`);
-  params.set('order', 'case_date.desc');
-  params.set('limit', '2000');
-  const r = await fetch(sb(`${TABLE}?${params.toString()}`), { headers: sbHeaders() });
-  const rows = await r.json();
+  const baseCols = 'id,case_date,full_name,phone,service_initial,service_up,doctor,assistant,care_done';
+  const extraCols = ['age', 'photo_before', 'photo_after', 'note'];
+  const buildUrl = (select) => {
+    const params = new URLSearchParams();
+    params.set('select', select);
+    params.append('case_date', `gte.${from}`);
+    params.set('order', 'case_date.desc');
+    params.set('limit', '2000');
+    return `${TABLE}?${params.toString()}`;
+  };
+  let cols = extraCols.slice();
+  let r = await fetch(sb(buildUrl(baseCols + ',' + cols.join(','))), { headers: sbHeaders() });
+  let rows = await r.json();
+  while (!r.ok && cols.length) {
+    const m = MISSING_COLUMN_RE.exec(rows?.message || '');
+    if (!m || !cols.includes(m[1])) break;
+    cols = cols.filter(c => c !== m[1]);
+    r = await fetch(sb(buildUrl(cols.length ? baseCols + ',' + cols.join(',') : baseCols)), { headers: sbHeaders() });
+    rows = await r.json();
+  }
   if (!r.ok) return res.status(500).json({ error: rows?.message || 'Lỗi đọc dữ liệu' });
   return res.status(200).json({ rows, careDays: CARE_DAYS });
 }
