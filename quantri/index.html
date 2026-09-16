@@ -5065,7 +5065,6 @@ function previewSource(id){
 // SỔ THU/CHI: sếp tạo tab riêng mỗi tháng. ĐÃ THỬ tra theo TÊN tab (kiểu "sheet=DOANH THU T82026")
 // giống Marketing/Lead nhưng bị Google gviz âm thầm rớt về "tab đầu tiên" trên chính file này —
 // không báo lỗi, cứ trả về sai dữ liệu (đã tự kiểm chứng nhiều lần với cả tên có/không dấu cách).
-// Marketing/Lead dùng tra tên tab vẫn ổn vì là file khác — lỗi này riêng của file Sổ thu/chi.
 // Nên bắt buộc dùng GID (đã lấy từ link sếp gửi mỗi tháng), tra theo THÁNG THẬT để tự chuyển.
 // Thêm dòng mới mỗi khi sếp báo có tab tháng mới (gid nằm trong link sếp gửi: ...&gid=<số>).
 const REVENUE_BOOK_GID_BY_MONTH = {
@@ -5076,15 +5075,20 @@ function currentRevenueBookGid(){
   const d=new Date(), key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   return REVENUE_BOOK_GID_BY_MONTH[key] || null;   // chưa cấu hình tháng đó → fallback tab đầu (gid:null)
 }
+// 2026-09: phát hiện file MKT MỚI cũng bị Y HỆT lỗi tra theo TÊN TAB ở trên (từng tưởng chỉ Sổ thu/chi
+// mới bị) — nên cũng phải cấu hình GID theo tháng. Thêm dòng mới mỗi khi có tab tháng mới (mở tab đó
+// trên Google Sheets, xem trên URL đoạn "...#gid=<số>"). buildMktMonths() dùng cái này bên dưới.
+const MKT_GID_BY_MONTH = {
+  '2026-09': '876246784'   // BÁO CÁO MKT T9
+};
 const SEED_SOURCES = [
   { id:'DSLEADS', name:'THU LEADS (data khách từ landing)',
     url:'https://docs.google.com/spreadsheets/d/1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg',
     cat:'data', tab:'Lead HANA', sheetId:'1DVhW4kMX0hsMdJ-XktkM4OWKwJcmt4kCLLvYBvhIEUg', gid:null },
   { id:'DSMKT', name:'Báo cáo MKT (nguồn quảng cáo)',
     url:'https://docs.google.com/spreadsheets/d/10u879zKozZIvRNXMsn7TrkdjRBHbUal_/edit',
-    // tab lấy theo tháng hiện tại (giống MKT_SHEET_ID) thay vì gid cố định — trước đây gid neo cứng vào tab T7
-    // nên sang T8/T9 vẫn đọc nhầm data cũ; buildMktMonths() hoisted nên gọi được dù khai báo bên dưới.
-    cat:'quangcao', tab:buildMktMonths()[0].tab, sheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', gid:null },
+    // tab+gid lấy theo tháng hiện tại — buildMktMonths() hoisted nên gọi được dù khai báo bên dưới.
+    cat:'quangcao', tab:buildMktMonths()[0].tab, sheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', gid:buildMktMonths()[0].gid },
   { id:'DSBOOK', name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)',
     url:'https://docs.google.com/spreadsheets/d/1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q',
     cat:'doanhthu', book:'thuchi', tab:null, sheetId:'1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q', gid:currentRevenueBookGid() },
@@ -5107,9 +5111,9 @@ const SEED_SOURCES = [
 // Migration: repoint nguồn báo cáo MKT sang đúng file/tab (tránh dính sheetId cũ đã lưu localStorage).
 // newSheetId dùng khi cả file Google Sheet đã đổi hẳn (file cũ bị mất/mất quyền truy cập).
 const SOURCE_RETARGET = {
-  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:null, name:'Báo cáo MKT (nguồn quảng cáo)' },
+  '1Tqe0e3r8kiR041fLwCqYPa-EE-VY5n2E': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:buildMktMonths()[0].gid, name:'Báo cáo MKT (nguồn quảng cáo)' },
   // File MKT cũ (đã dùng tới hết T8) ngừng được cập nhật, NV chuyển qua ghi ở file mới từ T9 — 2026-09.
-  '1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:null, name:'Báo cáo MKT (nguồn quảng cáo)' },
+  '1xRt9s9hNhzqdb-sDx-Rl3y8bL5YHn3SI': { newSheetId:'10u879zKozZIvRNXMsn7TrkdjRBHbUal_', tab:buildMktMonths()[0].tab, gid:buildMktMonths()[0].gid, name:'Báo cáo MKT (nguồn quảng cáo)' },
   '1BSbBcrROo7ThOSC0quKM-6oNlMXOoPTKNLyXgfRhM3Q': { tab:null, gid:currentRevenueBookGid(), name:'SỔ THU/CHI (doanh thu · chi · lợi nhuận thật)' }
 };
 function seedDataSources(){
@@ -5314,15 +5318,16 @@ function buildMktMonths(){
   const START_Y=2025, START_M=12;
   const out=[];
   while(y>START_Y || (y===START_Y && m>=START_M)){
-    out.push({k:'Tháng '+m+'/'+y, tab:'BÁO CÁO MKT T'+m});
+    const key=y+'-'+String(m).padStart(2,'0');
+    out.push({k:'Tháng '+m+'/'+y, tab:'BÁO CÁO MKT T'+m, gid:MKT_GID_BY_MONTH[key]||null});
     m--; if(m<1){ m=12; y--; }
   }
   return out;
 }
 const MKT_MONTHS=buildMktMonths();
 const MKT_CACHE={};
-async function marketingMonth(tab){
-  if(MKT_CACHE[tab]===undefined){ try{ MKT_CACHE[tab]=await fetchSheet(MKT_SHEET_ID,{tab}); }catch(e){ MKT_CACHE[tab]=null; } }
+async function marketingMonth(tab, gid){
+  if(MKT_CACHE[tab]===undefined){ try{ MKT_CACHE[tab]=await fetchSheet(MKT_SHEET_ID,{tab,gid}); }catch(e){ MKT_CACHE[tab]=null; } }
   const mk = MKT_CACHE[tab] ? parseMarketingReport(MKT_CACHE[tab]) : null;
   if(!mk) return {T:{spend:0,mess:0,sdt:0,khach:0,lead:0,rev:0},days:[],hasFunnel:false,hasLead:false,hasRev:false,roas:0,ok:false};
   return {T:{spend:mk.totSpend,mess:mk.totMess,sdt:mk.totSdt,khach:mk.totKhach,lead:mk.totLead,rev:mk.totRev},days:mk.days,hasFunnel:mk.hasFunnel,hasLead:mk.hasLead,hasRev:mk.hasRev,roas:mk.totSpend?(mk.totRev/mk.totSpend):0,ok:true};
@@ -5344,7 +5349,7 @@ async function renderMarketing(){
   const cur=MKT_MONTHS.find(m=>m.tab===mktMonthFilter) || MKT_MONTHS[0];
   const monthKey=cur.k;
   const topEl=document.getElementById('mktTopMonth'); if(topEl) topEl.textContent=monthKey;
-  const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.tab);
+  const {T,days,hasFunnel,hasLead,hasRev,roas,ok}=await marketingMonth(cur.tab, cur.gid);
   const grid=gel('mktKpiGrid'), funnel=gel('mktFunnel'), daily=gel('mktDaily'), sub=gel('mktReportSub');
   if(!ok || !days.length){
     if(grid) grid.innerHTML='<div class="kpi k2"><div class="ic">💰</div><div class="label">Chi phí quảng cáo</div><div class="val">—</div><div class="delta">'+monthKey+'</div></div>';

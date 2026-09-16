@@ -76,15 +76,49 @@ export async function readSheetValues(spreadsheetId, tabName, renderOption = 'FO
   return d.values || [];
 }
 
+// Vài file Sheet trong Drive thực ra vẫn ở dạng Office (.xlsx) chưa convert hẳn sang Google Sheets —
+// dù mở/sửa bình thường trên giao diện, Sheets API v4 (values.get) TỪ CHỐI đọc loại này với lỗi
+// "This operation is not supported for this document. The document must not be an Office file."
+// gviz thì đọc được cả 2 dạng -> dùng làm phương án 2 khi gặp đúng lỗi này, vẫn kèm access token
+// của Service Account để sheet không phải public (gviz chấp nhận Bearer token cho sheet riêng tư).
+// QUAN TRỌNG: dùng GID khi có thể, KHÔNG dùng tên tab — đã kiểm chứng nhiều lần (kể cả trên chính
+// file này) gviz tra theo TÊN TAB có thể âm thầm rớt về tab SAI khi file có nhiều tab tên gần giống
+// nhau (không báo lỗi). Tra theo gid thì luôn ổn định.
+async function readViaAuthenticatedGviz(spreadsheetId, { tab, gid } = {}, fallbackTabName) {
+  const token = await getGoogleAccessToken();
+  let u = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
+  if (gid != null && gid !== '') u += '&gid=' + encodeURIComponent(gid);
+  else u += '&sheet=' + encodeURIComponent(tab || fallbackTabName || '');
+  const r = await fetch(u, { headers: { Authorization: `Bearer ${token}` } });
+  const txt = await r.text();
+  const s = txt.indexOf('{'), e = txt.lastIndexOf('}') + 1;
+  if (s < 0 || e <= s) throw new Error('gviz: không đọc được sheet (file vẫn ở dạng Office)');
+  const json = JSON.parse(txt.slice(s, e));
+  if (json.status === 'error') throw new Error((json.errors || []).map(x => x.detailed_message || x.message).join('; ') || 'gviz báo lỗi quyền truy cập');
+  const t = json.table || {};
+  const noLabel = (t.cols || []).every(c => !c.label);
+  let cols = (t.cols || []).map(c => c.label || '');
+  let rows = (t.rows || []).map(row => (row.c || []).map(c => (c == null ? '' : (c.f != null ? c.f : (c.v != null ? c.v : '')))));
+  let raw = (t.rows || []).map(row => (row.c || []).map(c => (c == null ? null : c.v)));
+  if (noLabel && rows.length) { cols = rows[0].map(x => String(x)); rows = rows.slice(1); raw = raw.slice(1); }
+  return { cols, rows, raw, tab: fallbackTabName || tab || null };
+}
+
 // Đọc 1 tab, trả về đúng dạng mà trang quản trị đang dùng: { cols, rows, raw }
 //   cols = tên cột (lấy từ dòng đầu)   rows = giá trị hiển thị   raw = giá trị gốc để tính toán
 export async function readSheet(spreadsheetId, { tab, gid } = {}) {
   const title = await resolveTabName(spreadsheetId, { tab, gid });
-  // Gọi song song 2 kiểu: bản hiển thị (có định dạng) và bản gốc (số/ngày thô).
-  const [fRows, rRows] = await Promise.all([
-    readSheetValues(spreadsheetId, title, 'FORMATTED_VALUE'),
-    readSheetValues(spreadsheetId, title, 'UNFORMATTED_VALUE')
-  ]);
+  let fRows, rRows;
+  try {
+    // Gọi song song 2 kiểu: bản hiển thị (có định dạng) và bản gốc (số/ngày thô).
+    [fRows, rRows] = await Promise.all([
+      readSheetValues(spreadsheetId, title, 'FORMATTED_VALUE'),
+      readSheetValues(spreadsheetId, title, 'UNFORMATTED_VALUE')
+    ]);
+  } catch (e) {
+    if (/Office file/i.test(e?.message || '')) return await readViaAuthenticatedGviz(spreadsheetId, { tab, gid }, title);
+    throw e;
+  }
   if (!fRows.length) return { cols: [], rows: [], raw: [], tab: title };
 
   const cols = (fRows[0] || []).map(x => String(x == null ? '' : x));
