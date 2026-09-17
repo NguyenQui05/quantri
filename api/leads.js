@@ -208,14 +208,19 @@ async function syncFromSheet(res) {
 
   const toInsert = candidates.filter(c => !existSet.has(`${c.phone}|${c.lead_date}`));
   let inserted = 0;
+  let insertError = null;
   const CHUNK = 200;
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const batch = toInsert.slice(i, i + CHUNK);
     const r = await fetch(sb(TABLE), { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(batch) });
-    if (r.ok) inserted += batch.length;
-    else console.error('sync insert batch lỗi:', await r.text().catch(() => ''));
+    if (r.ok) { inserted += batch.length; continue; }
+    const errTxt = await r.text().catch(() => '');
+    console.error('sync insert batch lỗi:', errTxt);
+    if (!insertError) insertError = errTxt.slice(0, 500);   // lộ lỗi thật ra response để soi ngay, không chỉ nằm im trong log server
   }
-  return res.status(200).json({ ok: true, tab: currentLeadSheetTab(), checked: candidates.length, inserted, skipped: candidates.length - toInsert.length });
+  const out = { ok: true, tab: currentLeadSheetTab(), checked: candidates.length, inserted, skipped: candidates.length - toInsert.length };
+  if (insertError) out.insertError = insertError;
+  return res.status(200).json(out);
 }
 
 async function publicCreateLead(res, req, body) {
