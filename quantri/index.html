@@ -512,7 +512,7 @@
       <a data-section="calendar"><span class="ic">📅</span>Lịch hẹn<span class="badge" id="calBadge">0</span></a>
       <a data-section="crm"><span class="ic">👥</span>Khách hàng</a>
       <a data-section="leads"><span class="ic">📥</span>Lead Mới<span class="badge" id="leadsBadge" style="background:var(--green)">0</span></a>
-      <a data-section="newcust"><span class="ic">🆕</span>Khách Mới<span class="badge" id="ncBadge" style="background:var(--gold)">0</span></a>
+      <a data-section="newcust" style="display:none"><span class="ic">🆕</span>Khách Mới<span class="badge" id="ncBadge" style="background:var(--gold)">0</span></a>
       <a data-section="care"><span class="ic">🛎️</span>Hậu chăm sóc<span class="badge" id="careBadge">0</span></a>
       <a data-section="phangoi"><span class="ic">📲</span>Phân gọi khách<span class="badge" id="phangoiBadge" style="background:var(--gold)">0</span></a>
 
@@ -5673,6 +5673,8 @@ window.roleLogout=roleLogout; window.canDelete=canDelete; window.roleInitFromSer
 
 /* ===== INIT ===== */
 renderTodayApps(); renderTopStaff(); renderCRM(); staffLoad(); renderCare();
+// Hậu chăm sóc tự nạp khách mới (lễ tân xác nhận đã đến) mỗi 60s khi đang mở trang
+setInterval(()=>{ if(document.getElementById('page-care')?.classList.contains('active') && !document.hidden) renderCare(); }, 60000);
 renderTasks();
 renderCampaigns(); apptLoad(); renderLeads(); syncOverviewTopServices(); renderNewCustomers();
 seedDataSources(); renderDataSources();

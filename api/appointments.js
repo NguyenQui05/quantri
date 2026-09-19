@@ -209,6 +209,30 @@ async function markStatus(res, body, sess) {
         });
       }
     } catch (e) { console.error('sync lead arrived error:', e?.message || e); }
+
+    // Khách đã đến -> tự vào Hậu chăm sóc (bảng tour_cases), không cần bác sĩ nhập ca.
+    // Chặn trùng theo SĐT + ngày; lỗi bước này không chặn kết quả xác nhận.
+    try {
+      const g = await fetch(sb(`${TABLE}?id=eq.${id}&select=full_name,phone,service,appt_date`), { headers: sbHeaders() });
+      const a = (await g.json())?.[0];
+      if (a && a.full_name && /^\d{4}-\d{2}-\d{2}$/.test(String(a.appt_date || ''))) {
+        const ph = String(a.phone || '').replace(/\D/g, '');
+        const dupQ = ph
+          ? `tour_cases?case_date=eq.${a.appt_date}&phone=eq.${ph}&select=id&limit=1`
+          : `tour_cases?case_date=eq.${a.appt_date}&full_name=eq.${encodeURIComponent(a.full_name)}&select=id&limit=1`;
+        const d = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${dupQ}`, { headers: sbHeaders() });
+        const dup = d.ok ? await d.json() : [];
+        if (!dup.length) {
+          await fetch(`${process.env.SUPABASE_URL}/rest/v1/tour_cases`, {
+            method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
+            body: JSON.stringify({
+              case_date: a.appt_date, full_name: String(a.full_name).slice(0, 100), phone: ph.slice(0, 15),
+              service_initial: String(a.service || '').slice(0, 200), created_by: sess.u || ''
+            })
+          });
+        }
+      }
+    } catch (e) { console.error('auto care case error:', e?.message || e); }
   }
 
   return res.status(200).json({ ok: true });
