@@ -215,6 +215,14 @@ async function markStatus(res, body, sess) {
     try {
       const g = await fetch(sb(`${TABLE}?id=eq.${id}&select=full_name,phone,service,appt_date`), { headers: sbHeaders() });
       const a = (await g.json())?.[0];
+      const it = body.intake && typeof body.intake === 'object' ? body.intake : null;
+      if (a && it) {
+        // Phiếu lễ tân nhập: tên/dịch vụ đúng thực tế thay cho thông tin lúc đặt hẹn.
+        if (String(it.full_name || '').trim()) a.full_name = String(it.full_name).trim();
+        if (String(it.service || '').trim()) a.service = String(it.service).trim();
+        await fetch(sb(`${TABLE}?id=eq.${id}`), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+          body: JSON.stringify({ full_name: String(a.full_name).slice(0, 100), service: String(a.service || '').slice(0, 200) }) });
+      }
       if (a && a.full_name && /^\d{4}-\d{2}-\d{2}$/.test(String(a.appt_date || ''))) {
         const ph = String(a.phone || '').replace(/\D/g, '');
         const dupQ = ph
@@ -223,13 +231,28 @@ async function markStatus(res, body, sess) {
         const d = await fetch(`${process.env.SUPABASE_URL}/rest/v1/${dupQ}`, { headers: sbHeaders() });
         const dup = d.ok ? await d.json() : [];
         if (!dup.length) {
-          await fetch(`${process.env.SUPABASE_URL}/rest/v1/tour_cases`, {
-            method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
-            body: JSON.stringify({
-              case_date: a.appt_date, full_name: String(a.full_name).slice(0, 100), phone: ph.slice(0, 15),
-              service_initial: String(a.service || '').slice(0, 200), created_by: sess.u || ''
-            })
-          });
+          const row = {
+            case_date: a.appt_date, full_name: String(a.full_name).slice(0, 100), phone: ph.slice(0, 15),
+            service_initial: String(a.service || '').slice(0, 200), created_by: sess.u || ''
+          };
+          if (it) {
+            const yr = parseInt(it.birth_year, 10);
+            if (yr >= 1900 && yr <= 2100) row.birth_year = yr;
+            if (String(it.address || '').trim()) row.address = String(it.address).trim().slice(0, 200);
+            const price = Math.max(0, parseInt(it.price, 10) || 0);
+            if (price) row.revenue_initial = price;
+            if (String(it.note || '').trim()) row.note = String(it.note).trim().slice(0, 2000);
+          }
+          // Cột birth_year/address/note chỉ có sau khi chạy SQL migration — thiếu cột nào thì bỏ cột đó rồi ghi lại.
+          for (let n = 0; n < 4; n++) {
+            const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/tour_cases`, {
+              method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row)
+            });
+            if (r.ok) break;
+            const m = /column .*?"?(\w+)"? (?:of relation .* )?does not exist/i.exec(JSON.stringify(await r.json().catch(() => ({}))));
+            if (!m || row[m[1]] === undefined) { console.error('auto care insert lỗi'); break; }
+            delete row[m[1]];
+          }
         }
       }
     } catch (e) { console.error('auto care case error:', e?.message || e); }

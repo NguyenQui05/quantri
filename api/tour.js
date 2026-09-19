@@ -163,7 +163,7 @@ const CARE_WINDOW_DAYS = 120;   // ngoài 120 ngày coi như hết vòng chăm s
 async function listCare(res) {
   const from = new Date(Date.now() - CARE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
   const baseCols = 'id,case_date,full_name,phone,service_initial,service_up,doctor,assistant,care_done';
-  const extraCols = ['age', 'photo_before', 'photo_after', 'note'];
+  const extraCols = ['age', 'birth_year', 'address', 'photo_before', 'photo_after', 'note'];
   const buildUrl = (select) => {
     const params = new URLSearchParams();
     params.set('select', select);

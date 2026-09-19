@@ -5,4 +5,6 @@ alter table public.tour_cases
   add column if not exists age integer,
   add column if not exists photo_before text,
   add column if not exists photo_after text,
-  add column if not exists note text;
+  add column if not exists note text,
+  add column if not exists birth_year integer,
+  add column if not exists address text;

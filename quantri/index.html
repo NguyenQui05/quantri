@@ -1653,7 +1653,7 @@ function openModal(type, ctx){
       <div style="margin-bottom:14px"><label class="bl">Ghi chú</label><input id="ap-ed-note" class="bi" value="${pgEscAttr(a.note)}"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
         <button class="btn sm" onclick="toast('📞 Gọi/Zalo ${pgEscAttr(a.phone)}','ok')">📞 Gọi / Zalo</button>
-        ${a.status!=='den'?`<button class="btn sm green" onclick="apptMarkStatus('${a.id}','den');closeModal()">✅ Đã đến</button>`:''}
+        ${a.status!=='den'?`<button class="btn sm green" onclick="apptMarkStatus('${a.id}','den')">✅ Đã đến</button>`:''}
         ${a.status!=='cho'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','cho');closeModal()">⏳ Chưa đến</button>`:''}
         ${a.status!=='huy'?`<button class="btn ghost sm" onclick="apptMarkStatus('${a.id}','huy');closeModal()">✕ Huỷ lịch</button>`:''}
       </div>
@@ -3062,6 +3062,8 @@ function openCareDetail(id){
     <table style="width:100%;font-size:.86rem;border-collapse:collapse">
       ${row('Dịch vụ', esc(svc))}
       ${row('Ngày làm', esc(c.case_date||'')+' · D'+daysSince)}
+      ${c.birth_year?row('Năm sinh', esc(String(c.birth_year))+' ('+(new Date().getFullYear()-c.birth_year)+' tuổi)'):''}
+      ${c.address?row('Nơi ở', esc(c.address)):''}
       ${row('Giai đoạn hiện tại', esc(sop.stage)+(overdue>1?` <span style="color:var(--red)">(trễ ${overdue} ngày)</span>`:''))}
     </table>
     <div style="margin-top:12px">
@@ -3513,9 +3515,43 @@ async function apptCreate(){
   }catch(e){ toast('❌ '+e.message,'red'); }
 }
 window.apptCreate=apptCreate;
-async function apptMarkStatus(id,status){
+/* Lễ tân bấm "Đã đến" -> mở phiếu nhập thông tin khách (tên, năm sinh, nơi ở, dịch vụ, giá, ghi chú)
+   rồi mới xác nhận; máy chủ dùng phiếu này tạo ca vào Hậu chăm sóc. */
+function apptMarkStatus(id,status,intake){
+  if(status==='den' && !intake){
+    const a=(APPTS.rows||[]).find(x=>x.id===id)||{};
+    const t=gel('modalTitle'), b=gel('modalBody'); if(!t||!b) return apptDoMark(id,status);
+    modalEl.classList.remove('lg'); t.textContent='✅ Khách đã đến — nhập thông tin';
+    const f=(lbl,html)=>`<div style="margin-bottom:10px"><label style="font-size:.8rem;color:var(--muted);font-weight:600;display:block;margin-bottom:4px">${lbl}</label>${html}</div>`;
+    b.innerHTML=
+      f('Tên khách *',`<input id="ik-name" style="width:100%" value="${esc(a.full_name||'')}">`)+
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">`+
+        f('Năm sinh',`<input id="ik-year" type="number" min="1900" max="2100" style="width:100%" placeholder="VD: 1995">`)+
+        f('Giá tiền (₫)',`<input id="ik-price" type="number" min="0" style="width:100%" placeholder="VD: 15000000">`)+
+      `</div>`+
+      f('Nơi ở',`<input id="ik-addr" style="width:100%" placeholder="Quận/huyện, tỉnh/thành">`)+
+      f('Dịch vụ làm *',`<input id="ik-svc" style="width:100%" value="${esc(a.service||'')}">`)+
+      f('Ghi chú',`<textarea id="ik-note" rows="3" style="width:100%" placeholder="Ghi chú thêm..."></textarea>`)+
+      `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn ghost sm" onclick="closeModal()">Huỷ</button>
+        <button class="btn sm green" onclick="apptSubmitIntake('${id}')">✅ Xác nhận đã đến</button></div>`;
+    modalBg.classList.add('show');
+    return;
+  }
+  return apptDoMark(id,status,intake);
+}
+function apptSubmitIntake(id){
+  const v=k=>(gel(k)?.value||'').trim();
+  const name=v('ik-name'), svc=v('ik-svc');
+  if(!name||!svc){ toast('⚠️ Cần nhập Tên khách và Dịch vụ','red'); return; }
+  const intake={full_name:name, birth_year:v('ik-year'), address:v('ik-addr'), service:svc, price:v('ik-price'), note:v('ik-note')};
+  closeModal();
+  apptDoMark(id,'den',intake);
+}
+window.apptSubmitIntake=apptSubmitIntake;
+async function apptDoMark(id,status,intake){
   try{
-    await apptApi({action:'mark_status', id, status});
+    await apptApi(Object.assign({action:'mark_status', id, status}, intake?{intake}:{}));
     const label={den:'✅ Đã xác nhận khách đến',cho:'⏳ Đã chuyển về chưa đến',huy:'✕ Đã huỷ lịch hẹn'}[status]||'Đã cập nhật';
     toast(label,'green');
     await apptLoad(true);
